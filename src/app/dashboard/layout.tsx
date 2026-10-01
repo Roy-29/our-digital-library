@@ -1,0 +1,171 @@
+'use client';
+
+import { useEffect, useState, ReactNode } from 'react';
+import { useRouter, usePathname } from 'next/navigation';
+import { useAuth } from '@/contexts/AuthContext';
+import Link from 'next/link';
+
+const NAV_ITEMS = [
+  { section: 'প্রধান' },
+  { href: '/dashboard', icon: '🏠', label: 'ড্যাশবোর্ড' },
+  { href: '/dashboard/books', icon: '📚', label: 'সব বই' },
+  { href: '/dashboard/books/add', icon: '➕', label: 'নতুন বই যোগ' },
+  { section: 'ট্র্যাকিং' },
+  { href: '/dashboard/reading', icon: '📖', label: 'পড়ছি' },
+  { href: '/dashboard/lending', icon: '📤', label: 'ধার দেওয়া' },
+  { href: '/dashboard/wishlist', icon: '🛒', label: 'কিনতে হবে' },
+  { section: 'পরিচালনা' },
+  { href: '/dashboard/authors', icon: '✍️', label: 'লেখক' },
+  { href: '/dashboard/publishers', icon: '🏢', label: 'প্রকাশক' },
+  { href: '/dashboard/categories', icon: '🏷️', label: 'Category / Genre' },
+  { href: '/dashboard/people', icon: '👥', label: 'মানুষ' },
+  { href: '/dashboard/locations', icon: '📍', label: 'কোথায় রাখা আছে' },
+  { section: 'অন্যান্য' },
+  { href: '/dashboard/activity', icon: '📋', label: 'কার্যকলাপ' },
+  { href: '/dashboard/backup', icon: '💾', label: 'ব্যাকআপ' },
+];
+
+const MOBILE_NAV = [
+  { href: '/dashboard', icon: '🏠', label: 'Home' },
+  { href: '/dashboard/books', icon: '📚', label: 'Books' },
+  { href: '/dashboard/books/add', icon: '➕', label: 'Add', isAdd: true },
+  { href: '/dashboard/lending', icon: '📤', label: 'Lent' },
+  { href: '/dashboard/more', icon: '☰', label: 'More' },
+];
+
+export default function DashboardLayout({ children }: { children: ReactNode }) {
+  const { user, profile, loading, signOut } = useAuth();
+  const router = useRouter();
+  const pathname = usePathname();
+  const [sidebarOpen, setSidebarOpen] = useState(false);
+
+  useEffect(() => {
+    if (!loading && !user) {
+      router.push('/');
+    }
+  }, [user, loading, router]);
+
+  useEffect(() => {
+    setSidebarOpen(false);
+  }, [pathname]);
+
+  if (loading) {
+    return (
+      <div className="loading-screen">
+        <div className="spinner" />
+      </div>
+    );
+  }
+
+  if (!user) return null;
+
+  const displayName = profile?.display_name || user.email?.split('@')[0] || 'User';
+  const initials = displayName.charAt(0).toUpperCase();
+
+  return (
+    <div className="app-layout">
+      {/* Mobile menu toggle */}
+      <button
+        className="mobile-menu-toggle"
+        onClick={() => setSidebarOpen(!sidebarOpen)}
+        aria-label="Toggle menu"
+      >
+        {sidebarOpen ? '✕' : '☰'}
+      </button>
+
+      {/* Sidebar overlay for mobile */}
+      {sidebarOpen && (
+        <div
+          style={{
+            position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.4)',
+            zIndex: 99, display: 'none',
+          }}
+          className="sidebar-overlay"
+          onClick={() => setSidebarOpen(false)}
+        />
+      )}
+
+      {/* Sidebar */}
+      <aside className={`sidebar ${sidebarOpen ? 'open' : ''}`}>
+        <div className="sidebar-brand">
+          <h1>📚 ডিজিটাল বইয়ের ঘর</h1>
+          <p>Personal Digital Library</p>
+        </div>
+
+        <nav className="sidebar-nav">
+          {NAV_ITEMS.map((item, i) => {
+            if ('section' in item && item.section) {
+              return (
+                <div key={i} className="sidebar-section-title">
+                  {item.section}
+                </div>
+              );
+            }
+            const navItem = item as { href: string; icon: string; label: string };
+            const isActive = pathname === navItem.href || 
+              (navItem.href !== '/dashboard' && pathname.startsWith(navItem.href));
+            return (
+              <Link
+                key={navItem.href}
+                href={navItem.href}
+                className={`sidebar-link ${isActive ? 'active' : ''}`}
+              >
+                <span className="icon">{navItem.icon}</span>
+                <span>{navItem.label}</span>
+              </Link>
+            );
+          })}
+        </nav>
+
+        <div className="sidebar-user">
+          <div className="sidebar-user-avatar">{initials}</div>
+          <div className="sidebar-user-info">
+            <div className="sidebar-user-name">{displayName}</div>
+            <div className="sidebar-user-email">{user.email}</div>
+          </div>
+          <button
+            className="btn btn-ghost btn-icon"
+            onClick={signOut}
+            title="লগআউট"
+            style={{ color: 'rgba(255,255,255,0.5)' }}
+          >
+            🚪
+          </button>
+        </div>
+      </aside>
+
+      {/* Main content */}
+      <main className="main-content">
+        {children}
+      </main>
+
+      {/* Mobile bottom nav */}
+      <nav className="mobile-nav">
+        <div className="mobile-nav-items">
+          {MOBILE_NAV.map((item) => {
+            const isActive = pathname === item.href ||
+              (item.href !== '/dashboard' && !item.isAdd && pathname.startsWith(item.href));
+            return (
+              <Link
+                key={item.href}
+                href={item.href}
+                className={`mobile-nav-item ${isActive ? 'active' : ''} ${item.isAdd ? 'add-btn' : ''}`}
+              >
+                <span className="nav-icon">{item.icon}</span>
+                <span>{item.label}</span>
+              </Link>
+            );
+          })}
+        </div>
+      </nav>
+
+      <style jsx>{`
+        @media (max-width: 768px) {
+          .sidebar-overlay {
+            display: block !important;
+          }
+        }
+      `}</style>
+    </div>
+  );
+}
