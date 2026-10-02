@@ -94,7 +94,12 @@ export type BookStatus =
   | 'ধার দেওয়া'
   | 'ফেরত পাওয়া বাকি'
   | 'হারিয়ে গেছে'
-  | 'কিনতে হবে';
+  | 'কিনতে হবে'
+  | 'পড়া শেষ (কাছে নেই)'
+  | 'কিনবো'
+  | 'পড়ছি (কাছে নেই)'
+  | 'ধার করে পড়া'
+  | 'ই-বুক / পিডিএফ';
 
 export type BookCondition = 'new' | 'used' | 'gift' | 'unknown';
 
@@ -272,6 +277,19 @@ export const BOOK_STATUSES: { value: BookStatus; label: string; icon: string; co
   { value: 'ফেরত পাওয়া বাকি', label: 'ফেরত পাওয়া বাকি', icon: '⏰', color: '#EF4444' },
   { value: 'হারিয়ে গেছে', label: 'হারিয়ে গেছে', icon: '❌', color: '#DC2626' },
   { value: 'কিনতে হবে', label: 'কিনতে হবে', icon: '🛒', color: '#06B6D4' },
+  { value: 'পড়া শেষ (কাছে নেই)', label: 'পড়া শেষ (কাছে নেই)', icon: '📘', color: '#0284C7' },
+  { value: 'কিনবো', label: 'কিনবো', icon: '🛒', color: '#D97706' },
+  { value: 'পড়ছি (কাছে নেই)', label: 'পড়ছি (কাছে নেই)', icon: '📖', color: '#2563EB' },
+  { value: 'ধার করে পড়া', label: 'ধার করে পড়া', icon: '🤝', color: '#7C3AED' },
+  { value: 'ই-বুক / পিডিএফ', label: 'ই-বুক / পিডিএফ', icon: '📱', color: '#059669' },
+];
+
+export const UNOWNED_STATUSES: BookStatus[] = [
+  'পড়া শেষ (কাছে নেই)',
+  'কিনবো',
+  'পড়ছি (কাছে নেই)',
+  'ধার করে পড়া',
+  'ই-বুক / পিডিএফ',
 ];
 
 export const OWNERS: { value: BookOwner; label: string }[] = [

@@ -17,6 +17,7 @@ const NAV_ITEMS = [
   { href: '/dashboard/reading', icon: '📖', label: 'পড়ছি' },
   { href: '/dashboard/lending', icon: '📤', label: 'ধার দেওয়া' },
   { href: '/dashboard/wishlist', icon: '🛒', label: 'কিনতে হবে' },
+  { href: '/dashboard/unowned', icon: '🔖', label: 'আমার কাছে নেই' },
   { section: 'পরিচালনা' },
   { href: '/dashboard/authors', icon: '✍️', label: 'লেখক' },
   { href: '/dashboard/publishers', icon: '🏢', label: 'প্রকাশক' },

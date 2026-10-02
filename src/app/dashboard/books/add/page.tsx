@@ -398,7 +398,19 @@ export default function AddBookPage() {
                   </div>
                   <div className="form-group">
                     <label className="form-label">📊 স্ট্যাটাস</label>
-                    <select className="form-select" value={status} onChange={e => setStatus(e.target.value as BookStatus)}>
+                    <select 
+                      className="form-select" 
+                      value={status} 
+                      onChange={e => {
+                        const s = e.target.value as BookStatus;
+                        setStatus(s);
+                        if (['পড়া শেষ (কাছে নেই)', 'কিনবো', 'পড়ছি (কাছে নেই)', 'ধার করে পড়া', 'ই-বুক / পিডিএফ'].includes(s)) {
+                          setIsPurchased(false);
+                        } else if (s === 'আছে') {
+                          setIsPurchased(true);
+                        }
+                      }}
+                    >
                       {BOOK_STATUSES.map(s => <option key={s.value} value={s.value}>{s.icon} {s.label}</option>)}
                     </select>
                   </div>
@@ -414,15 +426,26 @@ export default function AddBookPage() {
 
           <div className="card">
               <div className="card-header" style={{ padding: '20px 32px', borderBottom: '1px solid var(--border-light)' }}>
-                <h3 style={{ margin: 0, fontSize: '1.2rem', color: 'var(--text-primary)' }}>💰 ক্রয়</h3>
+                <h3 style={{ margin: 0, fontSize: '1.2rem', color: 'var(--text-primary)' }}>💰 ক্রয় ও সংগ্রহ</h3>
               </div>
               <div className="card-body">
                 <div className="form-group">
                   <label className="form-checkbox">
                     <input type="checkbox" checked={isPurchased} onChange={e => setIsPurchased(e.target.checked)} />
-                    কেনা হয়েছে
+                    ফিজিক্যাল কপি কেনা হয়েছে (সংগ্রহে আছে)
                   </label>
                 </div>
+                {!isPurchased && (
+                  <div className="form-group" style={{ marginTop: '12px' }}>
+                    <label className="form-label">📍 কোথা থেকে পড়া / উৎস</label>
+                    <input 
+                      className="form-input" 
+                      value={purchaseSource} 
+                      onChange={e => setPurchaseSource(e.target.value)} 
+                      placeholder="যেমন: বিশ্বসাহিত্য কেন্দ্র লাইব্রেরি, বন্ধুর বই, অনলাইন/পিডিএফ..." 
+                    />
+                  </div>
+                )}
                 {isPurchased && (
                   <>
                     <div className="form-row">
