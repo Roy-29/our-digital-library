@@ -96,7 +96,7 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
         <div
           style={{
             position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)',
-            zIndex: 99, backdropFilter: 'blur(2px)',
+            zIndex: 1040, backdropFilter: 'blur(2px)',
           }}
           className="sidebar-overlay"
           onClick={() => setSidebarOpen(false)}
@@ -106,6 +106,13 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
       {/* Sidebar */}
       <aside className={`sidebar ${sidebarOpen ? 'open' : ''}`}>
         <div className="sidebar-brand">
+          <button
+            className="mobile-close-sidebar-btn"
+            onClick={() => setSidebarOpen(false)}
+            aria-label="Close menu"
+          >
+            ✕
+          </button>
           <h1>📚 ডিজিটাল বইয়ের ঘর</h1>
           <p>Personal Digital Library</p>
         </div>
