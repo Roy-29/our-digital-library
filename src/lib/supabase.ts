@@ -96,9 +96,13 @@ export const createClient = () => {
         },
         then<TResult1 = any, TResult2 = never>(onfulfilled?: any, onrejected?: any): Promise<TResult1 | TResult2> {
           return new Promise((resolve, reject) => {
+            const orderCol = currentQuery._order?.col 
+              ? currentQuery._order.col.replace(/_([a-z])/g, (g: string) => g[1].toUpperCase())
+              : undefined;
+
             dbSelect(
               currentQuery.table, 
-              currentQuery._order?.col, 
+              orderCol, 
               currentQuery._order?.ascending
             ).then(data => {
               let filtered = data;
