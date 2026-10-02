@@ -196,7 +196,6 @@ export default async function DashboardPage() {
             { href: '/dashboard/reading', icon: '📖', label: 'পড়ছি' },
             { href: '/dashboard/authors', icon: '✍️', label: 'লেখক পরিচালনা' },
             { href: '/dashboard/publishers', icon: '🏢', label: 'প্রকাশক পরিচালনা' },
-            { href: '/dashboard/locations', icon: '📍', label: 'শেলফ পরিচালনা' },
           ].map((link) => (
             <Link key={link.href} href={link.href} className="card" style={{ padding: '16px', textDecoration: 'none', display: 'flex', alignItems: 'center', gap: '12px' }}>
               <span style={{ fontSize: '1.5rem' }}>{link.icon}</span>
