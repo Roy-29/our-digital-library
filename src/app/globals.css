@@ -188,6 +188,7 @@ h3 { font-size: 1.25rem; }
   right: 24px;
   height: 1px;
   background: linear-gradient(90deg, transparent, rgba(255,255,255,0.1), transparent);
+  background-clip: border-box; /* added for compatibility */
 }
 
 .sidebar-brand h1 {

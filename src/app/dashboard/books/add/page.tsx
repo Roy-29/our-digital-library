@@ -122,6 +122,27 @@ export default function AddBookPage() {
       toast.error('বইয়ের নাম লিখুন');
       return;
     }
+
+    // Check for duplicate title
+    const { data: dupBooks, error: dupError } = await supabase
+      .from('books')
+      .select('id')
+      .eq('title', title.trim());
+
+    if (dupError) {
+      toast.error('ডুপ্লিকেট চেক করতে ত্রুটি: ' + dupError.message);
+      return;
+    }
+
+    if (dupBooks && dupBooks.length > 0) {
+      const confirmAdd = window.confirm(
+        'এই নামের একটি বই ইতিমধ্যে সংগ্রহে আছে, আপনি কি তবুও আরেকটি কপি যোগ করতে চান?'
+      );
+      if (!confirmAdd) {
+        return;
+      }
+    }
+
     setSaving(true);
     
     const resolveAuthor = async (name: string) => {
