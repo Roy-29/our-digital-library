@@ -8,7 +8,7 @@ export const dynamic = 'force-dynamic'; // Prevent caching so dashboard is alway
 
 export default async function DashboardPage() {
   const [
-    total_books, swapnil_books, bipro_books, srrijan_books, shared_books, 
+    total_books, swapnil_books, bipro_books, srrijan_books, 
     read_books, unread_books, reading_books, lent_books, lost_books, 
     wishlist_count, total_value, total_spent, books_this_month, 
     books_this_year, overdue_lendings
@@ -17,7 +17,6 @@ export default async function DashboardPage() {
     db.select({ count: sql<number>`count(*)` }).from(books).where(eq(books.owner, 'swapnil')).then(res => res[0].count),
     db.select({ count: sql<number>`count(*)` }).from(books).where(eq(books.owner, 'bipro')).then(res => res[0].count),
     db.select({ count: sql<number>`count(*)` }).from(books).where(eq(books.owner, 'srrijan')).then(res => res[0].count),
-    db.select({ count: sql<number>`count(*)` }).from(books).where(eq(books.owner, 'shared')).then(res => res[0].count),
     db.select({ count: sql<number>`count(*)` }).from(books).where(eq(books.status, 'পড়া শেষ')).then(res => res[0].count),
     db.select({ count: sql<number>`count(*)` }).from(books).where(eq(books.status, 'পড়া বাকি')).then(res => res[0].count),
     db.select({ count: sql<number>`count(*)` }).from(books).where(eq(books.status, 'পড়ছি')).then(res => res[0].count),
@@ -47,7 +46,7 @@ export default async function DashboardPage() {
   .limit(8);
 
   const s = {
-    total_books, swapnil_books, bipro_books, srrijan_books, shared_books, read_books, unread_books, reading_books, lent_books, lost_books, wishlist_count, total_value, total_spent, books_this_month, books_this_year, overdue_lendings
+    total_books, swapnil_books, bipro_books, srrijan_books, read_books, unread_books, reading_books, lent_books, lost_books, wishlist_count, total_value, total_spent, books_this_month, books_this_year, overdue_lendings
   };
 
   return (
@@ -82,11 +81,6 @@ export default async function DashboardPage() {
             <span className="stat-icon">👤</span>
             <span className="stat-value">{s.srrijan_books}</span>
             <span className="stat-label">সৃজন-এর বই</span>
-          </div>
-          <div className="stat-card">
-            <span className="stat-icon">🤝</span>
-            <span className="stat-value">{s.shared_books}</span>
-            <span className="stat-label">যৌথ বই</span>
           </div>
           <div className="stat-card">
             <span className="stat-icon">✅</span>

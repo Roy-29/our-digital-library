@@ -83,7 +83,7 @@ export interface Rack {
   shelf?: Shelf;
 }
 
-export type BookOwner = 'swapnil' | 'bipro' | 'srrijan' | 'shared';
+export type BookOwner = 'swapnil' | 'bipro' | 'srrijan';
 
 export type BookStatus = 
   | 'আছে'
@@ -245,7 +245,6 @@ export interface DashboardStats {
   swapnil_books: number;
   bipro_books: number;
   srrijan_books: number;
-  shared_books: number;
   read_books: number;
   unread_books: number;
   reading_books: number;
@@ -279,14 +278,12 @@ export const OWNERS: { value: BookOwner; label: string }[] = [
   { value: 'swapnil', label: 'স্বপ্নীল' },
   { value: 'bipro', label: 'বিপ্রতীব' },
   { value: 'srrijan', label: 'সৃজন' },
-  { value: 'shared', label: 'যৌথ' },
 ];
 
 export const OWNER_LABELS: Record<string, string> = {
   swapnil: 'স্বপ্নীল',
   bipro: 'বিপ্রতীব',
   srrijan: 'সৃজন',
-  shared: 'যৌথ',
 };
 
 export function getOwnerLabel(owner: string | null | undefined): string {
