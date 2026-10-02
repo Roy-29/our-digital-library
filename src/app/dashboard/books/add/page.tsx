@@ -146,20 +146,28 @@ export default function AddBookPage() {
       if (!name) return null;
       const t = name.trim();
       if (!t) return null;
-      const existing = authors.find(a => a.name_bn === t || a.name === t);
+      const lower = t.toLowerCase();
+      const existing = authors.find(a => (a.name_bn && a.name_bn.trim().toLowerCase() === lower) || (a.name && a.name.trim().toLowerCase() === lower));
       if (existing) return existing.id;
       const { data } = await supabase.from('authors').insert({ name_bn: t, name: t });
-      return data?.id || null;
+      if (data?.id) return data.id;
+      const { data: all } = await supabase.from('authors').select('*');
+      const found = (all as any[])?.find(a => (a.name_bn && a.name_bn.trim().toLowerCase() === lower) || (a.name && a.name.trim().toLowerCase() === lower));
+      return found?.id || null;
     };
     
     const resolvePublisher = async (name: string) => {
       if (!name) return null;
       const t = name.trim();
       if (!t) return null;
-      const existing = publishers.find(p => p.name_bn === t || p.name === t);
+      const lower = t.toLowerCase();
+      const existing = publishers.find(p => (p.name_bn && p.name_bn.trim().toLowerCase() === lower) || (p.name && p.name.trim().toLowerCase() === lower));
       if (existing) return existing.id;
       const { data } = await supabase.from('publishers').insert({ name_bn: t, name: t });
-      return data?.id || null;
+      if (data?.id) return data.id;
+      const { data: all } = await supabase.from('publishers').select('*');
+      const found = (all as any[])?.find(p => (p.name_bn && p.name_bn.trim().toLowerCase() === lower) || (p.name && p.name.trim().toLowerCase() === lower));
+      return found?.id || null;
     };
 
     const resolveCategory = async (name: string) => {

@@ -169,14 +169,18 @@ export default function UnownedClient({
       if (!name) return null;
       const t = name.trim();
       if (!t) return null;
-      const existing = authors.find((a) => a.nameBn === t || a.name === t);
+      const lower = t.toLowerCase();
+      const existing = authors.find((a) => (a.nameBn && a.nameBn.trim().toLowerCase() === lower) || (a.name && a.name.trim().toLowerCase() === lower) || (a.name_bn && a.name_bn.trim().toLowerCase() === lower));
       if (existing) return existing.id;
       const { data } = await supabase
         .from('authors')
         .insert({ name_bn: t, name: t })
         .select()
         .single();
-      return data?.id || null;
+      if (data?.id) return data.id;
+      const { data: all } = await supabase.from('authors').select('*');
+      const found = (all as any[])?.find(a => (a.name_bn && a.name_bn.trim().toLowerCase() === lower) || (a.name && a.name.trim().toLowerCase() === lower) || (a.nameBn && a.nameBn.trim().toLowerCase() === lower));
+      return found?.id || null;
     };
 
     const finalAuthorId = await resolveAuthor(newAuthor);

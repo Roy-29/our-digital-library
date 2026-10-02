@@ -53,10 +53,16 @@ export async function dbInsert(table: string, data: any) {
 
 export async function dbUpdate(table: string, id: string, data: any) {
   const t = getTable(table);
-  // @ts-ignore
-  const result = await db.update(t).set(data).where(eq(t.id, id)).returning();
-  revalidatePath('/dashboard');
-  return result[0];
+  try {
+    // @ts-ignore
+    const result = await db.update(t).set(data).where(eq(t.id, id)).returning();
+    revalidatePath('/dashboard');
+    return result[0];
+  } catch (error: any) {
+    console.error(`[dbUpdate ERROR on table ${table}]:`, error);
+    const realError = error.cause?.message || error.message || String(error);
+    throw new Error(realError);
+  }
 }
 
 export async function dbDelete(table: string, id: string) {

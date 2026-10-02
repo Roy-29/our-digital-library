@@ -47,9 +47,30 @@ export default function AuthorsPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!name.trim()) { toast.error('নাম লিখুন'); return; }
+    const trimmedName = name.trim();
+    const trimmedNameBn = nameBn.trim();
+    if (!trimmedName) { toast.error('নাম লিখুন'); return; }
+
+    const isDuplicate = authors.some(a => {
+      if (editingId && a.id === editingId) return false;
+      const lowerName = trimmedName.toLowerCase();
+      const lowerNameBn = trimmedNameBn.toLowerCase();
+      const sameName = a.name && a.name.trim().toLowerCase() === lowerName;
+      const sameNameBn = lowerNameBn && a.name_bn && a.name_bn.trim().toLowerCase() === lowerNameBn;
+      const crossName1 = lowerNameBn && a.name && a.name.trim().toLowerCase() === lowerNameBn;
+      const crossName2 = a.name_bn && a.name_bn.trim().toLowerCase() === lowerName;
+      return sameName || sameNameBn || crossName1 || crossName2;
+    });
+
+    if (isDuplicate) {
+      toast.error('এই নামের লেখক ইতিমধ্যে তালিকায় রয়েছে!');
+      return;
+    }
+
     const data = {
-      name: name.trim(), name_bn: nameBn || null, bio: bio || null,
+      name: trimmedName,
+      name_bn: trimmedNameBn || null,
+      bio: bio || null,
       birth_year: birthYear ? parseInt(birthYear) : null,
       death_year: deathYear ? parseInt(deathYear) : null,
       nationality: nationality || null,
@@ -57,10 +78,26 @@ export default function AuthorsPage() {
 
     if (editingId) {
       const { error } = await supabase.from('authors').update(data).eq('id', editingId);
-      if (error) toast.error('আপডেট ব্যর্থ'); else toast.success('লেখক আপডেট হয়েছে ✅');
+      if (error) {
+        if (error.message?.includes('UNIQUE') || error.message?.includes('unique')) {
+          toast.error('এই নামের লেখক ইতিমধ্যে তালিকায় রয়েছে!');
+        } else {
+          toast.error('আপডেট ব্যর্থ');
+        }
+        return;
+      }
+      toast.success('লেখক আপডেট হয়েছে ✅');
     } else {
       const { error } = await supabase.from('authors').insert(data);
-      if (error) toast.error('যোগ করতে ব্যর্থ'); else toast.success('লেখক যোগ হয়েছে ✅');
+      if (error) {
+        if (error.message?.includes('UNIQUE') || error.message?.includes('unique')) {
+          toast.error('এই নামের লেখক ইতিমধ্যে তালিকায় রয়েছে!');
+        } else {
+          toast.error('যোগ করতে ব্যর্থ');
+        }
+        return;
+      }
+      toast.success('লেখক যোগ হয়েছে ✅');
     }
     setShowModal(false); resetForm(); fetchAuthors();
   };

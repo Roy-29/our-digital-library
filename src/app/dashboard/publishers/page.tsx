@@ -32,14 +32,57 @@ export default function PublishersPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!name.trim()) { toast.error('নাম লিখুন'); return; }
-    const data = { name: name.trim(), name_bn: nameBn || null, address: address || null, website: website || null, phone: phone || null, email: email || null };
+    const trimmedName = name.trim();
+    const trimmedNameBn = nameBn.trim();
+    if (!trimmedName) { toast.error('নাম লিখুন'); return; }
+
+    const isDuplicate = publishers.some(p => {
+      if (editingId && p.id === editingId) return false;
+      const lowerName = trimmedName.toLowerCase();
+      const lowerNameBn = trimmedNameBn.toLowerCase();
+      const sameName = p.name && p.name.trim().toLowerCase() === lowerName;
+      const sameNameBn = lowerNameBn && p.name_bn && p.name_bn.trim().toLowerCase() === lowerNameBn;
+      const crossName1 = lowerNameBn && p.name && p.name.trim().toLowerCase() === lowerNameBn;
+      const crossName2 = p.name_bn && p.name_bn.trim().toLowerCase() === lowerName;
+      return sameName || sameNameBn || crossName1 || crossName2;
+    });
+
+    if (isDuplicate) {
+      toast.error('এই নামের প্রকাশক ইতিমধ্যে তালিকায় রয়েছে!');
+      return;
+    }
+
+    const data = {
+      name: trimmedName,
+      name_bn: trimmedNameBn || null,
+      address: address || null,
+      website: website || null,
+      phone: phone || null,
+      email: email || null
+    };
+
     if (editingId) {
       const { error } = await supabase.from('publishers').update(data).eq('id', editingId);
-      if (error) toast.error('আপডেট ব্যর্থ'); else toast.success('প্রকাশক আপডেট হয়েছে ✅');
+      if (error) {
+        if (error.message?.includes('UNIQUE') || error.message?.includes('unique')) {
+          toast.error('এই নামের প্রকাশক ইতিমধ্যে তালিকায় রয়েছে!');
+        } else {
+          toast.error('আপডেট ব্যর্থ');
+        }
+        return;
+      }
+      toast.success('প্রকাশক আপডেট হয়েছে ✅');
     } else {
       const { error } = await supabase.from('publishers').insert(data);
-      if (error) toast.error('যোগ করতে ব্যর্থ'); else toast.success('প্রকাশক যোগ হয়েছে ✅');
+      if (error) {
+        if (error.message?.includes('UNIQUE') || error.message?.includes('unique')) {
+          toast.error('এই নামের প্রকাশক ইতিমধ্যে তালিকায় রয়েছে!');
+        } else {
+          toast.error('যোগ করতে ব্যর্থ');
+        }
+        return;
+      }
+      toast.success('প্রকাশক যোগ হয়েছে ✅');
     }
     setShowModal(false); resetForm(); fetchData();
   };

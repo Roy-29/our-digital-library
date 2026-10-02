@@ -14,7 +14,7 @@ export const profiles = sqliteTable('profiles', {
 // AUTHORS
 export const authors = sqliteTable('authors', {
   id: text('id').primaryKey().$defaultFn(() => crypto.randomUUID()),
-  name: text('name').notNull(),
+  name: text('name').notNull().unique(),
   nameBn: text('name_bn'),
   bio: text('bio'),
   birthYear: integer('birth_year'),
@@ -28,7 +28,7 @@ export const authors = sqliteTable('authors', {
 // PUBLISHERS
 export const publishers = sqliteTable('publishers', {
   id: text('id').primaryKey().$defaultFn(() => crypto.randomUUID()),
-  name: text('name').notNull(),
+  name: text('name').notNull().unique(),
   nameBn: text('name_bn'),
   address: text('address'),
   website: text('website'),
