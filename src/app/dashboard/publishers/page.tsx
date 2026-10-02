@@ -15,7 +15,6 @@ export default function PublishersPage() {
   const supabase = createClient();
 
   const [name, setName] = useState('');
-  const [nameBn, setNameBn] = useState('');
   const [address, setAddress] = useState('');
   const [website, setWebsite] = useState('');
   const [phone, setPhone] = useState('');
@@ -25,26 +24,22 @@ export default function PublishersPage() {
 
   const fetchData = async () => { setLoading(true); const { data } = await supabase.from('publishers').select('*').order('name'); setPublishers(data || []); setLoading(false); };
 
-  const resetForm = () => { setName(''); setNameBn(''); setAddress(''); setWebsite(''); setPhone(''); setEmail(''); setEditingId(null); };
+  const resetForm = () => { setName(''); setAddress(''); setWebsite(''); setPhone(''); setEmail(''); setEditingId(null); };
 
   const openAdd = () => { resetForm(); setShowModal(true); };
-  const openEdit = (p: Publisher) => { setEditingId(p.id); setName(p.name); setNameBn(p.name_bn || ''); setAddress(p.address || ''); setWebsite(p.website || ''); setPhone(p.phone || ''); setEmail(p.email || ''); setShowModal(true); };
+  const openEdit = (p: Publisher) => { setEditingId(p.id); setName(p.name_bn || p.name); setAddress(p.address || ''); setWebsite(p.website || ''); setPhone(p.phone || ''); setEmail(p.email || ''); setShowModal(true); };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     const trimmedName = name.trim();
-    const trimmedNameBn = nameBn.trim();
     if (!trimmedName) { toast.error('নাম লিখুন'); return; }
 
     const isDuplicate = publishers.some(p => {
       if (editingId && p.id === editingId) return false;
       const lowerName = trimmedName.toLowerCase();
-      const lowerNameBn = trimmedNameBn.toLowerCase();
       const sameName = p.name && p.name.trim().toLowerCase() === lowerName;
-      const sameNameBn = lowerNameBn && p.name_bn && p.name_bn.trim().toLowerCase() === lowerNameBn;
-      const crossName1 = lowerNameBn && p.name && p.name.trim().toLowerCase() === lowerNameBn;
-      const crossName2 = p.name_bn && p.name_bn.trim().toLowerCase() === lowerName;
-      return sameName || sameNameBn || crossName1 || crossName2;
+      const sameNameBn = p.name_bn && p.name_bn.trim().toLowerCase() === lowerName;
+      return sameName || sameNameBn;
     });
 
     if (isDuplicate) {
@@ -54,7 +49,7 @@ export default function PublishersPage() {
 
     const data = {
       name: trimmedName,
-      name_bn: trimmedNameBn || null,
+      name_bn: trimmedName,
       address: address || null,
       website: website || null,
       phone: phone || null,
@@ -104,8 +99,8 @@ export default function PublishersPage() {
         {loading ? <div className="loading-inline"><div className="spinner" /></div> : filtered.length === 0 ? (
           <div className="empty-state"><div className="empty-icon">🏢</div><h3>কোনো প্রকাশক নেই</h3></div>
         ) : (
-          <div className="table-container"><table className="table"><thead><tr><th>নাম</th><th>বাংলা নাম</th><th>ঠিকানা</th><th>ফোন</th><th style={{ textAlign: 'right' }}>অ্যাকশন</th></tr></thead><tbody>
-            {filtered.map(p => (<tr key={p.id}><td style={{ fontWeight: 500 }}>{p.name}</td><td>{p.name_bn || '—'}</td><td>{p.address || '—'}</td><td>{p.phone || '—'}</td><td><div className="actions"><button className="btn btn-ghost btn-icon btn-sm" onClick={() => openEdit(p)}>✏️</button><button className="btn btn-ghost btn-icon btn-sm" onClick={() => setDeleteId(p.id)}>🗑️</button></div></td></tr>))}
+          <div className="table-container"><table className="table"><thead><tr><th>নাম</th><th>ঠিকানা</th><th>ফোন</th><th style={{ textAlign: 'right' }}>অ্যাকশন</th></tr></thead><tbody>
+            {filtered.map(p => (<tr key={p.id}><td style={{ fontWeight: 500 }}>{p.name_bn || p.name}</td><td>{p.address || '—'}</td><td>{p.phone || '—'}</td><td><div className="actions"><button className="btn btn-ghost btn-icon btn-sm" onClick={() => openEdit(p)}>✏️</button><button className="btn btn-ghost btn-icon btn-sm" onClick={() => setDeleteId(p.id)}>🗑️</button></div></td></tr>))}
           </tbody></table></div>
         )}
       </div>
@@ -114,7 +109,7 @@ export default function PublishersPage() {
         <div className="modal-overlay" onClick={() => setShowModal(false)}><div className="modal" onClick={e => e.stopPropagation()}>
           <div className="modal-header"><h3>{editingId ? '✏️ সম্পাদনা' : '➕ নতুন প্রকাশক'}</h3><button className="btn btn-ghost btn-icon" onClick={() => setShowModal(false)}>✕</button></div>
           <form onSubmit={handleSubmit}><div className="modal-body">
-            <div className="form-row"><div className="form-group"><label className="form-label">নাম *</label><input className="form-input" value={name} onChange={e => setName(e.target.value)} required /></div><div className="form-group"><label className="form-label">বাংলা নাম</label><input className="form-input" value={nameBn} onChange={e => setNameBn(e.target.value)} /></div></div>
+            <div className="form-group"><label className="form-label">নাম *</label><input className="form-input" placeholder="প্রকাশকের নাম লিখুন..." value={name} onChange={e => setName(e.target.value)} required autoFocus /></div>
             <div className="form-group"><label className="form-label">ঠিকানা</label><input className="form-input" value={address} onChange={e => setAddress(e.target.value)} /></div>
             <div className="form-row"><div className="form-group"><label className="form-label">ওয়েবসাইট</label><input className="form-input" value={website} onChange={e => setWebsite(e.target.value)} /></div><div className="form-group"><label className="form-label">ফোন</label><input className="form-input" value={phone} onChange={e => setPhone(e.target.value)} /></div><div className="form-group"><label className="form-label">ইমেইল</label><input className="form-input" value={email} onChange={e => setEmail(e.target.value)} /></div></div>
           </div><div className="modal-footer"><button type="button" className="btn btn-secondary" onClick={() => setShowModal(false)}>বাতিল</button><button type="submit" className="btn btn-primary">{editingId ? '✅ আপডেট' : '➕ যোগ'}</button></div></form>

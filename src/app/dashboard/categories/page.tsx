@@ -40,16 +40,17 @@ export default function CategoriesPage() {
   const openAdd = () => { resetForm(); setShowModal(true); };
 
   const openEdit = (item: Category | Genre) => {
-    setEditingId(item.id); setName(item.name); setNameBn(item.name_bn || '');
+    setEditingId(item.id); setName(item.name_bn || item.name);
     setDescription(item.description || ''); setColor(item.color); setIcon(item.icon);
     setShowModal(true);
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!name.trim()) { toast.error('নাম লিখুন'); return; }
+    const trimmedName = name.trim();
+    if (!trimmedName) { toast.error('নাম লিখুন'); return; }
     const table = activeTab === 'categories' ? 'categories' : 'genres';
-    const data = { name: name.trim(), name_bn: nameBn || null, description: description || null, color, icon };
+    const data = { name: trimmedName, name_bn: trimmedName, description: description || null, color, icon };
 
     if (editingId) {
       const { error } = await supabase.from(table).update(data).eq('id', editingId);
@@ -108,7 +109,7 @@ export default function CategoriesPage() {
         <div className="modal-overlay" onClick={() => setShowModal(false)}><div className="modal" onClick={e => e.stopPropagation()}>
           <div className="modal-header"><h3>{editingId ? '✏️ সম্পাদনা' : `➕ নতুন ${activeTab === 'categories' ? 'Category' : 'Genre'}`}</h3><button className="btn btn-ghost btn-icon" onClick={() => setShowModal(false)}>✕</button></div>
           <form onSubmit={handleSubmit}><div className="modal-body">
-            <div className="form-row"><div className="form-group"><label className="form-label">নাম (English) *</label><input className="form-input" value={name} onChange={e => setName(e.target.value)} required /></div><div className="form-group"><label className="form-label">বাংলা নাম</label><input className="form-input" value={nameBn} onChange={e => setNameBn(e.target.value)} /></div></div>
+            <div className="form-group"><label className="form-label">নাম *</label><input className="form-input" placeholder="নাম লিখুন..." value={name} onChange={e => setName(e.target.value)} required autoFocus /></div>
             <div className="form-group"><label className="form-label">বিবরণ</label><textarea className="form-textarea" value={description} onChange={e => setDescription(e.target.value)} /></div>
             <div className="form-row"><div className="form-group"><label className="form-label">আইকন (emoji)</label><input className="form-input" value={icon} onChange={e => setIcon(e.target.value)} /></div><div className="form-group"><label className="form-label">রঙ</label><input className="form-input" type="color" value={color} onChange={e => setColor(e.target.value)} /></div></div>
           </div><div className="modal-footer"><button type="button" className="btn btn-secondary" onClick={() => setShowModal(false)}>বাতিল</button><button type="submit" className="btn btn-primary">{editingId ? '✅ আপডেট' : '➕ যোগ'}</button></div></form>

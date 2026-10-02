@@ -16,7 +16,6 @@ export default function AuthorsPage() {
 
   // Form
   const [name, setName] = useState('');
-  const [nameBn, setNameBn] = useState('');
   const [bio, setBio] = useState('');
   const [birthYear, setBirthYear] = useState('');
   const [deathYear, setDeathYear] = useState('');
@@ -32,14 +31,14 @@ export default function AuthorsPage() {
   };
 
   const resetForm = () => {
-    setName(''); setNameBn(''); setBio(''); setBirthYear(''); setDeathYear(''); setNationality('');
+    setName(''); setBio(''); setBirthYear(''); setDeathYear(''); setNationality('');
     setEditingId(null);
   };
 
   const openAdd = () => { resetForm(); setShowModal(true); };
 
   const openEdit = (a: Author) => {
-    setEditingId(a.id); setName(a.name); setNameBn(a.name_bn || '');
+    setEditingId(a.id); setName(a.name_bn || a.name || '');
     setBio(a.bio || ''); setBirthYear(a.birth_year?.toString() || '');
     setDeathYear(a.death_year?.toString() || ''); setNationality(a.nationality || '');
     setShowModal(true);
@@ -48,18 +47,14 @@ export default function AuthorsPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     const trimmedName = name.trim();
-    const trimmedNameBn = nameBn.trim();
     if (!trimmedName) { toast.error('নাম লিখুন'); return; }
 
     const isDuplicate = authors.some(a => {
       if (editingId && a.id === editingId) return false;
       const lowerName = trimmedName.toLowerCase();
-      const lowerNameBn = trimmedNameBn.toLowerCase();
       const sameName = a.name && a.name.trim().toLowerCase() === lowerName;
-      const sameNameBn = lowerNameBn && a.name_bn && a.name_bn.trim().toLowerCase() === lowerNameBn;
-      const crossName1 = lowerNameBn && a.name && a.name.trim().toLowerCase() === lowerNameBn;
-      const crossName2 = a.name_bn && a.name_bn.trim().toLowerCase() === lowerName;
-      return sameName || sameNameBn || crossName1 || crossName2;
+      const sameNameBn = a.name_bn && a.name_bn.trim().toLowerCase() === lowerName;
+      return sameName || sameNameBn;
     });
 
     if (isDuplicate) {
@@ -69,7 +64,7 @@ export default function AuthorsPage() {
 
     const data = {
       name: trimmedName,
-      name_bn: trimmedNameBn || null,
+      name_bn: trimmedName,
       bio: bio || null,
       birth_year: birthYear ? parseInt(birthYear) : null,
       death_year: deathYear ? parseInt(deathYear) : null,
@@ -132,12 +127,11 @@ export default function AuthorsPage() {
         ) : (
           <div className="table-container">
             <table className="table">
-              <thead><tr><th>নাম</th><th>বাংলা নাম</th><th>জাতীয়তা</th><th>জন্ম</th><th>মৃত্যু</th><th style={{ textAlign: 'right' }}>অ্যাকশন</th></tr></thead>
+              <thead><tr><th>নাম</th><th>জাতীয়তা</th><th>জন্ম</th><th>মৃত্যু</th><th style={{ textAlign: 'right' }}>অ্যাকশন</th></tr></thead>
               <tbody>
                 {filtered.map(a => (
                   <tr key={a.id}>
-                    <td style={{ fontWeight: 500 }}>{a.name}</td>
-                    <td>{a.name_bn || '—'}</td>
+                    <td style={{ fontWeight: 500 }}>{a.name_bn || a.name}</td>
                     <td>{a.nationality || '—'}</td>
                     <td>{a.birth_year || '—'}</td>
                     <td>{a.death_year || '—'}</td>
@@ -163,9 +157,9 @@ export default function AuthorsPage() {
             </div>
             <form onSubmit={handleSubmit}>
               <div className="modal-body">
-                <div className="form-row">
-                  <div className="form-group"><label className="form-label">নাম (English) *</label><input className="form-input" value={name} onChange={e => setName(e.target.value)} required /></div>
-                  <div className="form-group"><label className="form-label">বাংলা নাম</label><input className="form-input" value={nameBn} onChange={e => setNameBn(e.target.value)} /></div>
+                <div className="form-group">
+                  <label className="form-label">নাম *</label>
+                  <input className="form-input" placeholder="লেখকের নাম লিখুন..." value={name} onChange={e => setName(e.target.value)} required autoFocus />
                 </div>
                 <div className="form-group"><label className="form-label">জীবনী</label><textarea className="form-textarea" value={bio} onChange={e => setBio(e.target.value)} /></div>
                 <div className="form-row">
