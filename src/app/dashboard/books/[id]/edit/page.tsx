@@ -102,11 +102,11 @@ export default function EditBookPage() {
     setPageCount(b.page_count?.toString() || '');
     setDescription(b.description || '');
     setCoverUrl(b.cover_url || '');
-    setAuthorId(b.author_id || '');
-    setTranslatorId(b.translator_id || '');
-    setPublisherId(b.publisher_id || '');
-    setCategoryId(b.category_id || '');
-    setGenreId(b.genre_id || '');
+    setAuthorId(aRes.data?.find(a => a.id === b.author_id)?.name_bn || aRes.data?.find(a => a.id === b.author_id)?.name || '');
+    setTranslatorId(aRes.data?.find(a => a.id === b.translator_id)?.name_bn || aRes.data?.find(a => a.id === b.translator_id)?.name || '');
+    setPublisherId(pRes.data?.find(p => p.id === b.publisher_id)?.name_bn || pRes.data?.find(p => p.id === b.publisher_id)?.name || '');
+    setCategoryId(cRes.data?.find(c => c.id === b.category_id)?.name_bn || cRes.data?.find(c => c.id === b.category_id)?.name || '');
+    setGenreId(gRes.data?.find(g => g.id === b.genre_id)?.name_bn || gRes.data?.find(g => g.id === b.genre_id)?.name || '');
     setOwner(b.owner);
     setStatus(b.status);
     setRoomId(b.room_id || '');
@@ -172,6 +172,52 @@ export default function EditBookPage() {
     e.preventDefault();
     if (!title.trim()) { toast.error('বইয়ের নাম লিখুন'); return; }
     setSaving(true);
+    const resolveAuthor = async (name: string) => {
+      if (!name) return null;
+      const t = name.trim();
+      if (!t) return null;
+      const existing = authors.find(a => a.name_bn === t || a.name === t);
+      if (existing) return existing.id;
+      const { data } = await supabase.from('authors').insert({ name_bn: t, name: t }).select().single();
+      return data?.id || null;
+    };
+    
+    const resolvePublisher = async (name: string) => {
+      if (!name) return null;
+      const t = name.trim();
+      if (!t) return null;
+      const existing = publishers.find(p => p.name_bn === t || p.name === t);
+      if (existing) return existing.id;
+      const { data } = await supabase.from('publishers').insert({ name_bn: t, name: t }).select().single();
+      return data?.id || null;
+    };
+
+    const resolveCategory = async (name: string) => {
+      if (!name) return null;
+      const t = name.trim();
+      if (!t) return null;
+      const existing = categories.find(c => c.name_bn === t || c.name === t);
+      if (existing) return existing.id;
+      const { data } = await supabase.from('categories').insert({ name_bn: t, name: t, icon: '🏷️' }).select().single();
+      return data?.id || null;
+    };
+
+    const resolveGenre = async (name: string) => {
+      if (!name) return null;
+      const t = name.trim();
+      if (!t) return null;
+      const existing = genres.find(g => g.name_bn === t || g.name === t);
+      if (existing) return existing.id;
+      const { data } = await supabase.from('genres').insert({ name_bn: t, name: t, icon: '📚' }).select().single();
+      return data?.id || null;
+    };
+
+    const finalAuthorId = await resolveAuthor(authorId);
+    const finalTranslatorId = await resolveAuthor(translatorId);
+    const finalPublisherId = await resolvePublisher(publisherId);
+    const finalCategoryId = await resolveCategory(categoryId);
+    const finalGenreId = await resolveGenre(genreId);
+
     const uploadedCoverUrl = await uploadCover();
 
     const bookData = {
@@ -179,8 +225,8 @@ export default function EditBookPage() {
       isbn: isbn || null, language, edition: edition || null,
       publication_year: pubYear ? parseInt(pubYear) : null, page_count: pageCount ? parseInt(pageCount) : null,
       description: description || null, cover_url: uploadedCoverUrl,
-      author_id: authorId || null, translator_id: translatorId || null,
-      publisher_id: publisherId || null, category_id: categoryId || null, genre_id: genreId || null,
+      author_id: finalAuthorId || null, translator_id: finalTranslatorId || null,
+      publisher_id: finalPublisherId || null, category_id: finalCategoryId || null, genre_id: finalGenreId || null,
       owner, status,
       room_id: roomId || null, shelf_id: shelfId || null, rack_id: rackId || null,
       rack_row: rackRow ? parseInt(rackRow) : null, rack_position: rackPosition ? parseInt(rackPosition) : null,
@@ -230,116 +276,290 @@ export default function EditBookPage() {
       </div>
       <div className="page-body">
         <form onSubmit={handleSubmit}>
-          <div className="tabs">
-            {tabs.map(t => (<button key={t.key} type="button" className={`tab ${activeTab === t.key ? 'active' : ''}`} onClick={() => setActiveTab(t.key)}>{t.label}</button>))}
+          <div className="form-sections" style={{ display: 'flex', flexDirection: 'column', gap: '32px' }}>
+<div className="card">
+              <div className="card-header" style={{ padding: '20px 32px', borderBottom: '1px solid var(--border-light)' }}>
+                <h3 style={{ margin: 0, fontSize: '1.2rem', color: 'var(--text-primary)' }}>📋 মূল তথ্য</h3>
+              </div>
+              <div className="card-body">
+                <div className="form-group">
+                  <label className="form-label">বইয়ের নাম *</label>
+                  <input className="form-input" value={title} onChange={e => setTitle(e.target.value)} placeholder="বইয়ের নাম লিখুন" required />
+                </div>
+                <div className="form-row">
+                  <div className="form-group">
+                    <label className="form-label">Original Title</label>
+                    <input className="form-input" value={titleOriginal} onChange={e => setTitleOriginal(e.target.value)} placeholder="English title" />
+                  </div>
+                  <div className="form-group">
+                    <label className="form-label">Subtitle</label>
+                    <input className="form-input" value={subtitle} onChange={e => setSubtitle(e.target.value)} />
+                  </div>
+                </div>
+                <div className="form-row">
+                  <div className="form-group">
+                    <label className="form-label">✍️ লেখক</label>
+                    <input className="form-input" value={authorId} onChange={e => setAuthorId(e.target.value)} placeholder="লেখকের নাম লিখুন" />
+                  </div>
+                  <div className="form-group">
+                    <label className="form-label">🔄 অনুবাদক</label>
+                    <input className="form-input" value={translatorId} onChange={e => setTranslatorId(e.target.value)} placeholder="অনুবাদকের নাম লিখুন" />
+                  </div>
+                </div>
+                <div className="form-row">
+                  <div className="form-group">
+                    <label className="form-label">🏢 প্রকাশক</label>
+                    <input className="form-input" value={publisherId} onChange={e => setPublisherId(e.target.value)} placeholder="প্রকাশকের নাম লিখুন" />
+                  </div>
+                  <div className="form-group">
+                    <label className="form-label">ISBN</label>
+                    <input className="form-input" value={isbn} onChange={e => setIsbn(e.target.value)} placeholder="978-..." />
+                  </div>
+                </div>
+                <div className="form-row">
+                  <div className="form-group">
+                    <label className="form-label">🏷️ ক্যাটাগরি</label>
+                    <input 
+                      className="form-input" 
+                      value={categoryId} 
+                      onChange={e => setCategoryId(e.target.value)} 
+                      list="category-options"
+                      placeholder="ক্যাটাগরি লিখুন বা নির্বাচন করুন"
+                    />
+                    <datalist id="category-options">
+                      {/* From DB */}
+                      {categories.map(c => <option key={c.id} value={c.name_bn || c.name} />)}
+                      {/* Defaults */}
+                      <option value="ফিকশন" />
+                      <option value="নন-ফিকশন" />
+                      <option value="কবিতা" />
+                      <option value="প্রবন্ধ" />
+                      <option value="জীবনী" />
+                      <option value="ধর্মীয়" />
+                      <option value="শিশু-কিশোর" />
+                      <option value="বিজ্ঞান" />
+                      <option value="অনুবাদ" />
+                      <option value="ইতিহাস" />
+                    </datalist>
+                  </div>
+                  <div className="form-group">
+                    <label className="form-label">📚 ধরন (Genre)</label>
+                    <input 
+                      className="form-input" 
+                      value={genreId} 
+                      onChange={e => setGenreId(e.target.value)} 
+                      list="genre-options"
+                      placeholder="ধরন লিখুন বা নির্বাচন করুন"
+                    />
+                    <datalist id="genre-options">
+                      {/* From DB */}
+                      {genres.map(g => <option key={g.id} value={g.name_bn || g.name} />)}
+                      {/* Defaults */}
+                      <option value="উপন্যাস" />
+                      <option value="ছোটগল্প" />
+                      <option value="থ্রিলার/গোয়েন্দা" />
+                      <option value="কল্পবিজ্ঞান" />
+                      <option value="হরর" />
+                      <option value="নাটক" />
+                      <option value="আত্মজীবনী" />
+                      <option value="রম্য রচনা" />
+                    </datalist>
+                  </div>
+                </div>
+                <div className="form-row">
+                  <div className="form-group">
+                    <label className="form-label">ভাষা</label>
+                    <input className="form-input" value={language} onChange={e => setLanguage(e.target.value)} />
+                  </div>
+                  <div className="form-group">
+                    <label className="form-label">সংস্করণ</label>
+                    <input className="form-input" value={edition} onChange={e => setEdition(e.target.value)} placeholder="1st, 2nd..." />
+                  </div>
+                  <div className="form-group">
+                    <label className="form-label">প্রকাশের বছর</label>
+                    <input className="form-input" type="number" value={pubYear} onChange={e => setPubYear(e.target.value)} placeholder="2024" />
+                  </div>
+                  <div className="form-group">
+                    <label className="form-label">পৃষ্ঠা সংখ্যা</label>
+                    <input className="form-input" type="number" value={pageCount} onChange={e => setPageCount(e.target.value)} />
+                  </div>
+                </div>
+                <div className="form-group">
+                  <label className="form-label">বিবরণ</label>
+                  <textarea className="form-textarea" value={description} onChange={e => setDescription(e.target.value)} placeholder="বইয়ের সংক্ষিপ্ত বিবরণ..." />
+                </div>
+              </div>
+            </div>
+
+          <div className="card">
+              <div className="card-header" style={{ padding: '20px 32px', borderBottom: '1px solid var(--border-light)' }}>
+                <h3 style={{ margin: 0, fontSize: '1.2rem', color: 'var(--text-primary)' }}>👤 মালিকানা</h3>
+              </div>
+              <div className="card-body">
+                <div className="form-row">
+                  <div className="form-group">
+                    <label className="form-label">👤 মালিক</label>
+                    <select className="form-select" value={owner} onChange={e => setOwner(e.target.value as BookOwner)}>
+                      {OWNERS.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}
+                    </select>
+                  </div>
+                  <div className="form-group">
+                    <label className="form-label">📊 স্ট্যাটাস</label>
+                    <select className="form-select" value={status} onChange={e => setStatus(e.target.value as BookStatus)}>
+                      {BOOK_STATUSES.map(s => <option key={s.value} value={s.value}>{s.icon} {s.label}</option>)}
+                    </select>
+                  </div>
+                </div>
+                <div className="form-group">
+                  <label className="form-checkbox">
+                    <input type="checkbox" checked={isFavorite} onChange={e => setIsFavorite(e.target.checked)} />
+                    ⭐ প্রিয় বই
+                  </label>
+                </div>
+              </div>
+            </div>
+
+          <div className="card">
+              <div className="card-header" style={{ padding: '20px 32px', borderBottom: '1px solid var(--border-light)' }}>
+                <h3 style={{ margin: 0, fontSize: '1.2rem', color: 'var(--text-primary)' }}>💰 ক্রয়</h3>
+              </div>
+              <div className="card-body">
+                <div className="form-group">
+                  <label className="form-checkbox">
+                    <input type="checkbox" checked={isPurchased} onChange={e => setIsPurchased(e.target.checked)} />
+                    কেনা হয়েছে
+                  </label>
+                </div>
+                {isPurchased && (
+                  <>
+                    <div className="form-row">
+                      <div className="form-group">
+                        <label className="form-label">কেনার তারিখ</label>
+                        <input className="form-input" type="date" value={purchaseDate} onChange={e => setPurchaseDate(e.target.value)} />
+                      </div>
+                      <div className="form-group">
+                        <label className="form-label">কোথা থেকে কেনা</label>
+                        <input className="form-input" value={purchaseSource} onChange={e => setPurchaseSource(e.target.value)} placeholder="রকমারি, একুশে বইমেলা..." />
+                      </div>
+                    </div>
+                    <div className="form-row">
+                      <div className="form-group">
+                        <label className="form-label">দাম (৳)</label>
+                        <input className="form-input" type="number" step="0.01" value={purchasePrice} onChange={e => setPurchasePrice(e.target.value)} />
+                      </div>
+                      <div className="form-group">
+                        <label className="form-label">ছাড় (৳)</label>
+                        <input className="form-input" type="number" step="0.01" value={purchaseDiscount} onChange={e => setPurchaseDiscount(e.target.value)} />
+                      </div>
+                      <div className="form-group">
+                        <label className="form-label">চূড়ান্ত দাম (৳)</label>
+                        <input className="form-input" type="number" step="0.01" value={purchaseFinalPrice} onChange={e => setPurchaseFinalPrice(e.target.value)} />
+                      </div>
+                    </div>
+                    <div className="form-row">
+                      <div className="form-group">
+                        <label className="form-label">কে কিনেছে</label>
+                        <select className="form-select" value={purchasedBy} onChange={e => setPurchasedBy(e.target.value)}>
+                          <option value="">— নির্বাচন —</option>
+                          <option value="swapnil">Swapnil</option>
+                          <option value="bipro">Bipro</option>
+                        </select>
+                      </div>
+                      <div className="form-group">
+                        <label className="form-label">অবস্থা</label>
+                        <select className="form-select" value={bookCondition} onChange={e => setBookCondition(e.target.value as BookCondition)}>
+                          <option value="new">নতুন</option>
+                          <option value="used">পুরনো</option>
+                          <option value="gift">উপহার</option>
+                          <option value="unknown">অজানা</option>
+                        </select>
+                      </div>
+                    </div>
+                  </>
+                )}
+              </div>
+            </div>
+
+          <div className="card">
+              <div className="card-header" style={{ padding: '20px 32px', borderBottom: '1px solid var(--border-light)' }}>
+                <h3 style={{ margin: 0, fontSize: '1.2rem', color: 'var(--text-primary)' }}>📖 পড়া</h3>
+              </div>
+              <div className="card-body">
+                <div className="form-row">
+                  <div className="form-group">
+                    <label className="form-label">পড়া শুরু</label>
+                    <input className="form-input" type="date" value={readingStartDate} onChange={e => setReadingStartDate(e.target.value)} />
+                  </div>
+                  <div className="form-group">
+                    <label className="form-label">পড়া শেষ</label>
+                    <input className="form-input" type="date" value={readingFinishDate} onChange={e => setReadingFinishDate(e.target.value)} />
+                  </div>
+                </div>
+                <div className="form-group">
+                  <label className="form-label">পড়ার অগ্রগতি ({readingProgress}%)</label>
+                  <input type="range" min="0" max="100" value={readingProgress} onChange={e => setReadingProgress(parseInt(e.target.value))} style={{ width: '100%' }} />
+                  <div className="progress-bar mt-2">
+                    <div className="progress-bar-fill" style={{ width: `${readingProgress}%` }} />
+                  </div>
+                </div>
+                <div className="form-group">
+                  <label className="form-label">⭐ রেটিং</label>
+                  <div className="star-rating">
+                    {[1, 2, 3, 4, 5].map(star => (
+                      <button key={star} type="button" onClick={() => setRating(rating === star ? 0 : star)}>
+                        {star <= rating ? '⭐' : '☆'}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+                <div className="form-group">
+                  <label className="form-label">📝 পর্যালোচনা</label>
+                  <textarea className="form-textarea" value={review} onChange={e => setReview(e.target.value)} placeholder="আপনার মতামত..." />
+                </div>
+                <div className="form-group">
+                  <label className="form-label">📝 নোট</label>
+                  <textarea className="form-textarea" value={notes} onChange={e => setNotes(e.target.value)} placeholder="ব্যক্তিগত নোট..." />
+                </div>
+                <div className="form-group">
+                  <label className="form-label">💬 প্রিয় উদ্ধৃতি</label>
+                  <textarea className="form-textarea" value={favoriteQuote} onChange={e => setFavoriteQuote(e.target.value)} placeholder="পছন্দের উক্তি..." />
+                </div>
+              </div>
+            </div>
+
+          <div className="card">
+              <div className="card-header" style={{ padding: '20px 32px', borderBottom: '1px solid var(--border-light)' }}>
+                <h3 style={{ margin: 0, fontSize: '1.2rem', color: 'var(--text-primary)' }}>🖼️ কভার</h3>
+              </div>
+              <div className="card-body">
+                <div className="form-group">
+                  <label className="form-label">🖼️ কভার ছবি আপলোড</label>
+                  <input
+                    type="file"
+                    accept="image/*"
+                    onChange={e => setCoverFile(e.target.files?.[0] || null)}
+                    className="form-input"
+                  />
+                </div>
+                <div className="form-group">
+                  <label className="form-label">অথবা URL দিন</label>
+                  <input className="form-input" value={coverUrl} onChange={e => setCoverUrl(e.target.value)} placeholder="https://..." />
+                </div>
+                {(coverFile || coverUrl) && (
+                  <div style={{ marginTop: '16px', textAlign: 'center' }}>
+                    <p className="text-sm text-muted mb-2">প্রিভিউ:</p>
+                    <img
+                      src={coverFile ? URL.createObjectURL(coverFile) : coverUrl}
+                      alt="Cover preview"
+                      style={{ maxWidth: '200px', maxHeight: '300px', borderRadius: 'var(--radius-md)', boxShadow: 'var(--shadow-md)' }}
+                    />
+                  </div>
+                )}
+              </div>
+            </div>
           </div>
 
-          {activeTab === 'basic' && (
-            <div className="card"><div className="card-body">
-              <div className="form-group"><label className="form-label">বইয়ের নাম *</label><input className="form-input" value={title} onChange={e => setTitle(e.target.value)} required /></div>
-              <div className="form-row">
-                <div className="form-group"><label className="form-label">Original Title</label><input className="form-input" value={titleOriginal} onChange={e => setTitleOriginal(e.target.value)} /></div>
-                <div className="form-group"><label className="form-label">Subtitle</label><input className="form-input" value={subtitle} onChange={e => setSubtitle(e.target.value)} /></div>
-              </div>
-              <div className="form-row">
-                <div className="form-group"><label className="form-label">লেখক</label><select className="form-select" value={authorId} onChange={e => setAuthorId(e.target.value)}><option value="">—</option>{authors.map(a => <option key={a.id} value={a.id}>{a.name_bn || a.name}</option>)}</select></div>
-                <div className="form-group"><label className="form-label">অনুবাদক</label><select className="form-select" value={translatorId} onChange={e => setTranslatorId(e.target.value)}><option value="">—</option>{authors.map(a => <option key={a.id} value={a.id}>{a.name_bn || a.name}</option>)}</select></div>
-              </div>
-              <div className="form-row">
-                <div className="form-group"><label className="form-label">প্রকাশক</label><select className="form-select" value={publisherId} onChange={e => setPublisherId(e.target.value)}><option value="">—</option>{publishers.map(p => <option key={p.id} value={p.id}>{p.name_bn || p.name}</option>)}</select></div>
-                <div className="form-group"><label className="form-label">ISBN</label><input className="form-input" value={isbn} onChange={e => setIsbn(e.target.value)} /></div>
-              </div>
-              <div className="form-row">
-                <div className="form-group"><label className="form-label">ক্যাটাগরি</label><select className="form-select" value={categoryId} onChange={e => setCategoryId(e.target.value)}><option value="">—</option>{categories.map(c => <option key={c.id} value={c.id}>{c.icon} {c.name_bn || c.name}</option>)}</select></div>
-                <div className="form-group"><label className="form-label">Genre</label><select className="form-select" value={genreId} onChange={e => setGenreId(e.target.value)}><option value="">—</option>{genres.map(g => <option key={g.id} value={g.id}>{g.icon} {g.name_bn || g.name}</option>)}</select></div>
-              </div>
-              <div className="form-row">
-                <div className="form-group"><label className="form-label">ভাষা</label><input className="form-input" value={language} onChange={e => setLanguage(e.target.value)} /></div>
-                <div className="form-group"><label className="form-label">সংস্করণ</label><input className="form-input" value={edition} onChange={e => setEdition(e.target.value)} /></div>
-                <div className="form-group"><label className="form-label">প্রকাশের বছর</label><input className="form-input" type="number" value={pubYear} onChange={e => setPubYear(e.target.value)} /></div>
-                <div className="form-group"><label className="form-label">পৃষ্ঠা</label><input className="form-input" type="number" value={pageCount} onChange={e => setPageCount(e.target.value)} /></div>
-              </div>
-              <div className="form-group"><label className="form-label">বিবরণ</label><textarea className="form-textarea" value={description} onChange={e => setDescription(e.target.value)} /></div>
-            </div></div>
-          )}
-
-          {activeTab === 'ownership' && (
-            <div className="card"><div className="card-body">
-              <div className="form-row">
-                <div className="form-group"><label className="form-label">মালিক</label><select className="form-select" value={owner} onChange={e => setOwner(e.target.value as BookOwner)}>{OWNERS.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}</select></div>
-                <div className="form-group"><label className="form-label">স্ট্যাটাস</label><select className="form-select" value={status} onChange={e => setStatus(e.target.value as BookStatus)}>{BOOK_STATUSES.map(s => <option key={s.value} value={s.value}>{s.icon} {s.label}</option>)}</select></div>
-              </div>
-              <div className="form-group"><label className="form-checkbox"><input type="checkbox" checked={isFavorite} onChange={e => setIsFavorite(e.target.checked)} /> ⭐ প্রিয় বই</label></div>
-            </div></div>
-          )}
-
-          {activeTab === 'location' && (
-            <div className="card"><div className="card-body">
-              <div className="form-row">
-                <div className="form-group"><label className="form-label">ঘর</label><select className="form-select" value={roomId} onChange={e => setRoomId(e.target.value)}><option value="">—</option>{rooms.map(r => <option key={r.id} value={r.id}>{r.name_bn || r.name}</option>)}</select></div>
-                <div className="form-group"><label className="form-label">শেলফ</label><select className="form-select" value={shelfId} onChange={e => setShelfId(e.target.value)} disabled={!roomId}><option value="">—</option>{shelves.map(s => <option key={s.id} value={s.id}>{s.name_bn || s.name}</option>)}</select></div>
-              </div>
-              <div className="form-row">
-                <div className="form-group"><label className="form-label">র‍্যাক</label><select className="form-select" value={rackId} onChange={e => setRackId(e.target.value)} disabled={!shelfId}><option value="">—</option>{racks.map(r => <option key={r.id} value={r.id}>{r.name_bn || r.name}</option>)}</select></div>
-                <div className="form-group"><label className="form-label">সারি</label><input className="form-input" type="number" value={rackRow} onChange={e => setRackRow(e.target.value)} /></div>
-                <div className="form-group"><label className="form-label">অবস্থান</label><input className="form-input" type="number" value={rackPosition} onChange={e => setRackPosition(e.target.value)} /></div>
-              </div>
-            </div></div>
-          )}
-
-          {activeTab === 'purchase' && (
-            <div className="card"><div className="card-body">
-              <div className="form-group"><label className="form-checkbox"><input type="checkbox" checked={isPurchased} onChange={e => setIsPurchased(e.target.checked)} /> কেনা হয়েছে</label></div>
-              {isPurchased && (<>
-                <div className="form-row">
-                  <div className="form-group"><label className="form-label">তারিখ</label><input className="form-input" type="date" value={purchaseDate} onChange={e => setPurchaseDate(e.target.value)} /></div>
-                  <div className="form-group"><label className="form-label">উৎস</label><input className="form-input" value={purchaseSource} onChange={e => setPurchaseSource(e.target.value)} /></div>
-                </div>
-                <div className="form-row">
-                  <div className="form-group"><label className="form-label">দাম (৳)</label><input className="form-input" type="number" step="0.01" value={purchasePrice} onChange={e => setPurchasePrice(e.target.value)} /></div>
-                  <div className="form-group"><label className="form-label">ছাড় (৳)</label><input className="form-input" type="number" step="0.01" value={purchaseDiscount} onChange={e => setPurchaseDiscount(e.target.value)} /></div>
-                  <div className="form-group"><label className="form-label">চূড়ান্ত দাম (৳)</label><input className="form-input" type="number" step="0.01" value={purchaseFinalPrice} onChange={e => setPurchaseFinalPrice(e.target.value)} /></div>
-                </div>
-                <div className="form-row">
-                  <div className="form-group"><label className="form-label">কে কিনেছে</label><select className="form-select" value={purchasedBy} onChange={e => setPurchasedBy(e.target.value)}><option value="">—</option><option value="swapnil">Swapnil</option><option value="bipro">Bipro</option></select></div>
-                  <div className="form-group"><label className="form-label">অবস্থা</label><select className="form-select" value={bookCondition} onChange={e => setBookCondition(e.target.value as BookCondition)}><option value="new">নতুন</option><option value="used">পুরনো</option><option value="gift">উপহার</option><option value="unknown">অজানা</option></select></div>
-                </div>
-              </>)}
-            </div></div>
-          )}
-
-          {activeTab === 'reading' && (
-            <div className="card"><div className="card-body">
-              <div className="form-row">
-                <div className="form-group"><label className="form-label">পড়া শুরু</label><input className="form-input" type="date" value={readingStartDate} onChange={e => setReadingStartDate(e.target.value)} /></div>
-                <div className="form-group"><label className="form-label">পড়া শেষ</label><input className="form-input" type="date" value={readingFinishDate} onChange={e => setReadingFinishDate(e.target.value)} /></div>
-              </div>
-              <div className="form-group">
-                <label className="form-label">অগ্রগতি ({readingProgress}%)</label>
-                <input type="range" min="0" max="100" value={readingProgress} onChange={e => setReadingProgress(parseInt(e.target.value))} style={{ width: '100%' }} />
-                <div className="progress-bar mt-2"><div className="progress-bar-fill" style={{ width: `${readingProgress}%` }} /></div>
-              </div>
-              <div className="form-group"><label className="form-label">রেটিং</label>
-                <div className="star-rating">{[1,2,3,4,5].map(s => (<button key={s} type="button" onClick={() => setRating(rating === s ? 0 : s)}>{s <= rating ? '⭐' : '☆'}</button>))}</div>
-              </div>
-              <div className="form-group"><label className="form-label">পর্যালোচনা</label><textarea className="form-textarea" value={review} onChange={e => setReview(e.target.value)} /></div>
-              <div className="form-group"><label className="form-label">নোট</label><textarea className="form-textarea" value={notes} onChange={e => setNotes(e.target.value)} /></div>
-              <div className="form-group"><label className="form-label">প্রিয় উদ্ধৃতি</label><textarea className="form-textarea" value={favoriteQuote} onChange={e => setFavoriteQuote(e.target.value)} /></div>
-            </div></div>
-          )}
-
-          {activeTab === 'cover' && (
-            <div className="card"><div className="card-body">
-              <div className="form-group"><label className="form-label">কভার আপলোড</label><input type="file" accept="image/*" onChange={e => setCoverFile(e.target.files?.[0] || null)} className="form-input" /></div>
-              <div className="form-group"><label className="form-label">অথবা URL</label><input className="form-input" value={coverUrl} onChange={e => setCoverUrl(e.target.value)} /></div>
-              {(coverFile || coverUrl) && (
-                <div style={{ marginTop: '16px', textAlign: 'center' }}>
-                  <img src={coverFile ? URL.createObjectURL(coverFile) : coverUrl} alt="Preview" style={{ maxWidth: '200px', maxHeight: '300px', borderRadius: 'var(--radius-md)', boxShadow: 'var(--shadow-md)' }} />
-                </div>
-              )}
-            </div></div>
-          )}
-
+          {/* Submit */}
           <div style={{ marginTop: '24px', display: 'flex', gap: '12px', justifyContent: 'flex-end' }}>
             <button type="button" className="btn btn-secondary" onClick={() => router.back()}>বাতিল</button>
             <button type="submit" className="btn btn-primary btn-lg" disabled={saving}>{saving ? '⏳ সংরক্ষণ করছি...' : '✅ আপডেট করুন'}</button>
