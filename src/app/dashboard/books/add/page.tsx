@@ -69,7 +69,7 @@ export default function AddBookPage() {
 
   useEffect(() => {
     if (roomId) {
-      supabase.from('shelves').select('*').eq('room_id', roomId).order('name').then(({ data }) => {
+      supabase.from('shelves').select('*').eq('room_id', roomId).order('name').then(({ data }: { data: any }) => {
         setShelves(data || []);
         setShelfId('');
         setRackId('');
@@ -80,7 +80,7 @@ export default function AddBookPage() {
 
   useEffect(() => {
     if (shelfId) {
-      supabase.from('racks').select('*').eq('shelf_id', shelfId).order('position_order').then(({ data }) => {
+      supabase.from('racks').select('*').eq('shelf_id', shelfId).order('position_order').then(({ data }: { data: any }) => {
         setRacks(data || []);
         setRackId('');
       });

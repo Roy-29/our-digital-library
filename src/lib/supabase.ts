@@ -94,53 +94,64 @@ export const createClient = () => {
           };
           return deleteChain;
         },
-        then: (resolve: any, reject: any) => {
-          // Execute the select query
-          dbSelect(
-            currentQuery.table, 
-            currentQuery._order?.col, 
-            currentQuery._order?.ascending
-          ).then(data => {
-            // Apply filtering locally for simplicity since the datasets are small (personal library)
-            let filtered = data;
-            if (currentQuery._eq.length > 0) {
-              filtered = filtered.filter((row: any) => {
-                return currentQuery._eq.every(cond => {
-                  // handle snake_case to camelCase roughly since DB returns camelCase or snake_case based on schema
-                  // Wait, our Drizzle schema returns camelCase for field names (e.g. nameBn). 
-                  // But Supabase queries use snake_case (e.g. name_bn). 
-                  // We should check both.
-                  return row[cond.col] === cond.val || row[cond.col.replace(/_([a-z])/g, (g: string) => g[1].toUpperCase())] === cond.val;
+        then<TResult1 = any, TResult2 = never>(onfulfilled?: any, onrejected?: any): Promise<TResult1 | TResult2> {
+          return new Promise((resolve, reject) => {
+            dbSelect(
+              currentQuery.table, 
+              currentQuery._order?.col, 
+              currentQuery._order?.ascending
+            ).then(data => {
+              let filtered = data;
+              if (currentQuery._eq.length > 0) {
+                filtered = filtered.filter((row: any) => {
+                  return currentQuery._eq.every(cond => {
+                    return row[cond.col] === cond.val || row[cond.col.replace(/_([a-z])/g, (g: string) => g[1].toUpperCase())] === cond.val;
+                  });
                 });
+              }
+              if (currentQuery._limit) {
+                filtered = filtered.slice(0, currentQuery._limit);
+              }
+              const mapped = filtered.map((row: any) => {
+                 const newRow = { ...row };
+                 for (const key in row) {
+                   const snake = key.replace(/[A-Z]/g, letter => `_${letter.toLowerCase()}`);
+                   newRow[snake] = row[key];
+                 }
+                 return newRow;
               });
-            }
-            if (currentQuery._limit) {
-              filtered = filtered.slice(0, currentQuery._limit);
-            }
-            // Add camelCase aliases so the client components that expect snake_case still work
-            // Actually, Drizzle returns the exact keys defined in schema (camelCase).
-            // But the client components expect snake_case (e.g. name_bn).
-            const mapped = filtered.map((row: any) => {
-               const newRow = { ...row };
-               for (const key in row) {
-                 const snake = key.replace(/[A-Z]/g, letter => `_${letter.toLowerCase()}`);
-                 newRow[snake] = row[key];
-               }
-               return newRow;
+              const result = (currentQuery as any)._single ? { data: mapped[0] || null, error: null } : { data: mapped, error: null };
+              
+              if (onfulfilled) {
+                resolve(onfulfilled(result));
+              } else {
+                resolve(result as any);
+              }
+            }).catch(err => {
+              console.error('Select Error:', err);
+              const errResult = { data: null, error: err };
+              if (onrejected) {
+                resolve(onrejected(errResult));
+              } else {
+                resolve(errResult as any);
+              }
             });
-            if ((currentQuery as any)._single) {
-              resolve({ data: mapped[0] || null, error: null });
-            } else {
-              resolve({ data: mapped, error: null });
-            }
-          }).catch(err => {
-            console.error('Select Error:', err);
-            resolve({ data: null, error: err });
           });
         }
       };
       
-      return chain;
+      return chain as any;
+    },
+    storage: {
+      from: (bucket: string) => ({
+        upload: async (path: string, file: any) => ({ data: { path }, error: null }),
+        getPublicUrl: (path: string) => ({ data: { publicUrl: `/uploads/${path}` } }),
+        remove: async (paths: string[]) => ({ data: paths, error: null })
+      })
+    },
+    auth: {
+      getUser: async () => ({ data: { user: { id: 'local-user' } }, error: null }),
+      signOut: async () => ({ error: null })
     }
   };
 };

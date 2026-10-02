@@ -146,14 +146,14 @@ export default function EditBookPage() {
 
   useEffect(() => {
     if (roomId && !loading) {
-      supabase.from('shelves').select('*').eq('room_id', roomId).order('name').then(({ data }) => setShelves(data || []));
+      supabase.from('shelves').select('*').eq('room_id', roomId).order('name').then(({ data }: { data: any }) => setShelves(data || []));
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [roomId]);
 
   useEffect(() => {
     if (shelfId && !loading) {
-      supabase.from('racks').select('*').eq('shelf_id', shelfId).order('position_order').then(({ data }) => setRacks(data || []));
+      supabase.from('racks').select('*').eq('shelf_id', shelfId).order('position_order').then(({ data }: { data: any }) => setRacks(data || []));
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [shelfId]);

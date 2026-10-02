@@ -47,7 +47,7 @@ export default function BackupPage() {
         const headers = Object.keys(data[0]);
         const csv = [
           headers.join(','),
-          ...data.map(row => headers.map(h => {
+          ...data.map((row: any) => headers.map((h: string) => {
             const val = (row as Record<string, unknown>)[h];
             const str = val === null ? '' : String(val);
             return str.includes(',') || str.includes('"') ? `"${str.replace(/"/g, '""')}"` : str;
