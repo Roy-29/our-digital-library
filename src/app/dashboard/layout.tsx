@@ -19,7 +19,6 @@ const NAV_ITEMS = [
   { href: '/dashboard/publishers', icon: '🏢', label: 'প্রকাশক' },
   { href: '/dashboard/categories', icon: '🏷️', label: 'Category / Genre' },
   { href: '/dashboard/people', icon: '👥', label: 'মানুষ' },
-  { href: '/dashboard/locations', icon: '📍', label: 'কোথায় রাখা আছে' },
   { section: 'অন্যান্য' },
   { href: '/dashboard/activity', icon: '📋', label: 'কার্যকলাপ' },
   { href: '/dashboard/backup', icon: '💾', label: 'ব্যাকআপ' },
