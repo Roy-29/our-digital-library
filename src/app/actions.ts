@@ -39,10 +39,16 @@ export async function dbSelect(table: string, orderByCol?: string, ascending = t
 
 export async function dbInsert(table: string, data: any) {
   const t = getTable(table);
-  // @ts-ignore
-  const result = await db.insert(t).values(data).returning();
-  revalidatePath('/dashboard');
-  return result[0];
+  try {
+    // @ts-ignore
+    const result = await db.insert(t).values(data).returning();
+    revalidatePath('/dashboard');
+    return result[0];
+  } catch (error: any) {
+    console.error(`[dbInsert ERROR on table ${table}]:`, error);
+    const realError = error.cause?.message || error.message || String(error);
+    throw new Error(realError);
+  }
 }
 
 export async function dbUpdate(table: string, id: string, data: any) {
