@@ -8,23 +8,19 @@ export default function ThemeToggle() {
   const [mounted, setMounted] = useState(false);
   const { theme, setTheme, resolvedTheme } = useTheme();
 
-  // useEffect only runs on the client, so now we can safely show the UI
   useEffect(() => {
     setMounted(true);
   }, []);
 
   if (!mounted) {
-    return <button className="btn btn-ghost btn-icon" style={{ opacity: 0 }} aria-hidden="true"><Sun size={20} /></button>;
+    return <button style={{ width: 40, height: 40, opacity: 0 }} aria-hidden="true" />;
   }
 
   const isDark = resolvedTheme === 'dark';
 
   return (
     <button
-      className="btn btn-ghost btn-icon"
-      onClick={() => {
-        setTheme(isDark ? 'light' : 'dark');
-      }}
+      onClick={() => setTheme(isDark ? 'light' : 'dark')}
       title={`Switch to ${isDark ? 'light' : 'dark'} mode`}
       style={{
         borderRadius: '50%',
@@ -33,11 +29,15 @@ export default function ThemeToggle() {
         justifyContent: 'center',
         width: '40px',
         height: '40px',
-        background: 'rgba(128, 128, 128, 0.1)',
-        color: 'currentColor'
+        background: 'rgba(128, 128, 128, 0.15)',
+        border: '1px solid rgba(128, 128, 128, 0.2)',
+        color: 'inherit',
+        cursor: 'pointer',
+        transition: 'all 0.2s ease',
+        flexShrink: 0
       }}
     >
-      {isDark ? <Sun size={20} /> : <Moon size={20} />}
+      {isDark ? <Sun size={20} color="currentColor" /> : <Moon size={20} color="currentColor" />}
     </button>
   );
 }
