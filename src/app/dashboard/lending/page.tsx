@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { createClient } from '@/lib/supabase';
-import { LendingRecord, Book, Borrower } from '@/lib/types';
+import { LendingRecord, Book, Borrower, getOwnerLabel } from '@/lib/types';
 import { useAuth } from '@/contexts/AuthContext';
 import toast from 'react-hot-toast';
 
@@ -115,7 +115,7 @@ export default function LendingPage() {
               <tr key={r.id}>
                 <td style={{ fontWeight: 500 }}>{r.book?.title || '—'}</td>
                 <td>{r.borrower?.name || '—'}</td>
-                <td>{r.lent_by}</td>
+                <td>{getOwnerLabel(r.lent_by)}</td>
                 <td>{r.date_lent}</td>
                 <td>{r.expected_return_date || '—'}</td>
                 <td>
@@ -149,7 +149,7 @@ export default function LendingPage() {
             <div className="form-group"><label className="form-label">📚 বই নির্বাচন *</label>
               <select className="form-select" value={bookId} onChange={e => setBookId(e.target.value)} required>
                 <option value="">— বই নির্বাচন —</option>
-                {books.filter(b => b.status !== 'ধার দেওয়া' && b.status !== 'হারিয়ে গেছে').map(b => <option key={b.id} value={b.id}>{b.title} ({b.owner})</option>)}
+                {books.filter(b => b.status !== 'ধার দেওয়া' && b.status !== 'হারিয়ে গেছে').map(b => <option key={b.id} value={b.id}>{b.title} ({getOwnerLabel(b.owner)})</option>)}
               </select>
             </div>
             <div className="form-group"><label className="form-label">👤 ধারকারী *</label>
@@ -161,7 +161,9 @@ export default function LendingPage() {
             <div className="form-row">
               <div className="form-group"><label className="form-label">কে দিচ্ছে</label>
                 <select className="form-select" value={lentBy} onChange={e => setLentBy(e.target.value)}>
-                  <option value="swapnil">Swapnil</option><option value="bipro">Bipro</option>
+                  <option value="swapnil">স্বপ্নীল</option>
+                  <option value="bipro">বিপ্রতীব</option>
+                  <option value="srrijan">সৃজন</option>
                 </select>
               </div>
               <div className="form-group"><label className="form-label">তারিখ</label><input className="form-input" type="date" value={dateLent} onChange={e => setDateLent(e.target.value)} /></div>

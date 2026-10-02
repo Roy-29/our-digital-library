@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { createClient } from '@/lib/supabase';
-import { WishlistItem, PRIORITIES } from '@/lib/types';
+import { WishlistItem, PRIORITIES, getOwnerLabel, BookOwner } from '@/lib/types';
 import { useAuth } from '@/contexts/AuthContext';
 import toast from 'react-hot-toast';
 import { useRouter } from 'next/navigation';
@@ -70,7 +70,7 @@ export default function WishlistPage() {
     // Create book from wishlist
     const { data: bookData, error } = await supabase.from('books').insert({
       title: item.title, isbn: item.isbn || null,
-      owner: item.requested_by as 'swapnil' | 'bipro', status: 'আছে',
+      owner: item.requested_by as BookOwner, status: 'আছে',
       is_purchased: true, purchase_date: new Date().toISOString().split('T')[0],
       purchase_final_price: item.estimated_price,
     }).select().single();
@@ -122,7 +122,7 @@ export default function WishlistPage() {
                       <td>{item.author_name || '—'}</td>
                       <td>{item.estimated_price ? `৳${item.estimated_price}` : '—'}</td>
                       <td><span className="badge" style={{ background: `${prioConfig?.color}20`, color: prioConfig?.color }}>{prioConfig?.label}</span></td>
-                      <td>{item.requested_by}</td>
+                      <td>{getOwnerLabel(item.requested_by)}</td>
                       <td>{item.source || '—'}</td>
                       <td><div className="actions">
                         <button className="btn btn-sm btn-gold" onClick={() => handlePurchased(item)}>🛒 কেনা হয়েছে</button>
@@ -145,7 +145,7 @@ export default function WishlistPage() {
                     <tr key={item.id} style={{ opacity: 0.6 }}>
                       <td>{item.title}</td>
                       <td>{item.purchased_date || '—'}</td>
-                      <td>{item.requested_by}</td>
+                      <td>{getOwnerLabel(item.requested_by)}</td>
                     </tr>
                   ))}
                 </tbody></table></div>
@@ -173,7 +173,9 @@ export default function WishlistPage() {
               </div>
               <div className="form-group"><label className="form-label">কার জন্য</label>
                 <select className="form-select" value={requestedBy} onChange={e => setRequestedBy(e.target.value)}>
-                  <option value="swapnil">Swapnil</option><option value="bipro">Bipro</option>
+                  <option value="swapnil">স্বপ্নীল</option>
+                  <option value="bipro">বিপ্রতীব</option>
+                  <option value="srrijan">সৃজন</option>
                 </select>
               </div>
             </div>

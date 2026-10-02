@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { Book, BOOK_STATUSES } from '@/lib/types';
+import { Book, BOOK_STATUSES, getOwnerLabel } from '@/lib/types';
 import Link from 'next/link';
 import toast from 'react-hot-toast';
 import { updateBookStatus, updateBookProgress, addActivity } from './actions';
@@ -93,7 +93,7 @@ export default function ReadingClient({
                     <div style={{ color: 'var(--text-secondary)', fontSize: '0.9rem', marginBottom: '8px' }}>
                       {book.authorNameBn || book.authorName || 'অজানা লেখক'}
                     </div>
-                    <div className="badge badge-gray" style={{ fontSize: '0.75rem' }}>{book.owner}</div>
+                    <div className="badge badge-gray" style={{ fontSize: '0.75rem' }}>{getOwnerLabel(book.owner)}</div>
                     {book.readingStartDate && (
                       <div style={{ color: 'var(--text-muted)', fontSize: '0.8rem', marginTop: '8px' }}>
                         শুরু: {book.readingStartDate}

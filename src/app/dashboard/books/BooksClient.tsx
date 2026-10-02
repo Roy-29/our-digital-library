@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { BOOK_STATUSES, OWNERS } from '@/lib/types';
+import { BOOK_STATUSES, OWNERS, getOwnerLabel } from '@/lib/types';
 import Link from 'next/link';
 
 type ViewMode = 'grid' | 'list' | 'shelf';
@@ -172,7 +172,7 @@ export default function BooksClient({
                     <div className="book-card-title">{book.title}</div>
                     <div className="book-card-author">{book.authorNameBn || book.authorName || ''}</div>
                     <div className="book-card-meta">
-                      <span className="book-card-owner">{book.owner}</span>
+                      <span className="book-card-owner">{getOwnerLabel(book.owner)}</span>
                       <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
                         {book.rating && <span style={{ fontSize: '0.75rem' }}>⭐ {book.rating}</span>}
                         <button
@@ -227,7 +227,7 @@ export default function BooksClient({
                     </td>
                     <td className="hide-mobile">{book.authorNameBn || book.authorName || '—'}</td>
                     <td className="hide-mobile">{book.publisherNameBn || book.publisherName || '—'}</td>
-                    <td><span className="badge badge-gray">{book.owner}</span></td>
+                    <td><span className="badge badge-gray">{getOwnerLabel(book.owner)}</span></td>
                     <td>
                       <span className="badge" style={{
                         background: `${BOOK_STATUSES.find(s => s.value === book.status)?.color}20`,

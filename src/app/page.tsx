@@ -126,7 +126,7 @@ export default function LandingPage() {
             }}
           >
             <span style={{ fontSize: '24px' }}>🧑🏻</span>
-            Swapnil
+            স্বপ্নীল
           </button>
           
           <button 
@@ -159,7 +159,40 @@ export default function LandingPage() {
             }}
           >
             <span style={{ fontSize: '24px' }}>🧑🏽</span>
-            Bipro
+            বিপ্রতীব
+          </button>
+
+          <button 
+            onClick={() => loginAs('srrijan')}
+            style={{ 
+              padding: '16px 20px', 
+              fontSize: '17px', 
+              borderRadius: '16px', 
+              background: 'var(--bg-primary)',
+              color: 'var(--text-primary)', 
+              border: '1.5px solid var(--border)', 
+              cursor: 'pointer',
+              fontWeight: 600,
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'flex-start',
+              gap: '16px',
+              transition: 'all var(--transition-base)',
+              boxShadow: 'var(--shadow-sm)'
+            }}
+            onMouseOver={(e) => {
+              e.currentTarget.style.borderColor = 'var(--accent)';
+              e.currentTarget.style.transform = 'translateY(-2px)';
+              e.currentTarget.style.boxShadow = 'var(--shadow-md)';
+            }}
+            onMouseOut={(e) => {
+              e.currentTarget.style.borderColor = 'var(--border)';
+              e.currentTarget.style.transform = 'translateY(0)';
+              e.currentTarget.style.boxShadow = 'var(--shadow-sm)';
+            }}
+          >
+            <span style={{ fontSize: '24px' }}>🧑🏻‍🦱</span>
+            সৃজন
           </button>
         </div>
       </div>

@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { createClient } from '@/lib/supabase';
-import { Book, BOOK_STATUSES } from '@/lib/types';
+import { Book, BOOK_STATUSES, getOwnerLabel } from '@/lib/types';
 import Link from 'next/link';
 import toast from 'react-hot-toast';
 
@@ -138,7 +138,7 @@ export default function BookDetailPage() {
             <div className="card" style={{ marginBottom: '16px' }}>
               <div className="card-header"><h3>👤 মালিকানা ও অবস্থান</h3></div>
               <div className="card-body">
-                <DetailRow label="মালিক" value={book.owner} />
+                <DetailRow label="মালিক" value={getOwnerLabel(book.owner)} />
                 <DetailRow label="ঘর" value={book.room?.name_bn || book.room?.name} />
                 <DetailRow label="শেলফ" value={book.shelf?.name_bn || book.shelf?.name} />
                 <DetailRow label="র‍্যাক" value={book.rack?.name_bn || book.rack?.name} />
@@ -156,7 +156,7 @@ export default function BookDetailPage() {
                   <DetailRow label="দাম" value={book.purchase_price ? `৳${book.purchase_price}` : null} />
                   <DetailRow label="ছাড়" value={book.purchase_discount ? `৳${book.purchase_discount}` : null} />
                   <DetailRow label="চূড়ান্ত দাম" value={book.purchase_final_price ? `৳${book.purchase_final_price}` : null} />
-                  <DetailRow label="কে কিনেছে" value={book.purchased_by} />
+                  <DetailRow label="কে কিনেছে" value={getOwnerLabel(book.purchased_by)} />
                   <DetailRow label="অবস্থা" value={book.book_condition === 'new' ? 'নতুন' : book.book_condition === 'used' ? 'পুরনো' : book.book_condition === 'gift' ? 'উপহার' : book.book_condition} />
                 </div>
               </div>

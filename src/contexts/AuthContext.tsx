@@ -3,8 +3,10 @@
 import { createContext, useContext, useEffect, useState, ReactNode } from 'react';
 import { useRouter } from 'next/navigation';
 
+export type UserId = 'swapnil' | 'bipro' | 'srrijan';
+
 export interface AppUser {
-  id: 'swapnil' | 'bipro';
+  id: UserId;
   email: string;
   name: string;
   role: string;
@@ -15,15 +17,16 @@ interface AuthContextType {
   profile: any;
   session: any;
   loading: boolean;
-  loginAs: (id: 'swapnil' | 'bipro') => void;
+  loginAs: (id: UserId) => void;
   signOut: () => void;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-const USERS: Record<'swapnil' | 'bipro', AppUser> = {
-  swapnil: { id: 'swapnil', email: 'swapnil@example.com', name: 'Swapnil', role: 'admin' },
-  bipro: { id: 'bipro', email: 'bipro@example.com', name: 'Bipro', role: 'admin' }
+const USERS: Record<UserId, AppUser> = {
+  swapnil: { id: 'swapnil', email: 'swapnil@example.com', name: 'স্বপ্নীল', role: 'admin' },
+  bipro: { id: 'bipro', email: 'bipro@example.com', name: 'বিপ্রতীব', role: 'admin' },
+  srrijan: { id: 'srrijan', email: 'srrijan@example.com', name: 'সৃজন', role: 'admin' }
 };
 
 export function AuthProvider({ children }: { children: ReactNode }) {
@@ -33,14 +36,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     // Check local storage on mount
-    const savedUserId = localStorage.getItem('library_user_id') as 'swapnil' | 'bipro';
+    const savedUserId = localStorage.getItem('library_user_id') as UserId;
     if (savedUserId && USERS[savedUserId]) {
       setUser(USERS[savedUserId]);
     }
     setLoading(false);
   }, []);
 
-  const loginAs = (id: 'swapnil' | 'bipro') => {
+  const loginAs = (id: UserId) => {
     localStorage.setItem('library_user_id', id);
     setUser(USERS[id]);
     router.push('/dashboard');

@@ -2,6 +2,7 @@
 
 import Link from 'next/link';
 import { useAuth } from '@/contexts/AuthContext';
+import { getOwnerLabel } from '@/lib/types';
 
 const MENU_ITEMS = [
   { href: '/dashboard', icon: '🏠', label: 'ড্যাশবোর্ড', desc: 'পরিসংখ্যান ও সারসংক্ষেপ' },
@@ -36,7 +37,7 @@ export default function MorePage() {
             <div style={{ fontWeight: 700, fontSize: '1.05rem', color: 'var(--text-primary)' }}>{displayName}</div>
             <div className="text-xs text-muted" style={{ textOverflow: 'ellipsis', overflow: 'hidden', whiteSpace: 'nowrap' }}>{user?.email}</div>
             <div style={{ marginTop: '6px' }}>
-              <span className="badge badge-gray">{profile?.owner ? `মালিক: ${profile.owner}` : 'সদস্য'}</span>
+              <span className="badge badge-gray">{profile?.owner ? `মালিক: ${getOwnerLabel(profile.owner)}` : 'সদস্য'}</span>
             </div>
           </div>
           <button className="btn btn-secondary btn-sm" onClick={signOut} title="লগআউট" style={{ color: 'var(--danger)' }}>

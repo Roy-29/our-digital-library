@@ -2,12 +2,13 @@ import { db } from '@/db';
 import { books, authors, publishers, lendingRecords, wishlist } from '@/db/schema';
 import { sql, desc, eq, and, isNotNull } from 'drizzle-orm';
 import Link from 'next/link';
+import { getOwnerLabel } from '@/lib/types';
 
 export const dynamic = 'force-dynamic'; // Prevent caching so dashboard is always fresh
 
 export default async function DashboardPage() {
   const [
-    total_books, swapnil_books, bipro_books, shared_books, 
+    total_books, swapnil_books, bipro_books, srrijan_books, shared_books, 
     read_books, unread_books, reading_books, lent_books, lost_books, 
     wishlist_count, total_value, total_spent, books_this_month, 
     books_this_year, overdue_lendings
@@ -15,6 +16,7 @@ export default async function DashboardPage() {
     db.select({ count: sql<number>`count(*)` }).from(books).then(res => res[0].count),
     db.select({ count: sql<number>`count(*)` }).from(books).where(eq(books.owner, 'swapnil')).then(res => res[0].count),
     db.select({ count: sql<number>`count(*)` }).from(books).where(eq(books.owner, 'bipro')).then(res => res[0].count),
+    db.select({ count: sql<number>`count(*)` }).from(books).where(eq(books.owner, 'srrijan')).then(res => res[0].count),
     db.select({ count: sql<number>`count(*)` }).from(books).where(eq(books.owner, 'shared')).then(res => res[0].count),
     db.select({ count: sql<number>`count(*)` }).from(books).where(eq(books.status, 'পড়া শেষ')).then(res => res[0].count),
     db.select({ count: sql<number>`count(*)` }).from(books).where(eq(books.status, 'পড়া বাকি')).then(res => res[0].count),
@@ -45,7 +47,7 @@ export default async function DashboardPage() {
   .limit(8);
 
   const s = {
-    total_books, swapnil_books, bipro_books, shared_books, read_books, unread_books, reading_books, lent_books, lost_books, wishlist_count, total_value, total_spent, books_this_month, books_this_year, overdue_lendings
+    total_books, swapnil_books, bipro_books, srrijan_books, shared_books, read_books, unread_books, reading_books, lent_books, lost_books, wishlist_count, total_value, total_spent, books_this_month, books_this_year, overdue_lendings
   };
 
   return (
@@ -69,17 +71,22 @@ export default async function DashboardPage() {
           <div className="stat-card">
             <span className="stat-icon">👤</span>
             <span className="stat-value">{s.swapnil_books}</span>
-            <span className="stat-label">Swapnil-এর বই</span>
+            <span className="stat-label">স্বপ্নীল-এর বই</span>
           </div>
           <div className="stat-card">
             <span className="stat-icon">👤</span>
             <span className="stat-value">{s.bipro_books}</span>
-            <span className="stat-label">Bipro-এর বই</span>
+            <span className="stat-label">বিপ্রতীব-এর বই</span>
+          </div>
+          <div className="stat-card">
+            <span className="stat-icon">👤</span>
+            <span className="stat-value">{s.srrijan_books}</span>
+            <span className="stat-label">সৃজন-এর বই</span>
           </div>
           <div className="stat-card">
             <span className="stat-icon">🤝</span>
             <span className="stat-value">{s.shared_books}</span>
-            <span className="stat-label">শেয়ারড বই</span>
+            <span className="stat-label">যৌথ বই</span>
           </div>
           <div className="stat-card">
             <span className="stat-icon">✅</span>
@@ -166,7 +173,7 @@ export default async function DashboardPage() {
                       {book.authorName || book.authorNameBn || 'অজানা লেখক'}
                     </div>
                     <div className="book-card-meta">
-                      <span className="book-card-owner">{book.owner}</span>
+                      <span className="book-card-owner">{getOwnerLabel(book.owner)}</span>
                       {book.rating && <span style={{ fontSize: '0.8rem' }}>⭐ {book.rating}</span>}
                     </div>
                   </div>

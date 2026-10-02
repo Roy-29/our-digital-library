@@ -6,6 +6,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import Link from 'next/link';
 import ThemeToggle from '@/components/ThemeToggle';
 import { LogOut } from 'lucide-react';
+import { getOwnerLabel } from '@/lib/types';
 
 const NAV_ITEMS = [
   { section: 'প্রধান' },
@@ -116,7 +117,7 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
             <div className="sidebar-user-name">{displayName}</div>
             <div className="sidebar-user-email">{user.email}</div>
           </div>
-          <span className="badge badge-gray" style={{ fontSize: '0.65rem' }}>{profile?.owner || 'সদস্য'}</span>
+          <span className="badge badge-gray" style={{ fontSize: '0.65rem' }}>{profile?.owner ? getOwnerLabel(profile.owner) : 'সদস্য'}</span>
         </div>
 
         <nav className="sidebar-nav">

@@ -83,7 +83,7 @@ export interface Rack {
   shelf?: Shelf;
 }
 
-export type BookOwner = 'swapnil' | 'bipro' | 'shared';
+export type BookOwner = 'swapnil' | 'bipro' | 'srrijan' | 'shared';
 
 export type BookStatus = 
   | 'আছে'
@@ -244,6 +244,7 @@ export interface DashboardStats {
   total_books: number;
   swapnil_books: number;
   bipro_books: number;
+  srrijan_books: number;
   shared_books: number;
   read_books: number;
   unread_books: number;
@@ -275,10 +276,23 @@ export const BOOK_STATUSES: { value: BookStatus; label: string; icon: string; co
 ];
 
 export const OWNERS: { value: BookOwner; label: string }[] = [
-  { value: 'swapnil', label: 'Swapnil' },
-  { value: 'bipro', label: 'Bipro' },
-  { value: 'shared', label: 'Shared' },
+  { value: 'swapnil', label: 'স্বপ্নীল' },
+  { value: 'bipro', label: 'বিপ্রতীব' },
+  { value: 'srrijan', label: 'সৃজন' },
+  { value: 'shared', label: 'যৌথ' },
 ];
+
+export const OWNER_LABELS: Record<string, string> = {
+  swapnil: 'স্বপ্নীল',
+  bipro: 'বিপ্রতীব',
+  srrijan: 'সৃজন',
+  shared: 'যৌথ',
+};
+
+export function getOwnerLabel(owner: string | null | undefined): string {
+  if (!owner) return '—';
+  return OWNER_LABELS[owner] || owner;
+}
 
 export const PRIORITIES: { value: WishlistPriority; label: string; color: string }[] = [
   { value: 'urgent', label: 'জরুরি', color: '#DC2626' },

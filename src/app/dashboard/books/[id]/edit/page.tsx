@@ -454,8 +454,9 @@ export default function EditBookPage() {
                         <label className="form-label">কে কিনেছে</label>
                         <select className="form-select" value={purchasedBy} onChange={e => setPurchasedBy(e.target.value)}>
                           <option value="">— নির্বাচন —</option>
-                          <option value="swapnil">Swapnil</option>
-                          <option value="bipro">Bipro</option>
+                          <option value="swapnil">স্বপ্নীল</option>
+                          <option value="bipro">বিপ্রতীব</option>
+                          <option value="srrijan">সৃজন</option>
                         </select>
                       </div>
                       <div className="form-group">
