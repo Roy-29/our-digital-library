@@ -102,11 +102,11 @@ export default function EditBookPage() {
     setPageCount(b.page_count?.toString() || '');
     setDescription(b.description || '');
     setCoverUrl(b.cover_url || '');
-    setAuthorId(aRes.data?.find(a => a.id === b.author_id)?.name_bn || aRes.data?.find(a => a.id === b.author_id)?.name || '');
-    setTranslatorId(aRes.data?.find(a => a.id === b.translator_id)?.name_bn || aRes.data?.find(a => a.id === b.translator_id)?.name || '');
-    setPublisherId(pRes.data?.find(p => p.id === b.publisher_id)?.name_bn || pRes.data?.find(p => p.id === b.publisher_id)?.name || '');
-    setCategoryId(cRes.data?.find(c => c.id === b.category_id)?.name_bn || cRes.data?.find(c => c.id === b.category_id)?.name || '');
-    setGenreId(gRes.data?.find(g => g.id === b.genre_id)?.name_bn || gRes.data?.find(g => g.id === b.genre_id)?.name || '');
+    setAuthorId(aRes.data?.find((a: any) => a.id === b.author_id)?.name_bn || aRes.data?.find((a: any) => a.id === b.author_id)?.name || '');
+    setTranslatorId(aRes.data?.find((a: any) => a.id === b.translator_id)?.name_bn || aRes.data?.find((a: any) => a.id === b.translator_id)?.name || '');
+    setPublisherId(pRes.data?.find((p: any) => p.id === b.publisher_id)?.name_bn || pRes.data?.find((p: any) => p.id === b.publisher_id)?.name || '');
+    setCategoryId(cRes.data?.find((c: any) => c.id === b.category_id)?.name_bn || cRes.data?.find((c: any) => c.id === b.category_id)?.name || '');
+    setGenreId(gRes.data?.find((g: any) => g.id === b.genre_id)?.name_bn || gRes.data?.find((g: any) => g.id === b.genre_id)?.name || '');
     setOwner(b.owner);
     setStatus(b.status);
     setRoomId(b.room_id || '');
