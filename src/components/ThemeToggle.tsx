@@ -6,7 +6,7 @@ import { Moon, Sun } from 'lucide-react';
 
 export default function ThemeToggle() {
   const [mounted, setMounted] = useState(false);
-  const { theme, setTheme } = useTheme();
+  const { theme, setTheme, resolvedTheme } = useTheme();
 
   // useEffect only runs on the client, so now we can safely show the UI
   useEffect(() => {
@@ -17,12 +17,14 @@ export default function ThemeToggle() {
     return <button className="btn btn-ghost btn-icon" style={{ opacity: 0 }} aria-hidden="true"><Sun size={20} /></button>;
   }
 
-  const isDark = theme === 'dark';
+  const isDark = resolvedTheme === 'dark';
 
   return (
     <button
       className="btn btn-ghost btn-icon"
-      onClick={() => setTheme(isDark ? 'light' : 'dark')}
+      onClick={() => {
+        setTheme(isDark ? 'light' : 'dark');
+      }}
       title={`Switch to ${isDark ? 'light' : 'dark'} mode`}
       style={{
         borderRadius: '50%',

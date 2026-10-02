@@ -64,19 +64,17 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
 
   return (
     <div className="app-layout">
-      {/* Global floating theme toggle */}
-      <div style={{ position: 'fixed', top: '20px', right: '32px', zIndex: 1000 }}>
+      {/* Mobile top controls */}
+      <div className="mobile-header-controls">
         <ThemeToggle />
+        <button
+          className="mobile-menu-toggle"
+          onClick={() => setSidebarOpen(!sidebarOpen)}
+          aria-label="Toggle menu"
+        >
+          {sidebarOpen ? '✕' : '☰'}
+        </button>
       </div>
-
-      {/* Mobile menu toggle */}
-      <button
-        className="mobile-menu-toggle"
-        onClick={() => setSidebarOpen(!sidebarOpen)}
-        aria-label="Toggle menu"
-      >
-        {sidebarOpen ? '✕' : '☰'}
-      </button>
 
       {/* Sidebar overlay for mobile */}
       {sidebarOpen && (
@@ -127,6 +125,9 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
           <div className="sidebar-user-info">
             <div className="sidebar-user-name">{displayName}</div>
             <div className="sidebar-user-email">{user.email}</div>
+          </div>
+          <div className="desktop-theme-toggle">
+            <ThemeToggle />
           </div>
           <button
             className="btn btn-ghost btn-icon"
