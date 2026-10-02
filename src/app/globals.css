@@ -161,6 +161,7 @@ h3 { font-size: 1.25rem; }
 .sidebar {
   width: 260px;
   background: linear-gradient(170deg, var(--bg-sidebar) 0%, #151f19 100%);
+  color: rgba(255, 255, 255, 0.9);
   position: fixed;
   top: 0;
   left: 0;
@@ -791,6 +792,7 @@ h3 { font-size: 1.25rem; }
   line-height: 1.3;
   display: -webkit-box;
   -webkit-line-clamp: 3;
+  line-clamp: 3;
   -webkit-box-orient: vertical;
   overflow: hidden;
 }
@@ -819,6 +821,7 @@ h3 { font-size: 1.25rem; }
   line-height: 1.3;
   display: -webkit-box;
   -webkit-line-clamp: 2;
+  line-clamp: 2;
   -webkit-box-orient: vertical;
   overflow: hidden;
   margin-bottom: 4px;
