@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { createClient } from '@/lib/supabase';
-import { Author, Publisher, Category, Genre, Room, Shelf, Rack, BOOK_STATUSES, OWNERS, BookStatus, BookOwner, BookCondition } from '@/lib/types';
+import { Author, Publisher, Category, Genre, Room, Shelf, Rack, BOOK_STATUSES, OWNERS, BookStatus, BookOwner, BookCondition, getOwnerLabel } from '@/lib/types';
 import { useAuth } from '@/contexts/AuthContext';
 import toast from 'react-hot-toast';
 
@@ -60,6 +60,13 @@ export default function AddBookPage() {
   const [notes, setNotes] = useState('');
   const [favoriteQuote, setFavoriteQuote] = useState('');
   const [isFavorite, setIsFavorite] = useState(false);
+
+  useEffect(() => {
+    if (user?.id) {
+      setOwner(user.id as BookOwner);
+      setPurchasedBy(user.id);
+    }
+  }, [user]);
 
   useEffect(() => {
     fetchReferenceData();
@@ -199,7 +206,7 @@ export default function AddBookPage() {
       publisher_id: finalPublisherId || null,
       category_id: finalCategoryId || null,
       genre_id: finalGenreId || null,
-      owner,
+      owner: (user?.id as BookOwner) || owner,
       status,
       room_id: roomId || null,
       shelf_id: shelfId || null,
@@ -377,9 +384,17 @@ export default function AddBookPage() {
                 <div className="form-row">
                   <div className="form-group">
                     <label className="form-label">👤 মালিক</label>
-                    <select className="form-select" value={owner} onChange={e => setOwner(e.target.value as BookOwner)}>
+                    <select 
+                      className="form-select" 
+                      value={owner} 
+                      disabled 
+                      style={{ opacity: 0.9, cursor: 'not-allowed', background: 'var(--bg-secondary)', fontWeight: 600 }}
+                    >
                       {OWNERS.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}
                     </select>
+                    <span className="text-xs text-muted" style={{ display: 'block', marginTop: '4px' }}>
+                      🔒 আপনি শুধুমাত্র নিজের নামে ({getOwnerLabel(user?.id || owner)}) বইটি যোগ করতে পারবেন
+                    </span>
                   </div>
                   <div className="form-group">
                     <label className="form-label">📊 স্ট্যাটাস</label>

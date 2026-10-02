@@ -25,7 +25,13 @@ export default function WishlistPage() {
   const [priority, setPriority] = useState('medium');
   const [source, setSource] = useState('');
   const [notes, setNotes] = useState('');
-  const [requestedBy, setRequestedBy] = useState('swapnil');
+  const [requestedBy, setRequestedBy] = useState<BookOwner>((user?.id as BookOwner) || 'swapnil');
+
+  useEffect(() => {
+    if (user?.id) {
+      setRequestedBy(user.id as BookOwner);
+    }
+  }, [user]);
 
   useEffect(() => { fetchData(); }, []);
 
@@ -36,14 +42,14 @@ export default function WishlistPage() {
     setLoading(false);
   };
 
-  const resetForm = () => { setTitle(''); setAuthorName(''); setPublisherName(''); setIsbn(''); setEstimatedPrice(''); setPriority('medium'); setSource(''); setNotes(''); setRequestedBy('swapnil'); setEditingId(null); };
+  const resetForm = () => { setTitle(''); setAuthorName(''); setPublisherName(''); setIsbn(''); setEstimatedPrice(''); setPriority('medium'); setSource(''); setNotes(''); setRequestedBy(user?.id || 'swapnil'); setEditingId(null); };
 
   const openAdd = () => { resetForm(); setShowModal(true); };
   const openEdit = (item: WishlistItem) => {
     setEditingId(item.id); setTitle(item.title); setAuthorName(item.author_name || '');
     setPublisherName(item.publisher_name || ''); setIsbn(item.isbn || '');
     setEstimatedPrice(item.estimated_price?.toString() || ''); setPriority(item.priority);
-    setSource(item.source || ''); setNotes(item.notes || ''); setRequestedBy(item.requested_by);
+    setSource(item.source || ''); setNotes(item.notes || ''); setRequestedBy(item.requested_by as BookOwner);
     setShowModal(true);
   };
 
@@ -70,7 +76,7 @@ export default function WishlistPage() {
     // Create book from wishlist
     const { data: bookData, error } = await supabase.from('books').insert({
       title: item.title, isbn: item.isbn || null,
-      owner: item.requested_by as BookOwner, status: 'আছে',
+      owner: (user?.id as BookOwner) || (item.requested_by as BookOwner) || 'swapnil', status: 'আছে',
       is_purchased: true, purchase_date: new Date().toISOString().split('T')[0],
       purchase_final_price: item.estimated_price,
     }).select().single();
@@ -172,7 +178,7 @@ export default function WishlistPage() {
                 </select>
               </div>
               <div className="form-group"><label className="form-label">কার জন্য</label>
-                <select className="form-select" value={requestedBy} onChange={e => setRequestedBy(e.target.value)}>
+                <select className="form-select" value={requestedBy} onChange={e => setRequestedBy(e.target.value as BookOwner)}>
                   <option value="swapnil">স্বপ্নীল</option>
                   <option value="bipro">বিপ্রতীব</option>
                   <option value="srrijan">সৃজন</option>

@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { createClient } from '@/lib/supabase';
-import { Author, Publisher, Category, Genre, Room, Shelf, Rack, BOOK_STATUSES, OWNERS, BookStatus, BookOwner, BookCondition, Book } from '@/lib/types';
+import { Author, Publisher, Category, Genre, Room, Shelf, Rack, BOOK_STATUSES, OWNERS, BookStatus, BookOwner, BookCondition, Book, getOwnerLabel } from '@/lib/types';
 import { useAuth } from '@/contexts/AuthContext';
 import toast from 'react-hot-toast';
 
@@ -91,6 +91,11 @@ export default function EditBookPage() {
     }
 
     const b: Book = bookRes.data;
+    if (user && b.owner && b.owner !== user.id) {
+      toast.error('আপনি শুধুমাত্র নিজের বই সম্পাদনা করতে পারবেন!');
+      router.push(`/dashboard/books/${params.id}`);
+      return;
+    }
     setTitle(b.title);
     setTitleOriginal(b.title_original || '');
     setSubtitle(b.subtitle || '');
@@ -163,6 +168,10 @@ export default function EditBookPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (user && owner !== user.id) {
+      toast.error('আপনি শুধুমাত্র নিজের বই সম্পাদনা করতে পারবেন!');
+      return;
+    }
     if (!title.trim()) { toast.error('বইয়ের নাম লিখুন'); return; }
     setSaving(true);
     const resolveAuthor = async (name: string) => {
@@ -392,9 +401,17 @@ export default function EditBookPage() {
                 <div className="form-row">
                   <div className="form-group">
                     <label className="form-label">👤 মালিক</label>
-                    <select className="form-select" value={owner} onChange={e => setOwner(e.target.value as BookOwner)}>
+                    <select 
+                      className="form-select" 
+                      value={owner} 
+                      disabled 
+                      style={{ opacity: 0.9, cursor: 'not-allowed', background: 'var(--bg-secondary)', fontWeight: 600 }}
+                    >
                       {OWNERS.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}
                     </select>
+                    <span className="text-xs text-muted" style={{ display: 'block', marginTop: '4px' }}>
+                      🔒 এই বইটির মালিক {getOwnerLabel(owner)}
+                    </span>
                   </div>
                   <div className="form-group">
                     <label className="form-label">📊 স্ট্যাটাস</label>

@@ -4,12 +4,14 @@ import { useEffect, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { createClient } from '@/lib/supabase';
 import { Book, BOOK_STATUSES, getOwnerLabel } from '@/lib/types';
+import { useAuth } from '@/contexts/AuthContext';
 import Link from 'next/link';
 import toast from 'react-hot-toast';
 
 export default function BookDetailPage() {
   const params = useParams();
   const router = useRouter();
+  const { user } = useAuth();
   const [book, setBook] = useState<Book | null>(null);
   const [loading, setLoading] = useState(true);
   const [showDelete, setShowDelete] = useState(false);
@@ -48,6 +50,11 @@ export default function BookDetailPage() {
 
   const handleDelete = async () => {
     if (!book) return;
+    if (user && book.owner !== user.id) {
+      toast.error('আপনি শুধুমাত্র নিজের বই মুছে ফেলতে পারবেন!');
+      setShowDelete(false);
+      return;
+    }
     const { error } = await supabase.from('books').delete().eq('id', book.id);
     if (error) {
       toast.error('মুছতে পারা যায়নি');
@@ -70,14 +77,18 @@ export default function BookDetailPage() {
 
   if (!book) return null;
 
+  const isOwner = user?.id === book.owner;
+
   return (
     <>
       <div className="page-header">
         <h2>📖 {book.title}</h2>
-        <div className="flex gap-2 page-header-actions">
-          <Link href={`/dashboard/books/${book.id}/edit`} className="btn btn-primary">✏️ সম্পাদনা</Link>
-          <button className="btn btn-danger" onClick={() => setShowDelete(true)}>🗑️ মুছুন</button>
-        </div>
+        {isOwner && (
+          <div className="flex gap-2 page-header-actions">
+            <Link href={`/dashboard/books/${book.id}/edit`} className="btn btn-primary">✏️ সম্পাদনা</Link>
+            <button className="btn btn-danger" onClick={() => setShowDelete(true)}>🗑️ মুছুন</button>
+          </div>
+        )}
       </div>
 
       <div className="page-body">

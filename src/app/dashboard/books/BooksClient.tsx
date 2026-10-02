@@ -3,6 +3,9 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { BOOK_STATUSES, OWNERS, getOwnerLabel } from '@/lib/types';
+import { useAuth } from '@/contexts/AuthContext';
+import { createClient } from '@/lib/supabase';
+import toast from 'react-hot-toast';
 import Link from 'next/link';
 
 type ViewMode = 'grid' | 'list' | 'shelf';
@@ -25,6 +28,8 @@ export default function BooksClient({
   authors: any[] 
 }) {
   const router = useRouter();
+  const { user } = useAuth();
+  const supabase = createClient();
   const [books, setBooks] = useState(initialBooks);
   const [viewMode, setViewMode] = useState<ViewMode>('list');
   const [search, setSearch] = useState('');
@@ -37,8 +42,18 @@ export default function BooksClient({
 
   const handleDelete = async () => {
     if (!deleteId) return;
-    // We can call a server action or API route here to delete the book
-    // For now, we will just optimistically remove it
+    const targetBook = books.find(b => b.id === deleteId);
+    if (targetBook && user && targetBook.owner !== user.id) {
+      toast.error('আপনি শুধুমাত্র নিজের বই মুছে ফেলতে পারবেন!');
+      setDeleteId(null);
+      return;
+    }
+    const { error } = await supabase.from('books').delete().eq('id', deleteId);
+    if (error) {
+      toast.error('মুছতে সমস্যা হয়েছে: ' + error.message);
+      return;
+    }
+    toast.success('বই সফলভাবে মুছে ফেলা হয়েছে');
     setBooks(books.filter(b => b.id !== deleteId));
     setDeleteId(null);
   };
@@ -175,19 +190,21 @@ export default function BooksClient({
                       <span className="book-card-owner">{getOwnerLabel(book.owner)}</span>
                       <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
                         {book.rating && <span style={{ fontSize: '0.75rem' }}>⭐ {book.rating}</span>}
-                        <button
-                          type="button"
-                          onClick={(e) => {
-                            e.preventDefault();
-                            e.stopPropagation();
-                            router.push(`/dashboard/books/${book.id}/edit`);
-                          }}
-                          className="btn btn-ghost btn-icon btn-sm"
-                          title="সম্পাদনা"
-                          style={{ width: '28px', height: '28px', padding: 0 }}
-                        >
-                          ✏️
-                        </button>
+                        {user?.id === book.owner && (
+                          <button
+                            type="button"
+                            onClick={(e) => {
+                              e.preventDefault();
+                              e.stopPropagation();
+                              router.push(`/dashboard/books/${book.id}/edit`);
+                            }}
+                            className="btn btn-ghost btn-icon btn-sm"
+                            title="সম্পাদনা"
+                            style={{ width: '28px', height: '28px', padding: 0 }}
+                          >
+                            ✏️
+                          </button>
+                        )}
                       </div>
                     </div>
                   </div>
@@ -240,8 +257,12 @@ export default function BooksClient({
                     <td className="table-actions-cell">
                       <div className="actions">
                         <Link href={`/dashboard/books/${book.id}`} className="btn btn-ghost btn-icon btn-sm" title="দেখুন">👁️</Link>
-                        <Link href={`/dashboard/books/${book.id}/edit`} className="btn btn-ghost btn-icon btn-sm" title="সম্পাদনা">✏️</Link>
-                        <button className="btn btn-ghost btn-icon btn-sm" onClick={(e) => { e.preventDefault(); setDeleteId(book.id); }} title="মুছুন">🗑️</button>
+                        {user?.id === book.owner && (
+                          <>
+                            <Link href={`/dashboard/books/${book.id}/edit`} className="btn btn-ghost btn-icon btn-sm" title="সম্পাদনা">✏️</Link>
+                            <button className="btn btn-ghost btn-icon btn-sm" onClick={(e) => { e.preventDefault(); setDeleteId(book.id); }} title="মুছুন">🗑️</button>
+                          </>
+                        )}
                       </div>
                     </td>
                   </tr>
