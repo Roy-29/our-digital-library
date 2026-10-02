@@ -33,10 +33,11 @@ export default function ThemeToggle() {
         justifyContent: 'center',
         width: '40px',
         height: '40px',
-        background: isDark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.05)',
+        background: 'rgba(128, 128, 128, 0.1)',
+        color: 'currentColor'
       }}
     >
-      {isDark ? <Sun size={20} className="text-yellow-400" /> : <Moon size={20} />}
+      {isDark ? <Sun size={20} /> : <Moon size={20} />}
     </button>
   );
 }

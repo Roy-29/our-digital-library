@@ -5,6 +5,7 @@ import { useRouter, usePathname } from 'next/navigation';
 import { useAuth } from '@/contexts/AuthContext';
 import Link from 'next/link';
 import ThemeToggle from '@/components/ThemeToggle';
+import { LogOut } from 'lucide-react';
 
 const NAV_ITEMS = [
   { section: 'প্রধান' },
@@ -122,9 +123,9 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
 
         <div className="sidebar-user">
           <div className="sidebar-user-avatar">{initials}</div>
-          <div className="sidebar-user-info">
+          <div className="sidebar-user-info" style={{ color: 'rgba(255,255,255,0.9)' }}>
             <div className="sidebar-user-name">{displayName}</div>
-            <div className="sidebar-user-email">{user.email}</div>
+            <div className="sidebar-user-email" style={{ color: 'rgba(255,255,255,0.5)' }}>{user.email}</div>
           </div>
           <div className="desktop-theme-toggle">
             <ThemeToggle />
@@ -133,9 +134,9 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
             className="btn btn-ghost btn-icon"
             onClick={signOut}
             title="লগআউট"
-            style={{ color: 'rgba(255,255,255,0.5)' }}
+            style={{ color: 'rgba(255,255,255,0.7)' }}
           >
-            🚪
+            <LogOut size={20} />
           </button>
         </div>
       </aside>
