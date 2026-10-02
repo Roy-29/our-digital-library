@@ -4,6 +4,7 @@ import { useEffect, useState, ReactNode } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
 import { useAuth } from '@/contexts/AuthContext';
 import Link from 'next/link';
+import ThemeToggle from '@/components/ThemeToggle';
 
 const NAV_ITEMS = [
   { section: 'প্রধান' },
@@ -63,6 +64,11 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
 
   return (
     <div className="app-layout">
+      {/* Global floating theme toggle */}
+      <div style={{ position: 'fixed', top: '20px', right: '32px', zIndex: 1000 }}>
+        <ThemeToggle />
+      </div>
+
       {/* Mobile menu toggle */}
       <button
         className="mobile-menu-toggle"

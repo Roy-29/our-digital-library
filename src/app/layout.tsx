@@ -11,17 +11,20 @@ export const metadata: Metadata = {
   },
 };
 
+import { ThemeProvider } from "@/components/ThemeProvider";
+
 export default function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="bn">
+    <html lang="bn" suppressHydrationWarning>
       <body>
-        <AuthProvider>
-          {children}
-          <Toaster
+        <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
+          <AuthProvider>
+            {children}
+            <Toaster
             position="top-right"
             toastOptions={{
               duration: 3000,
@@ -34,6 +37,7 @@ export default function RootLayout({
             }}
           />
         </AuthProvider>
+        </ThemeProvider>
       </body>
     </html>
   );
