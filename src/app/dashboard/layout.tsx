@@ -16,7 +16,7 @@ const NAV_ITEMS = [
   { section: 'ট্র্যাকিং' },
   { href: '/dashboard/reading', icon: '📖', label: 'পড়ছি' },
   { href: '/dashboard/lending', icon: '📤', label: 'ধার দেওয়া' },
-  { href: '/dashboard/wishlist', icon: '🛒', label: 'কিনতে হবে' },
+  { href: '/dashboard/wishlist', icon: '🛒', label: 'উইশলিস্ট' },
   { href: '/dashboard/unowned', icon: '🔖', label: 'আমার কাছে নেই' },
   { section: 'পরিচালনা' },
   { href: '/dashboard/authors', icon: '✍️', label: 'লেখক' },

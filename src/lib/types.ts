@@ -276,7 +276,7 @@ export const BOOK_STATUSES: { value: BookStatus; label: string; icon: string; co
   { value: 'ধার দেওয়া', label: 'ধার দেওয়া', icon: '📤', color: '#F59E0B' },
   { value: 'ফেরত পাওয়া বাকি', label: 'ফেরত পাওয়া বাকি', icon: '⏰', color: '#EF4444' },
   { value: 'হারিয়ে গেছে', label: 'হারিয়ে গেছে', icon: '❌', color: '#DC2626' },
-  { value: 'কিনতে হবে', label: 'কিনতে হবে', icon: '🛒', color: '#06B6D4' },
+  { value: 'কিনতে হবে', label: 'উইশলিস্ট (কিনতে হবে)', icon: '🛒', color: '#06B6D4' },
   { value: 'পড়া শেষ (কাছে নেই)', label: 'পড়া শেষ (কাছে নেই)', icon: '📘', color: '#0284C7' },
   { value: 'কিনবো', label: 'কিনবো', icon: '🛒', color: '#D97706' },
   { value: 'পড়ছি (কাছে নেই)', label: 'পড়ছি (কাছে নেই)', icon: '📖', color: '#2563EB' },

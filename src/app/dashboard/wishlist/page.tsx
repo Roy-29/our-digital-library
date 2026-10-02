@@ -110,7 +110,7 @@ export default function WishlistPage() {
 
   return (
     <>
-      <div className="page-header"><h2>🛒 কিনতে হবে ({pendingItems.length})</h2><button className="btn btn-primary" onClick={openAdd}>➕ নতুন যোগ</button></div>
+      <div className="page-header"><h2>🛒 উইশলিস্ট ({pendingItems.length})</h2><button className="btn btn-primary" onClick={openAdd}>➕ নতুন যোগ</button></div>
       <div className="page-body">
         {loading ? <div className="loading-inline"><div className="spinner" /></div> : pendingItems.length === 0 && purchasedItems.length === 0 ? (
           <div className="empty-state"><div className="empty-icon">🛒</div><h3>উইশলিস্ট খালি</h3><p>কিনতে চাওয়া বই যোগ করুন</p></div>

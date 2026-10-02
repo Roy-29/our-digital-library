@@ -10,7 +10,7 @@ const MENU_ITEMS = [
   { href: '/dashboard/books/add', icon: '➕', label: 'নতুন বই যোগ', desc: 'সংগ্রহে নতুন বই যোগ করুন' },
   { href: '/dashboard/reading', icon: '📖', label: 'পড়ছি', desc: 'পড়ার অগ্রগতি ট্র্যাক করুন' },
   { href: '/dashboard/lending', icon: '📤', label: 'ধার দেওয়া', desc: 'ধার দেওয়া বই পরিচালনা' },
-  { href: '/dashboard/wishlist', icon: '🛒', label: 'কিনতে হবে', desc: 'কিনতে চাওয়া বইয়ের তালিকা' },
+  { href: '/dashboard/wishlist', icon: '🛒', label: 'উইশলিস্ট', desc: 'কিনতে চাওয়া বইয়ের তালিকা' },
   { href: '/dashboard/unowned', icon: '🔖', label: 'আমার কাছে নেই', desc: 'পড়া বা কিনতে চাওয়া বই যা সংগ্রহে নেই' },
   { href: '/dashboard/authors', icon: '✍️', label: 'লেখক', desc: 'লেখক যোগ/সম্পাদনা' },
   { href: '/dashboard/publishers', icon: '🏢', label: 'প্রকাশক', desc: 'প্রকাশক পরিচালনা' },
