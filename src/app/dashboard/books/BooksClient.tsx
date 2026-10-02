@@ -79,6 +79,18 @@ export default function BooksClient({
     );
   });
 
+  // Priority sorting: Logged in user's books first ("আগে আসবে")!
+  const sortedBooks = [...filteredBooks].sort((a, b) => {
+    if (user?.id) {
+      const aIsMine = a.owner === user.id ? 1 : 0;
+      const bIsMine = b.owner === user.id ? 1 : 0;
+      if (aIsMine !== bIsMine) {
+        return bIsMine - aIsMine; // Logged-in user's books come first
+      }
+    }
+    return 0; // preserve original order (createdAt desc)
+  });
+
   const clearFilters = () => {
     setSearch('');
     setFilterOwner('');
@@ -93,7 +105,7 @@ export default function BooksClient({
   return (
     <>
       <div className="page-header">
-        <h2>📚 সব বই ({filteredBooks.length})</h2>
+        <h2>📚 সব বই ({sortedBooks.length})</h2>
         <div className="flex gap-3 items-center">
           <div className="view-toggle">
             <button className={viewMode === 'grid' ? 'active' : ''} onClick={() => setViewMode('grid')}>
@@ -113,6 +125,42 @@ export default function BooksClient({
       </div>
 
       <div className="page-body">
+        {/* Quick Owner Filter Pills */}
+        <div style={{ display: 'flex', gap: '8px', marginBottom: '14px', flexWrap: 'wrap', alignItems: 'center' }}>
+          <button 
+            type="button"
+            className={`btn btn-sm ${filterOwner === '' ? 'btn-primary' : 'btn-secondary'}`}
+            onClick={() => setFilterOwner('')}
+            style={{ borderRadius: '20px', padding: '6px 14px', fontSize: '0.85rem' }}
+          >
+            📚 সব বই ({books.length})
+          </button>
+          {user && (
+            <button 
+              type="button"
+              className={`btn btn-sm ${filterOwner === user.id ? 'btn-primary' : 'btn-secondary'}`}
+              onClick={() => setFilterOwner(filterOwner === user.id ? '' : user.id)}
+              style={{ borderRadius: '20px', padding: '6px 14px', fontSize: '0.85rem' }}
+            >
+              ⭐ আমার বই ({books.filter(b => b.owner === user.id).length})
+            </button>
+          )}
+          {OWNERS.filter(o => o.value !== user?.id).map(o => {
+            const count = books.filter(b => b.owner === o.value).length;
+            return (
+              <button
+                key={o.value}
+                type="button"
+                className={`btn btn-sm ${filterOwner === o.value ? 'btn-primary' : 'btn-secondary'}`}
+                onClick={() => setFilterOwner(filterOwner === o.value ? '' : o.value)}
+                style={{ borderRadius: '20px', padding: '6px 14px', fontSize: '0.85rem' }}
+              >
+                👤 {o.label} ({count})
+              </button>
+            );
+          })}
+        </div>
+
         {/* Search & Filter */}
         <div className="search-bar" style={{ marginBottom: '12px', maxWidth: '100%' }}>
           <span className="search-icon">🔍</span>
@@ -127,7 +175,10 @@ export default function BooksClient({
         <div className="filter-bar">
           <select value={filterOwner} onChange={(e) => setFilterOwner(e.target.value)}>
             <option value="">সব মালিক</option>
-            {OWNERS.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}
+            {user && (
+              <option value={user.id}>⭐ আমার বই ({getOwnerLabel(user.id)})</option>
+            )}
+            {OWNERS.filter(o => o.value !== user?.id).map(o => <option key={o.value} value={o.value}>{o.label}</option>)}
           </select>
           <select value={filterStatus} onChange={(e) => setFilterStatus(e.target.value)}>
             <option value="">সব স্ট্যাটাস</option>
@@ -152,7 +203,7 @@ export default function BooksClient({
           )}
         </div>
 
-        {filteredBooks.length === 0 ? (
+        {sortedBooks.length === 0 ? (
           <div className="empty-state">
             <div className="empty-icon">📚</div>
             <h3>{hasFilters ? 'কোনো বই পাওয়া যায়নি' : 'এখনো কোনো বই নেই'}</h3>
@@ -165,7 +216,7 @@ export default function BooksClient({
           </div>
         ) : viewMode === 'grid' ? (
           <div className="books-grid">
-            {filteredBooks.map((book) => (
+            {sortedBooks.map((book) => (
               <Link key={book.id} href={`/dashboard/books/${book.id}`} style={{ textDecoration: 'none' }}>
                 <div className="book-card">
                   <div className="book-card-cover">
@@ -187,7 +238,9 @@ export default function BooksClient({
                     <div className="book-card-title">{book.title}</div>
                     <div className="book-card-author">{book.authorNameBn || book.authorName || ''}</div>
                     <div className="book-card-meta">
-                      <span className="book-card-owner">{getOwnerLabel(book.owner)}</span>
+                      <span className="book-card-owner">
+                        {book.owner === user?.id ? '⭐ ' : ''}{getOwnerLabel(book.owner)}{book.owner === user?.id ? ' (আমার)' : ''}
+                      </span>
                       <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
                         {book.rating && <span style={{ fontSize: '0.75rem' }}>⭐ {book.rating}</span>}
                         {user?.id === book.owner && (
@@ -227,7 +280,7 @@ export default function BooksClient({
                 </tr>
               </thead>
               <tbody>
-                {filteredBooks.map((book) => (
+                {sortedBooks.map((book) => (
                   <tr key={book.id}>
                     <td>
                       <Link href={`/dashboard/books/${book.id}`} style={{ textDecoration: 'none', color: 'var(--text-primary)', fontWeight: 600 }}>
@@ -244,7 +297,14 @@ export default function BooksClient({
                     </td>
                     <td className="hide-mobile">{book.authorNameBn || book.authorName || '—'}</td>
                     <td className="hide-mobile">{book.publisherNameBn || book.publisherName || '—'}</td>
-                    <td><span className="badge badge-gray">{getOwnerLabel(book.owner)}</span></td>
+                    <td>
+                      <span 
+                        className={`badge ${book.owner === user?.id ? 'badge-primary' : 'badge-gray'}`}
+                        style={book.owner === user?.id ? { background: 'rgba(45, 106, 79, 0.15)', color: 'var(--primary)', fontWeight: 600 } : undefined}
+                      >
+                        {book.owner === user?.id ? '⭐ ' : ''}{getOwnerLabel(book.owner)}{book.owner === user?.id ? ' (আমার)' : ''}
+                      </span>
+                    </td>
                     <td>
                       <span className="badge" style={{
                         background: `${BOOK_STATUSES.find(s => s.value === book.status)?.color}20`,
@@ -273,10 +333,10 @@ export default function BooksClient({
         ) : (
           /* Shelf View */
           <div className="bookshelf">
-            {Array.from({ length: Math.ceil(filteredBooks.length / 20) }, (_, shelfIdx) => (
+            {Array.from({ length: Math.ceil(sortedBooks.length / 20) }, (_, shelfIdx) => (
               <div key={shelfIdx} style={{ marginBottom: '28px' }}>
                 <div className="shelf-row">
-                  {filteredBooks.slice(shelfIdx * 20, (shelfIdx + 1) * 20).map((book, i) => {
+                  {sortedBooks.slice(shelfIdx * 20, (shelfIdx + 1) * 20).map((book, i) => {
                     const color = BOOK_COLORS[(book.title.length + i) % BOOK_COLORS.length];
                     const height = 130 + (book.title.length % 5) * 10;
                     return (
