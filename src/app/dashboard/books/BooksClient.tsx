@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { useRouter } from 'next/navigation';
 import { BOOK_STATUSES, OWNERS } from '@/lib/types';
 import Link from 'next/link';
 
@@ -23,6 +24,7 @@ export default function BooksClient({
   genres: any[], 
   authors: any[] 
 }) {
+  const router = useRouter();
   const [books, setBooks] = useState(initialBooks);
   const [viewMode, setViewMode] = useState<ViewMode>('list');
   const [search, setSearch] = useState('');
@@ -171,7 +173,22 @@ export default function BooksClient({
                     <div className="book-card-author">{book.authorNameBn || book.authorName || ''}</div>
                     <div className="book-card-meta">
                       <span className="book-card-owner">{book.owner}</span>
-                      {book.rating && <span style={{ fontSize: '0.75rem' }}>⭐ {book.rating}</span>}
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+                        {book.rating && <span style={{ fontSize: '0.75rem' }}>⭐ {book.rating}</span>}
+                        <button
+                          type="button"
+                          onClick={(e) => {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            router.push(`/dashboard/books/${book.id}/edit`);
+                          }}
+                          className="btn btn-ghost btn-icon btn-sm"
+                          title="সম্পাদনা"
+                          style={{ width: '28px', height: '28px', padding: 0 }}
+                        >
+                          ✏️
+                        </button>
+                      </div>
                     </div>
                   </div>
                 </div>
@@ -184,25 +201,32 @@ export default function BooksClient({
               <thead>
                 <tr>
                   <th>বই</th>
-                  <th>লেখক</th>
-                  <th>প্রকাশক</th>
+                  <th className="hide-mobile">লেখক</th>
+                  <th className="hide-mobile">প্রকাশক</th>
                   <th>মালিক</th>
                   <th>স্ট্যাটাস</th>
-                  <th>রেটিং</th>
-                  <th style={{ textAlign: 'right' }}>অ্যাকশন</th>
+                  <th className="hide-mobile">রেটিং</th>
+                  <th className="table-actions-cell" style={{ textAlign: 'right' }}>অ্যাকশন</th>
                 </tr>
               </thead>
               <tbody>
                 {filteredBooks.map((book) => (
                   <tr key={book.id}>
                     <td>
-                      <Link href={`/dashboard/books/${book.id}`} style={{ textDecoration: 'none', color: 'var(--text-primary)', fontWeight: 500 }}>
+                      <Link href={`/dashboard/books/${book.id}`} style={{ textDecoration: 'none', color: 'var(--text-primary)', fontWeight: 600 }}>
                         {book.title}
                       </Link>
-                      {book.isbn && <div className="text-xs text-muted">{book.isbn}</div>}
+                      <div className="text-xs text-muted" style={{ marginTop: '2px' }}>
+                        {(book.authorNameBn || book.authorName) && (
+                          <span className="show-mobile-inline" style={{ color: 'var(--text-secondary)', marginRight: '4px' }}>
+                            {book.authorNameBn || book.authorName} •
+                          </span>
+                        )}
+                        {book.isbn}
+                      </div>
                     </td>
-                    <td>{book.authorNameBn || book.authorName || '—'}</td>
-                    <td>{book.publisherNameBn || book.publisherName || '—'}</td>
+                    <td className="hide-mobile">{book.authorNameBn || book.authorName || '—'}</td>
+                    <td className="hide-mobile">{book.publisherNameBn || book.publisherName || '—'}</td>
                     <td><span className="badge badge-gray">{book.owner}</span></td>
                     <td>
                       <span className="badge" style={{
@@ -212,12 +236,12 @@ export default function BooksClient({
                         {BOOK_STATUSES.find(s => s.value === book.status)?.icon} {book.status}
                       </span>
                     </td>
-                    <td>{book.rating ? `⭐ ${book.rating}` : '—'}</td>
-                    <td>
+                    <td className="hide-mobile">{book.rating ? `⭐ ${book.rating}` : '—'}</td>
+                    <td className="table-actions-cell">
                       <div className="actions">
-                        <Link href={`/dashboard/books/${book.id}`} className="btn btn-ghost btn-icon btn-sm">👁️</Link>
-                        <Link href={`/dashboard/books/${book.id}/edit`} className="btn btn-ghost btn-icon btn-sm">✏️</Link>
-                        <button className="btn btn-ghost btn-icon btn-sm" onClick={(e) => { e.preventDefault(); setDeleteId(book.id); }}>🗑️</button>
+                        <Link href={`/dashboard/books/${book.id}`} className="btn btn-ghost btn-icon btn-sm" title="দেখুন">👁️</Link>
+                        <Link href={`/dashboard/books/${book.id}/edit`} className="btn btn-ghost btn-icon btn-sm" title="সম্পাদনা">✏️</Link>
+                        <button className="btn btn-ghost btn-icon btn-sm" onClick={(e) => { e.preventDefault(); setDeleteId(book.id); }} title="মুছুন">🗑️</button>
                       </div>
                     </td>
                   </tr>

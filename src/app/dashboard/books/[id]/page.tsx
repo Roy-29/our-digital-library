@@ -74,16 +74,16 @@ export default function BookDetailPage() {
     <>
       <div className="page-header">
         <h2>📖 {book.title}</h2>
-        <div className="flex gap-2">
+        <div className="flex gap-2 page-header-actions">
           <Link href={`/dashboard/books/${book.id}/edit`} className="btn btn-primary">✏️ সম্পাদনা</Link>
           <button className="btn btn-danger" onClick={() => setShowDelete(true)}>🗑️ মুছুন</button>
         </div>
       </div>
 
       <div className="page-body">
-        <div style={{ display: 'grid', gridTemplateColumns: '250px 1fr', gap: '32px', alignItems: 'start' }}>
+        <div className="book-detail-layout">
           {/* Cover */}
-          <div>
+          <div className="book-detail-cover">
             <div style={{
               aspectRatio: '2/3', borderRadius: 'var(--radius-lg)', overflow: 'hidden',
               boxShadow: 'var(--shadow-book)', background: 'var(--parchment)',

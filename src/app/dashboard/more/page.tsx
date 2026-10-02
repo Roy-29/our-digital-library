@@ -19,12 +19,30 @@ const MENU_ITEMS = [
 ];
 
 export default function MorePage() {
-  const { signOut } = useAuth();
+  const { user, profile, signOut } = useAuth();
+  const displayName = profile?.display_name || user?.email?.split('@')[0] || 'User';
+  const initials = displayName.charAt(0).toUpperCase();
 
   return (
     <>
-      <div className="page-header"><h2>☰ আরও</h2></div>
+      <div className="page-header"><h2>☰ আরও মেনু</h2></div>
       <div className="page-body">
+        {/* User Profile Card */}
+        <div className="card" style={{ padding: '16px 20px', marginBottom: '20px', display: 'flex', alignItems: 'center', gap: '16px' }}>
+          <div className="sidebar-user-avatar" style={{ width: '48px', height: '48px', fontSize: '1.2rem', background: 'var(--accent)' }}>
+            {initials}
+          </div>
+          <div style={{ flex: 1, minWidth: 0 }}>
+            <div style={{ fontWeight: 700, fontSize: '1.05rem', color: 'var(--text-primary)' }}>{displayName}</div>
+            <div className="text-xs text-muted" style={{ textOverflow: 'ellipsis', overflow: 'hidden', whiteSpace: 'nowrap' }}>{user?.email}</div>
+            <div style={{ marginTop: '6px' }}>
+              <span className="badge badge-gray">{profile?.owner ? `মালিক: ${profile.owner}` : 'সদস্য'}</span>
+            </div>
+          </div>
+          <button className="btn btn-secondary btn-sm" onClick={signOut} title="লগআউট" style={{ color: 'var(--danger)' }}>
+            🚪 লগআউট
+          </button>
+        </div>
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(250px, 1fr))', gap: '12px' }}>
           {MENU_ITEMS.map(item => (
             <Link key={item.href} href={item.href} className="card" style={{ padding: '16px', textDecoration: 'none', display: 'flex', alignItems: 'center', gap: '14px' }}>

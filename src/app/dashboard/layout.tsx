@@ -65,24 +65,37 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
 
   return (
     <div className="app-layout">
-      {/* Mobile top controls */}
-      <div className="mobile-header-controls">
-        <ThemeToggle />
-        <button
-          className="mobile-menu-toggle"
-          onClick={() => setSidebarOpen(!sidebarOpen)}
-          aria-label="Toggle menu"
-        >
-          {sidebarOpen ? '✕' : '☰'}
-        </button>
-      </div>
+      {/* Mobile top app bar */}
+      <header className="mobile-top-bar">
+        <div className="mobile-top-bar-left">
+          <button
+            className="mobile-menu-toggle"
+            onClick={() => setSidebarOpen(!sidebarOpen)}
+            aria-label="Toggle menu"
+          >
+            {sidebarOpen ? '✕' : '☰'}
+          </button>
+          <Link href="/dashboard" className="mobile-brand-link">
+            <span className="mobile-brand-icon">📚</span>
+            <span className="mobile-brand-text">ডিজিটাল বইয়ের ঘর</span>
+          </Link>
+        </div>
+
+        <div className="mobile-top-bar-right">
+          <div className="mobile-user-badge" title={`লগইন: ${displayName} (${user.email})`}>
+            <span className="mobile-user-avatar">{initials}</span>
+            <span className="mobile-user-name">{displayName}</span>
+          </div>
+          <ThemeToggle />
+        </div>
+      </header>
 
       {/* Sidebar overlay for mobile */}
       {sidebarOpen && (
         <div
           style={{
-            position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.4)',
-            zIndex: 99, display: 'none',
+            position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)',
+            zIndex: 99, backdropFilter: 'blur(2px)',
           }}
           className="sidebar-overlay"
           onClick={() => setSidebarOpen(false)}
@@ -94,6 +107,16 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
         <div className="sidebar-brand">
           <h1>📚 ডিজিটাল বইয়ের ঘর</h1>
           <p>Personal Digital Library</p>
+        </div>
+
+        {/* User Card at top of sidebar for quick visibility on mobile */}
+        <div className="sidebar-top-user">
+          <div className="sidebar-user-avatar">{initials}</div>
+          <div className="sidebar-user-info">
+            <div className="sidebar-user-name">{displayName}</div>
+            <div className="sidebar-user-email">{user.email}</div>
+          </div>
+          <span className="badge badge-gray" style={{ fontSize: '0.65rem' }}>{profile?.owner || 'সদস্য'}</span>
         </div>
 
         <nav className="sidebar-nav">
