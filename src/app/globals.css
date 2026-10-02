@@ -192,16 +192,15 @@ h3 { font-size: 1.25rem; }
 .sidebar-brand h1 {
   font-family: var(--font-serif);
   font-size: 1.3rem;
-  background: var(--pastel-sand-grad);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
+  color: var(--warning);
   font-weight: 700;
   letter-spacing: 0.02em;
 }
 
 .sidebar-brand p {
   font-size: 0.75rem;
-  color: var(--text-muted);
+  color: var(--text-secondary);
+  opacity: 0.8;
   margin-top: 6px;
   letter-spacing: 0.05em;
   text-transform: uppercase;
