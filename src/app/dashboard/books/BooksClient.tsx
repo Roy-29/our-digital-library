@@ -24,7 +24,7 @@ export default function BooksClient({
   authors: any[] 
 }) {
   const [books, setBooks] = useState(initialBooks);
-  const [viewMode, setViewMode] = useState<ViewMode>('grid');
+  const [viewMode, setViewMode] = useState<ViewMode>('list');
   const [search, setSearch] = useState('');
   const [filterOwner, setFilterOwner] = useState('');
   const [filterStatus, setFilterStatus] = useState('');
