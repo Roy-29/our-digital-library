@@ -62,7 +62,6 @@ export default function EditBookPage() {
   const [notes, setNotes] = useState('');
   const [favoriteQuote, setFavoriteQuote] = useState('');
   const [isFavorite, setIsFavorite] = useState(false);
-  const [coverFile, setCoverFile] = useState<File | null>(null);
 
   useEffect(() => {
     fetchData();
@@ -159,13 +158,7 @@ export default function EditBookPage() {
   }, [shelfId]);
 
   const uploadCover = async (): Promise<string | null> => {
-    if (!coverFile) return coverUrl || null;
-    const ext = coverFile.name.split('.').pop();
-    const fileName = `${Date.now()}.${ext}`;
-    const { error } = await supabase.storage.from('covers').upload(fileName, coverFile);
-    if (error) { toast.error('কভার আপলোড ব্যর্থ'); return coverUrl || null; }
-    const { data } = supabase.storage.from('covers').getPublicUrl(fileName);
-    return data.publicUrl;
+    return coverUrl.trim() || null;
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -533,23 +526,14 @@ export default function EditBookPage() {
               </div>
               <div className="card-body">
                 <div className="form-group">
-                  <label className="form-label">🖼️ কভার ছবি আপলোড</label>
-                  <input
-                    type="file"
-                    accept="image/*"
-                    onChange={e => setCoverFile(e.target.files?.[0] || null)}
-                    className="form-input"
-                  />
-                </div>
-                <div className="form-group">
-                  <label className="form-label">অথবা URL দিন</label>
+                  <label className="form-label">🖼️ কভার ছবির URL</label>
                   <input className="form-input" value={coverUrl} onChange={e => setCoverUrl(e.target.value)} placeholder="https://..." />
                 </div>
-                {(coverFile || coverUrl) && (
+                {coverUrl && (
                   <div style={{ marginTop: '16px', textAlign: 'center' }}>
                     <p className="text-sm text-muted mb-2">প্রিভিউ:</p>
                     <img
-                      src={coverFile ? URL.createObjectURL(coverFile) : coverUrl}
+                      src={coverUrl}
                       alt="Cover preview"
                       style={{ maxWidth: '200px', maxHeight: '300px', borderRadius: 'var(--radius-md)', boxShadow: 'var(--shadow-md)' }}
                     />
