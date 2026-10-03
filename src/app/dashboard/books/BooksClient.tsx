@@ -20,12 +20,14 @@ export default function BooksClient({
   initialBooks, 
   categories, 
   genres, 
-  authors 
+  authors,
+  publishers = []
 }: { 
   initialBooks: any[], 
   categories: any[], 
   genres: any[], 
-  authors: any[] 
+  authors: any[],
+  publishers?: any[]
 }) {
   const router = useRouter();
   const { user } = useAuth();
@@ -38,6 +40,7 @@ export default function BooksClient({
   const [filterCategory, setFilterCategory] = useState('');
   const [filterGenre, setFilterGenre] = useState('');
   const [filterAuthor, setFilterAuthor] = useState('');
+  const [filterPublisher, setFilterPublisher] = useState('');
   const [deleteId, setDeleteId] = useState<string | null>(null);
 
   const handleDelete = async () => {
@@ -65,6 +68,7 @@ export default function BooksClient({
     if (filterCategory && book.categoryId !== filterCategory) return false;
     if (filterGenre && book.genreId !== filterGenre) return false;
     if (filterAuthor && book.authorId !== filterAuthor) return false;
+    if (filterPublisher && book.publisherId !== filterPublisher && book.publisherName !== filterPublisher) return false;
 
     // Check search
     if (!search) return true;
@@ -98,9 +102,10 @@ export default function BooksClient({
     setFilterCategory('');
     setFilterGenre('');
     setFilterAuthor('');
+    setFilterPublisher('');
   };
 
-  const hasFilters = search || filterOwner || filterStatus || filterCategory || filterGenre || filterAuthor;
+  const hasFilters = search || filterOwner || filterStatus || filterCategory || filterGenre || filterAuthor || filterPublisher;
 
   return (
     <>
@@ -202,6 +207,28 @@ export default function BooksClient({
               {authors.map(a => <option key={a.id} value={a.id}>{a.nameBn || a.name}</option>)}
             </select>
 
+            <select 
+              value={filterPublisher} 
+              onChange={(e) => setFilterPublisher(e.target.value)}
+              className={`minimal-select ${filterPublisher ? 'active-filter' : ''}`}
+            >
+              <option value="">সব প্রকাশক</option>
+              {publishers.map(p => <option key={p.id} value={p.id}>{p.nameBn || p.name}</option>)}
+            </select>
+
+            <select 
+              value={filterGenre} 
+              onChange={(e) => setFilterGenre(e.target.value)}
+              className={`minimal-select ${filterGenre ? 'active-filter' : ''}`}
+            >
+              <option value="">সব ধরন</option>
+              {genres.map(g => (
+                <option key={g.id} value={g.id}>
+                  {g.icon ? `${g.icon} ` : ''}{g.nameBn || g.name}
+                </option>
+              ))}
+            </select>
+
             {categories.length > 0 && (
               <select 
                 value={filterCategory} 
@@ -210,17 +237,6 @@ export default function BooksClient({
               >
                 <option value="">সব ক্যাটাগরি</option>
                 {categories.map(c => <option key={c.id} value={c.id}>{c.icon} {c.nameBn || c.name}</option>)}
-              </select>
-            )}
-
-            {genres.length > 0 && (
-              <select 
-                value={filterGenre} 
-                onChange={(e) => setFilterGenre(e.target.value)}
-                className={`minimal-select ${filterGenre ? 'active-filter' : ''}`}
-              >
-                <option value="">সব ধরন</option>
-                {genres.map(g => <option key={g.id} value={g.id}>{g.icon} {g.nameBn || g.name}</option>)}
               </select>
             )}
 

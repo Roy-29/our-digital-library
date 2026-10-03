@@ -19,6 +19,7 @@ export default async function BooksPage() {
     categoryId: books.categoryId,
     genreId: books.genreId,
     authorId: books.authorId,
+    publisherId: books.publisherId,
     authorName: authors.name,
     authorNameBn: authors.nameBn,
     publisherName: publishers.name,
@@ -32,6 +33,7 @@ export default async function BooksPage() {
   const allCategories = await db.select().from(categories).orderBy(categories.name);
   const allGenres = await db.select().from(genres).orderBy(genres.name);
   const allAuthors = await db.select().from(authors).orderBy(authors.name);
+  const allPublishers = await db.select().from(publishers).orderBy(publishers.name);
 
   return (
     <BooksClient 
@@ -39,6 +41,7 @@ export default async function BooksPage() {
       categories={allCategories} 
       genres={allGenres} 
       authors={allAuthors} 
+      publishers={allPublishers}
     />
   );
 }
