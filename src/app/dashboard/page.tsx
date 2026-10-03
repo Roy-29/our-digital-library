@@ -109,11 +109,13 @@ export default async function DashboardPage() {
             </span>
             <span className="stat-label">সময় পেরিয়ে গেছে</span>
           </div>
-          <div className="stat-card">
-            <span className="stat-icon">🛒</span>
-            <span className="stat-value">{s.wishlist_count}</span>
-            <span className="stat-label">কিনতে হবে</span>
-          </div>
+          <Link href="/dashboard/wishlist" style={{ textDecoration: 'none', color: 'inherit' }}>
+            <div className="stat-card" style={{ cursor: 'pointer' }}>
+              <span className="stat-icon">🛒</span>
+              <span className="stat-value">{s.wishlist_count}</span>
+              <span className="stat-label">কিনতে হবে</span>
+            </div>
+          </Link>
         </div>
 
         {/* Financial Stats */}
