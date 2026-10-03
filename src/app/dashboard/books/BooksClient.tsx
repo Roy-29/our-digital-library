@@ -199,6 +199,32 @@ export default function BooksClient({
             </select>
 
             <select 
+              value={filterCategory} 
+              onChange={(e) => setFilterCategory(e.target.value)}
+              className={`minimal-select ${filterCategory ? 'active-filter' : ''}`}
+            >
+              <option value="">সব ক্যাটাগরি</option>
+              {categories.map(c => (
+                <option key={c.id} value={c.id}>
+                  {c.icon ? `${c.icon} ` : ''}{c.nameBn || c.name}
+                </option>
+              ))}
+            </select>
+
+            <select 
+              value={filterGenre} 
+              onChange={(e) => setFilterGenre(e.target.value)}
+              className={`minimal-select ${filterGenre ? 'active-filter' : ''}`}
+            >
+              <option value="">সব ধরন</option>
+              {genres.map(g => (
+                <option key={g.id} value={g.id}>
+                  {g.icon ? `${g.icon} ` : ''}{g.nameBn || g.name}
+                </option>
+              ))}
+            </select>
+
+            <select 
               value={filterAuthor} 
               onChange={(e) => setFilterAuthor(e.target.value)}
               className={`minimal-select ${filterAuthor ? 'active-filter' : ''}`}
@@ -215,30 +241,6 @@ export default function BooksClient({
               <option value="">সব প্রকাশক</option>
               {publishers.map(p => <option key={p.id} value={p.id}>{p.nameBn || p.name}</option>)}
             </select>
-
-            <select 
-              value={filterGenre} 
-              onChange={(e) => setFilterGenre(e.target.value)}
-              className={`minimal-select ${filterGenre ? 'active-filter' : ''}`}
-            >
-              <option value="">সব ধরন</option>
-              {genres.map(g => (
-                <option key={g.id} value={g.id}>
-                  {g.icon ? `${g.icon} ` : ''}{g.nameBn || g.name}
-                </option>
-              ))}
-            </select>
-
-            {categories.length > 0 && (
-              <select 
-                value={filterCategory} 
-                onChange={(e) => setFilterCategory(e.target.value)}
-                className={`minimal-select ${filterCategory ? 'active-filter' : ''}`}
-              >
-                <option value="">সব ক্যাটাগরি</option>
-                {categories.map(c => <option key={c.id} value={c.id}>{c.icon} {c.nameBn || c.name}</option>)}
-              </select>
-            )}
 
             {hasFilters && (
               <button className="btn btn-ghost btn-sm filter-reset-btn" onClick={clearFilters} title="ফিল্টার রিসেট করুন">
