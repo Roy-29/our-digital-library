@@ -89,10 +89,18 @@ export default function LendingPage() {
       return;
     }
 
+    const targetBook = books.find(b => b.id === bookId);
+    if (user && targetBook && targetBook.owner !== user.id) {
+      toast.error('আপনি শুধুমাত্র নিজের বই ধার দিতে পারবেন!');
+      return;
+    }
+
+    const currentLentBy = user?.id || lentBy || 'swapnil';
+
     const { error } = await supabase.from('lending_records').insert({
       book_id: bookId,
       borrower_id: borrowerId,
-      lent_by: lentBy,
+      lent_by: currentLentBy,
       date_lent: dateLent,
       expected_return_date: expectedReturn || null,
       notes: lendNotes || null,
@@ -106,7 +114,7 @@ export default function LendingPage() {
     // Update book status
     await supabase.from('books').update({ status: 'ধার দেওয়া' }).eq('id', bookId);
 
-    const bTitle = books.find(b => b.id === bookId)?.title;
+    const bTitle = targetBook?.title || books.find(b => b.id === bookId)?.title;
     const brName = borrowers.find(b => b.id === borrowerId)?.name;
 
     await supabase.from('activity_log').insert({
@@ -127,6 +135,12 @@ export default function LendingPage() {
   };
 
   const handleReturn = async (record: LendingRecord) => {
+    const bookOwner = record.book?.owner || books.find(b => b.id === (record.book_id || (record as any).bookId))?.owner;
+    if (user && record.lent_by !== user.id && bookOwner !== user.id) {
+      toast.error('আপনি শুধুমাত্র নিজের ধার দেওয়া বই ফেরত নিতে পারবেন!');
+      return;
+    }
+
     const { error } = await supabase.from('lending_records').update({
       is_returned: true,
       date_returned: new Date().toISOString().split('T')[0],
@@ -161,6 +175,16 @@ export default function LendingPage() {
     setBNotes('');
     setEditingBorrowerId(null);
     setFromLendModal(false);
+  };
+
+  const openLendModal = () => {
+    setBookId('');
+    setBorrowerId('');
+    setLendNotes('');
+    setExpectedReturn('');
+    setDateLent(new Date().toISOString().split('T')[0]);
+    setLentBy(user?.id || 'swapnil');
+    setShowLendModal(true);
   };
 
   const openAddBorrower = (isFromLendModal = false) => {
@@ -269,6 +293,13 @@ export default function LendingPage() {
   const historyRecords = records.filter(r => r.is_returned);
   const isOverdue = (r: LendingRecord) => !r.is_returned && r.expected_return_date && new Date(r.expected_return_date) < new Date();
 
+  // Only the logged in user's books can be lent!
+  const myAvailableBooks = books.filter(b => 
+    (user ? b.owner === user.id : true) && 
+    b.status !== 'ধার দেওয়া' && 
+    b.status !== 'হারিয়ে গেছে'
+  );
+
   const filteredBorrowers = borrowers.filter(b => {
     if (!borrowerSearch) return true;
     const q = borrowerSearch.toLowerCase();
@@ -288,7 +319,7 @@ export default function LendingPage() {
           <button className="btn btn-secondary" onClick={() => openAddBorrower(false)}>
             ➕ নতুন ধারকারী
           </button>
-          <button className="btn btn-primary" onClick={() => setShowLendModal(true)}>
+          <button className="btn btn-primary" onClick={openLendModal}>
             📤 বই ধার দিন
           </button>
         </div>
@@ -411,7 +442,7 @@ export default function LendingPage() {
                 <div className="empty-icon">📤</div>
                 <h3>{activeTab === 'active' ? 'কোনো বই ধার দেওয়া নেই' : 'কোনো ধারের ইতিহাস নেই'}</h3>
                 {activeTab === 'active' && (
-                  <button className="btn btn-primary" style={{ marginTop: '14px' }} onClick={() => setShowLendModal(true)}>
+                  <button className="btn btn-primary" style={{ marginTop: '14px' }} onClick={openLendModal}>
                     📤 নতুন বই ধার দিন
                   </button>
                 )}
@@ -466,9 +497,18 @@ export default function LendingPage() {
                         <td>
                           <div className="actions">
                             {!r.is_returned && (
-                              <button className="btn btn-sm btn-primary" onClick={() => handleReturn(r)}>
-                                ✅ ফেরত পেয়েছি
-                              </button>
+                              (() => {
+                                const bookOwner = r.book?.owner || books.find(b => b.id === (r.book_id || (r as any).bookId))?.owner;
+                                const canManage = !user || r.lent_by === user.id || bookOwner === user.id;
+                                if (canManage) {
+                                  return (
+                                    <button className="btn btn-sm btn-primary" onClick={() => handleReturn(r)}>
+                                      ✅ ফেরত পেয়েছি
+                                    </button>
+                                  );
+                                }
+                                return <span className="text-xs text-muted">চলতি ধার</span>;
+                              })()
                             )}
                           </div>
                         </td>
@@ -494,13 +534,22 @@ export default function LendingPage() {
             <form onSubmit={handleLend}>
               <div className="modal-body">
                 <div className="form-group">
-                  <label className="form-label">📚 বই নির্বাচন *</label>
+                  <label className="form-label">📚 আপনার বই নির্বাচন করুন *</label>
                   <select className="form-select" value={bookId} onChange={e => setBookId(e.target.value)} required>
-                    <option value="">— বই নির্বাচন করুন —</option>
-                    {books.filter(b => b.status !== 'ধার দেওয়া' && b.status !== 'হারিয়ে গেছে').map(b => (
-                      <option key={b.id} value={b.id}>{b.title} ({getOwnerLabel(b.owner)})</option>
+                    <option value="">
+                      {myAvailableBooks.length === 0 
+                        ? '— আপনার কোনো বই ধার দেওয়ার জন্য উপলব্ধ নেই —' 
+                        : '— বই নির্বাচন করুন —'}
+                    </option>
+                    {myAvailableBooks.map(b => (
+                      <option key={b.id} value={b.id}>{b.title}</option>
                     ))}
                   </select>
+                  {myAvailableBooks.length === 0 && (
+                    <div className="text-xs" style={{ marginTop: '6px', color: 'var(--amber)' }}>
+                      ⚠️ আপনার সংগ্রহের কোনো বই বর্তমানে ধার দেওয়ার মতো উপলব্ধ নেই।
+                    </div>
+                  )}
                 </div>
 
                 <div className="form-group">
@@ -525,11 +574,13 @@ export default function LendingPage() {
                 <div className="form-row">
                   <div className="form-group">
                     <label className="form-label">কে দিচ্ছে</label>
-                    <select className="form-select" value={lentBy} onChange={e => setLentBy(e.target.value)}>
-                      <option value="swapnil">স্বপ্নীল</option>
-                      <option value="bipro">বিপ্রতীব</option>
-                      <option value="srrijan">সৃজন</option>
-                    </select>
+                    <input 
+                      className="form-input" 
+                      value={getOwnerLabel((user?.id || lentBy) as any)} 
+                      disabled 
+                      readOnly 
+                      style={{ opacity: 0.9, background: 'var(--bg-card)', cursor: 'not-allowed', fontWeight: 500 }} 
+                    />
                   </div>
                   <div className="form-group">
                     <label className="form-label">তারিখ</label>
