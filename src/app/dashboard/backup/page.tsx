@@ -1,7 +1,8 @@
 'use client';
 
 import { useState, useRef } from 'react';
-import { dbExportBackup, dbRestoreBackup, dbExportTableCsv, BACKUP_TABLES } from '@/app/actions';
+import { dbExportBackup, dbRestoreBackup, dbExportTableCsv } from '@/app/actions';
+import { BACKUP_TABLES } from '@/lib/types';
 import toast from 'react-hot-toast';
 import Link from 'next/link';
 

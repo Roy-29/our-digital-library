@@ -363,3 +363,21 @@ export function formatRelativeTimeBn(dateStr: string | null | undefined): string
   if (days < 7) return `${days.toLocaleString('bn-BD')} দিন আগে`;
   return formatDateBn(dateStr);
 }
+
+export const BACKUP_TABLES = [
+  'profiles',
+  'categories',
+  'genres',
+  'rooms',
+  'shelves',
+  'racks',
+  'authors',
+  'publishers',
+  'borrowers',
+  'books',
+  'lending_records',
+  'wishlist',
+  'activity_log',
+] as const;
+
+export type BackupTable = (typeof BACKUP_TABLES)[number];

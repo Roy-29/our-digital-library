@@ -7,22 +7,7 @@ import {
   rooms, shelves, racks, wishlist, activityLog, books, lendingRecords
 } from '@/db/schema';
 import { revalidatePath } from 'next/cache';
-
-export const BACKUP_TABLES = [
-  'profiles',
-  'categories',
-  'genres',
-  'rooms',
-  'shelves',
-  'racks',
-  'authors',
-  'publishers',
-  'borrowers',
-  'books',
-  'lending_records',
-  'wishlist',
-  'activity_log',
-] as const;
+import { BACKUP_TABLES } from '@/lib/types';
 
 // Helper to get table
 const getTable = (tableName: string) => {
