@@ -52,7 +52,6 @@ export default function EditBookPage() {
   const [purchasePrice, setPurchasePrice] = useState('');
   const [purchaseDiscount, setPurchaseDiscount] = useState('');
   const [purchaseFinalPrice, setPurchaseFinalPrice] = useState('');
-  const [purchasedBy, setPurchasedBy] = useState('');
   const [bookCondition, setBookCondition] = useState<BookCondition>('new');
   const [readingStartDate, setReadingStartDate] = useState('');
   const [readingFinishDate, setReadingFinishDate] = useState('');
@@ -124,7 +123,6 @@ export default function EditBookPage() {
     setPurchasePrice(b.purchase_price?.toString() || '');
     setPurchaseDiscount(b.purchase_discount?.toString() || '');
     setPurchaseFinalPrice(b.purchase_final_price?.toString() || '');
-    setPurchasedBy(b.purchased_by || '');
     setBookCondition(b.book_condition);
     setReadingStartDate(b.reading_start_date || '');
     setReadingFinishDate(b.reading_finish_date || '');
@@ -244,7 +242,7 @@ export default function EditBookPage() {
       purchase_price: purchasePrice ? parseFloat(purchasePrice) : null,
       purchase_discount: purchaseDiscount ? parseFloat(purchaseDiscount) : null,
       purchase_final_price: purchaseFinalPrice ? parseFloat(purchaseFinalPrice) : null,
-      purchased_by: purchasedBy || null, book_condition: bookCondition,
+      purchased_by: owner || user?.id || null, book_condition: bookCondition,
       reading_start_date: readingStartDate || null, reading_finish_date: readingFinishDate || null,
       reading_progress: readingProgress, rating: rating || null,
       review: review || null, notes: notes || null, favorite_quote: favoriteQuote || null,
@@ -482,6 +480,15 @@ export default function EditBookPage() {
                         <label className="form-label">কোথা থেকে কেনা</label>
                         <input className="form-input" value={purchaseSource} onChange={e => setPurchaseSource(e.target.value)} placeholder="রকমারি, একুশে বইমেলা..." />
                       </div>
+                      <div className="form-group">
+                        <label className="form-label">অবস্থা</label>
+                        <select className="form-select" value={bookCondition} onChange={e => setBookCondition(e.target.value as BookCondition)}>
+                          <option value="new">নতুন</option>
+                          <option value="used">পুরনো</option>
+                          <option value="gift">উপহার</option>
+                          <option value="unknown">অজানা</option>
+                        </select>
+                      </div>
                     </div>
                     <div className="form-row">
                       <div className="form-group">
@@ -495,26 +502,6 @@ export default function EditBookPage() {
                       <div className="form-group">
                         <label className="form-label">চূড়ান্ত দাম (৳)</label>
                         <input className="form-input" type="number" step="0.01" value={purchaseFinalPrice} onChange={e => setPurchaseFinalPrice(e.target.value)} />
-                      </div>
-                    </div>
-                    <div className="form-row">
-                      <div className="form-group">
-                        <label className="form-label">কে কিনেছে</label>
-                        <select className="form-select" value={purchasedBy} onChange={e => setPurchasedBy(e.target.value)}>
-                          <option value="">— নির্বাচন —</option>
-                          <option value="swapnil">স্বপ্নীল</option>
-                          <option value="bipro">বিপ্রতীব</option>
-                          <option value="srrijan">সৃজন</option>
-                        </select>
-                      </div>
-                      <div className="form-group">
-                        <label className="form-label">অবস্থা</label>
-                        <select className="form-select" value={bookCondition} onChange={e => setBookCondition(e.target.value as BookCondition)}>
-                          <option value="new">নতুন</option>
-                          <option value="used">পুরনো</option>
-                          <option value="gift">উপহার</option>
-                          <option value="unknown">অজানা</option>
-                        </select>
                       </div>
                     </div>
                   </>

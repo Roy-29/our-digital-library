@@ -67,7 +67,6 @@ export default function SortClient({
   const [filterFavorite, setFilterFavorite] = useState(false);
   const [filterPurchased, setFilterPurchased] = useState('all');
   const [filterCondition, setFilterCondition] = useState('all');
-  const [filterPurchasedBy, setFilterPurchasedBy] = useState('all');
   const [filterPurchaseSource, setFilterPurchaseSource] = useState('');
   const [filterYearMin, setFilterYearMin] = useState('');
   const [filterYearMax, setFilterYearMax] = useState('');
@@ -149,7 +148,6 @@ export default function SortClient({
       if (filterPurchased === 'no' && book.isPurchased) return false;
 
       if (filterCondition !== 'all' && book.bookCondition !== filterCondition) return false;
-      if (filterPurchasedBy !== 'all' && book.purchasedBy !== filterPurchasedBy) return false;
       if (filterPurchaseSource && book.purchaseSource !== filterPurchaseSource) return false;
 
       if (filterYearMin && (!book.publicationYear || book.publicationYear < parseInt(filterYearMin))) return false;
@@ -200,7 +198,6 @@ export default function SortClient({
     filterFavorite,
     filterPurchased,
     filterCondition,
-    filterPurchasedBy,
     filterPurchaseSource,
     filterYearMin,
     filterYearMax,
@@ -291,7 +288,6 @@ export default function SortClient({
       list.push({ key: 'purchased', label: filterPurchased === 'yes' ? 'সংগ্রহে কেনা আছে' : 'সংগ্রহে নেই', clear: () => setFilterPurchased('all') });
     }
     if (filterCondition !== 'all') list.push({ key: 'cond', label: `অবস্থা: ${filterCondition}`, clear: () => setFilterCondition('all') });
-    if (filterPurchasedBy !== 'all') list.push({ key: 'purchasedBy', label: `কে কিনেছে: ${getOwnerLabel(filterPurchasedBy)}`, clear: () => setFilterPurchasedBy('all') });
     if (filterPurchaseSource) list.push({ key: 'src', label: `উৎস: ${filterPurchaseSource}`, clear: () => setFilterPurchaseSource('') });
     if (filterYearMin || filterYearMax) list.push({ key: 'year', label: `বছর: ${filterYearMin || '০'} - ${filterYearMax || 'বর্তমান'}`, clear: () => { setFilterYearMin(''); setFilterYearMax(''); } });
     if (filterPageMin || filterPageMax) list.push({ key: 'page', label: `পৃষ্ঠা: ${filterPageMin || '০'} - ${filterPageMax || '∞'}`, clear: () => { setFilterPageMin(''); setFilterPageMax(''); } });
@@ -302,7 +298,7 @@ export default function SortClient({
     return list;
   }, [
     search, filterOwner, filterStatus, filterAuthor, filterTranslator, filterPublisher, filterCategory, filterGenre,
-    filterLanguage, filterRating, filterProgress, filterFavorite, filterPurchased, filterCondition, filterPurchasedBy,
+    filterLanguage, filterRating, filterProgress, filterFavorite, filterPurchased, filterCondition,
     filterPurchaseSource, filterYearMin, filterYearMax, filterPageMin, filterPageMax, filterPriceMin, filterPriceMax,
     filterHasReview, filterHasQuote, authors, publishers, categories, genres, translatorsList
   ]);
@@ -322,7 +318,6 @@ export default function SortClient({
     setFilterFavorite(false);
     setFilterPurchased('all');
     setFilterCondition('all');
-    setFilterPurchasedBy('all');
     setFilterPurchaseSource('');
     setFilterYearMin('');
     setFilterYearMax('');
@@ -630,17 +625,15 @@ export default function SortClient({
 
                   <div className="form-group" style={{ margin: 0 }}>
                     <label className="form-label" style={{ fontSize: '0.84rem', fontWeight: 600, color: 'var(--text-secondary)' }}>
-                      🛒 কে কিনেছে
+                      ⭐ প্রিয় বই
                     </label>
                     <select
                       className="filter-select"
-                      value={filterPurchasedBy}
-                      onChange={(e) => setFilterPurchasedBy(e.target.value)}
+                      value={filterFavorite ? 'fav' : 'all'}
+                      onChange={(e) => setFilterFavorite(e.target.value === 'fav')}
                     >
-                      <option value="all">সবাই</option>
-                      {OWNERS.map((o) => (
-                        <option key={o.value} value={o.value}>{o.label}</option>
-                      ))}
+                      <option value="all">সব বই</option>
+                      <option value="fav">⭐ শুধুমাত্র প্রিয় বই</option>
                     </select>
                   </div>
 
