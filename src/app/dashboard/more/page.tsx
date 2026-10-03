@@ -15,7 +15,6 @@ const MENU_ITEMS = [
   { href: '/dashboard/authors', icon: '✍️', label: 'লেখক', desc: 'লেখক যোগ/সম্পাদনা' },
   { href: '/dashboard/publishers', icon: '🏢', label: 'প্রকাশক', desc: 'প্রকাশক পরিচালনা' },
   { href: '/dashboard/categories', icon: '🏷️', label: 'Category / Genre', desc: 'ক্যাটাগরি ও ধরন' },
-  { href: '/dashboard/people', icon: '👥', label: 'মানুষ', desc: 'ধারকারীদের তথ্য' },
   { href: '/dashboard/activity', icon: '📋', label: 'কার্যকলাপ', desc: 'সব কার্যকলাপের ইতিহাস' },
   { href: '/dashboard/backup', icon: '💾', label: 'ব্যাকআপ', desc: 'ডেটা ব্যাকআপ ও পুনরুদ্ধার' },
 ];
