@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
 import { createClient } from '@/lib/supabase';
 import { Author, Publisher, Category, Genre, Room, Shelf, Rack, BOOK_STATUSES, OWNERS, BookStatus, BookOwner, BookCondition, getOwnerLabel } from '@/lib/types';
@@ -20,6 +20,63 @@ export default function AddBookPage() {
   const [rooms, setRooms] = useState<Room[]>([]);
   const [shelves, setShelves] = useState<Shelf[]>([]);
   const [racks, setRacks] = useState<Rack[]>([]);
+
+  // Unique sorted lists for datalist dropdowns
+  const uniqueAuthors = useMemo(() => {
+    const set = new Set<string>();
+    authors.forEach((a) => {
+      const bn = a.name_bn?.trim();
+      const en = a.name?.trim();
+      if (bn) set.add(bn);
+      if (en) set.add(en);
+    });
+    return Array.from(set).sort((a, b) => a.localeCompare(b, 'bn'));
+  }, [authors]);
+
+  const uniquePublishers = useMemo(() => {
+    const set = new Set<string>();
+    publishers.forEach((p) => {
+      const bn = p.name_bn?.trim();
+      const en = p.name?.trim();
+      if (bn) set.add(bn);
+      if (en) set.add(en);
+    });
+    return Array.from(set).sort((a, b) => a.localeCompare(b, 'bn'));
+  }, [publishers]);
+
+  const uniqueCategories = useMemo(() => {
+    const defaults = [
+      'ফিকশন', 'নন-ফিকশন', 'কবিতা', 'প্রবন্ধ', 'জীবনী', 'আত্মজীবনী',
+      'ধর্মীয় ও আধ্যাত্মিক', 'শিশু-কিশোর', 'বিজ্ঞান ও প্রযুক্তি', 'অনুবাদ সাহিত্য',
+      'ইতিহাস ও ঐতিহ্য', 'দর্শন', 'রাজনীতি ও সমাজ', 'মনস্তত্ত্ব ও আত্মউন্নয়ন', 'ভ্রমণ কাহিনী'
+    ];
+    const set = new Set<string>();
+    categories.forEach((c) => {
+      const bn = c.name_bn?.trim();
+      const en = c.name?.trim();
+      if (bn) set.add(bn);
+      if (en) set.add(en);
+    });
+    defaults.forEach((d) => set.add(d));
+    return Array.from(set).sort((a, b) => a.localeCompare(b, 'bn'));
+  }, [categories]);
+
+  const uniqueGenres = useMemo(() => {
+    const defaults = [
+      'উপন্যাস', 'ছোটগল্প', 'থ্রিলার ও গোয়েন্দা', 'রহস্য ও রোমাঞ্চ', 'কল্পবিজ্ঞান (Sci-Fi)',
+      'হরর ও ভৌতিক', 'নাটক', 'রম্য ও ব্যঙ্গ রচনা', 'ঐতিহাসিক উপন্যাস', 'ফ্যান্টাসি',
+      'স্মৃতিকথা', 'প্রেম ও রোমান্স', 'সামাজিক', 'এডভেঞ্চার'
+    ];
+    const set = new Set<string>();
+    genres.forEach((g) => {
+      const bn = g.name_bn?.trim();
+      const en = g.name?.trim();
+      if (bn) set.add(bn);
+      if (en) set.add(en);
+    });
+    defaults.forEach((d) => set.add(d));
+    return Array.from(set).sort((a, b) => a.localeCompare(b, 'bn'));
+  }, [genres]);
 
   // Form state
   const [title, setTitle] = useState('');
@@ -142,50 +199,90 @@ export default function AddBookPage() {
     
     const resolveAuthor = async (name: string) => {
       if (!name) return null;
-      const t = name.trim();
+      const t = name.trim().replace(/\s+/g, ' ');
       if (!t) return null;
       const lower = t.toLowerCase();
-      const existing = authors.find(a => (a.name_bn && a.name_bn.trim().toLowerCase() === lower) || (a.name && a.name.trim().toLowerCase() === lower));
+      const existing = authors.find(
+        a => (a.name_bn && a.name_bn.trim().toLowerCase() === lower) ||
+             (a.name && a.name.trim().toLowerCase() === lower)
+      );
       if (existing) return existing.id;
-      const { data } = await supabase.from('authors').insert({ name_bn: t, name: t });
+      
+      const { data } = await supabase.from('authors').insert({ name_bn: t, name: t }).select().single();
       if (data?.id) return data.id;
+      
       const { data: all } = await supabase.from('authors').select('*');
-      const found = (all as any[])?.find(a => (a.name_bn && a.name_bn.trim().toLowerCase() === lower) || (a.name && a.name.trim().toLowerCase() === lower));
+      const found = (all as any[])?.find(
+        a => (a.name_bn && a.name_bn.trim().toLowerCase() === lower) ||
+             (a.name && a.name.trim().toLowerCase() === lower)
+      );
       return found?.id || null;
     };
     
     const resolvePublisher = async (name: string) => {
       if (!name) return null;
-      const t = name.trim();
+      const t = name.trim().replace(/\s+/g, ' ');
       if (!t) return null;
       const lower = t.toLowerCase();
-      const existing = publishers.find(p => (p.name_bn && p.name_bn.trim().toLowerCase() === lower) || (p.name && p.name.trim().toLowerCase() === lower));
+      const existing = publishers.find(
+        p => (p.name_bn && p.name_bn.trim().toLowerCase() === lower) ||
+             (p.name && p.name.trim().toLowerCase() === lower)
+      );
       if (existing) return existing.id;
-      const { data } = await supabase.from('publishers').insert({ name_bn: t, name: t });
+      
+      const { data } = await supabase.from('publishers').insert({ name_bn: t, name: t }).select().single();
       if (data?.id) return data.id;
+      
       const { data: all } = await supabase.from('publishers').select('*');
-      const found = (all as any[])?.find(p => (p.name_bn && p.name_bn.trim().toLowerCase() === lower) || (p.name && p.name.trim().toLowerCase() === lower));
+      const found = (all as any[])?.find(
+        p => (p.name_bn && p.name_bn.trim().toLowerCase() === lower) ||
+             (p.name && p.name.trim().toLowerCase() === lower)
+      );
       return found?.id || null;
     };
 
     const resolveCategory = async (name: string) => {
       if (!name) return null;
-      const t = name.trim();
+      const t = name.trim().replace(/\s+/g, ' ');
       if (!t) return null;
-      const existing = categories.find(c => c.name_bn === t || c.name === t);
+      const lower = t.toLowerCase();
+      const existing = categories.find(
+        c => (c.name_bn && c.name_bn.trim().toLowerCase() === lower) ||
+             (c.name && c.name.trim().toLowerCase() === lower)
+      );
       if (existing) return existing.id;
-      const { data } = await supabase.from('categories').insert({ name_bn: t, name: t, icon: '🏷️' });
-      return data?.id || null;
+      
+      const { data } = await supabase.from('categories').insert({ name_bn: t, name: t, icon: '🏷️' }).select().single();
+      if (data?.id) return data.id;
+
+      const { data: all } = await supabase.from('categories').select('*');
+      const found = (all as any[])?.find(
+        c => (c.name_bn && c.name_bn.trim().toLowerCase() === lower) ||
+             (c.name && c.name.trim().toLowerCase() === lower)
+      );
+      return found?.id || null;
     };
 
     const resolveGenre = async (name: string) => {
       if (!name) return null;
-      const t = name.trim();
+      const t = name.trim().replace(/\s+/g, ' ');
       if (!t) return null;
-      const existing = genres.find(g => g.name_bn === t || g.name === t);
+      const lower = t.toLowerCase();
+      const existing = genres.find(
+        g => (g.name_bn && g.name_bn.trim().toLowerCase() === lower) ||
+             (g.name && g.name.trim().toLowerCase() === lower)
+      );
       if (existing) return existing.id;
-      const { data } = await supabase.from('genres').insert({ name_bn: t, name: t, icon: '📚' });
-      return data?.id || null;
+      
+      const { data } = await supabase.from('genres').insert({ name_bn: t, name: t, icon: '📚' }).select().single();
+      if (data?.id) return data.id;
+
+      const { data: all } = await supabase.from('genres').select('*');
+      const found = (all as any[])?.find(
+        g => (g.name_bn && g.name_bn.trim().toLowerCase() === lower) ||
+             (g.name && g.name.trim().toLowerCase() === lower)
+      );
+      return found?.id || null;
     };
 
     const finalAuthorId = await resolveAuthor(authorId);
@@ -290,17 +387,50 @@ export default function AddBookPage() {
                 <div className="form-row">
                   <div className="form-group">
                     <label className="form-label">✍️ লেখক</label>
-                    <input className="form-input" value={authorId} onChange={e => setAuthorId(e.target.value)} placeholder="লেখকের নাম লিখুন" />
+                    <input 
+                      className="form-input" 
+                      value={authorId} 
+                      onChange={e => setAuthorId(e.target.value)} 
+                      list="author-options"
+                      placeholder="লেখকের নাম লিখুন বা নির্বাচন করুন" 
+                    />
+                    <datalist id="author-options">
+                      {uniqueAuthors.map(name => (
+                        <option key={name} value={name} />
+                      ))}
+                    </datalist>
                   </div>
                   <div className="form-group">
                     <label className="form-label">🔄 অনুবাদক</label>
-                    <input className="form-input" value={translatorId} onChange={e => setTranslatorId(e.target.value)} placeholder="অনুবাদকের নাম লিখুন" />
+                    <input 
+                      className="form-input" 
+                      value={translatorId} 
+                      onChange={e => setTranslatorId(e.target.value)} 
+                      list="translator-options"
+                      placeholder="অনুবাদকের নাম লিখুন বা নির্বাচন করুন" 
+                    />
+                    <datalist id="translator-options">
+                      {uniqueAuthors.map(name => (
+                        <option key={`trans-${name}`} value={name} />
+                      ))}
+                    </datalist>
                   </div>
                 </div>
                 <div className="form-row">
                   <div className="form-group">
                     <label className="form-label">🏢 প্রকাশক</label>
-                    <input className="form-input" value={publisherId} onChange={e => setPublisherId(e.target.value)} placeholder="প্রকাশকের নাম লিখুন" />
+                    <input 
+                      className="form-input" 
+                      value={publisherId} 
+                      onChange={e => setPublisherId(e.target.value)} 
+                      list="publisher-options"
+                      placeholder="প্রকাশকের নাম লিখুন বা নির্বাচন করুন" 
+                    />
+                    <datalist id="publisher-options">
+                      {uniquePublishers.map(name => (
+                        <option key={name} value={name} />
+                      ))}
+                    </datalist>
                   </div>
                   <div className="form-group">
                     <label className="form-label">ISBN</label>
@@ -318,19 +448,9 @@ export default function AddBookPage() {
                       placeholder="ক্যাটাগরি লিখুন বা নির্বাচন করুন"
                     />
                     <datalist id="category-options">
-                      {/* From DB */}
-                      {categories.map(c => <option key={c.id} value={c.name_bn || c.name} />)}
-                      {/* Defaults */}
-                      <option value="ফিকশন" />
-                      <option value="নন-ফিকশন" />
-                      <option value="কবিতা" />
-                      <option value="প্রবন্ধ" />
-                      <option value="জীবনী" />
-                      <option value="ধর্মীয়" />
-                      <option value="শিশু-কিশোর" />
-                      <option value="বিজ্ঞান" />
-                      <option value="অনুবাদ" />
-                      <option value="ইতিহাস" />
+                      {uniqueCategories.map(name => (
+                        <option key={name} value={name} />
+                      ))}
                     </datalist>
                   </div>
                   <div className="form-group">
@@ -343,17 +463,9 @@ export default function AddBookPage() {
                       placeholder="ধরন লিখুন বা নির্বাচন করুন"
                     />
                     <datalist id="genre-options">
-                      {/* From DB */}
-                      {genres.map(g => <option key={g.id} value={g.name_bn || g.name} />)}
-                      {/* Defaults */}
-                      <option value="উপন্যাস" />
-                      <option value="ছোটগল্প" />
-                      <option value="থ্রিলার/গোয়েন্দা" />
-                      <option value="কল্পবিজ্ঞান" />
-                      <option value="হরর" />
-                      <option value="নাটক" />
-                      <option value="আত্মজীবনী" />
-                      <option value="রম্য রচনা" />
+                      {uniqueGenres.map(name => (
+                        <option key={name} value={name} />
+                      ))}
                     </datalist>
                   </div>
                 </div>
