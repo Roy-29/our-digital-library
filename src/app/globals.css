@@ -1070,6 +1070,169 @@ h3 { font-size: 1.25rem; }
   border-color: var(--accent);
 }
 
+/* ===== MINIMAL BOOKS CONTROLS & OWNER PILLS ===== */
+.owner-pills-bar {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 12px;
+  flex-wrap: wrap;
+  align-items: center;
+}
+
+.owner-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 12px;
+  font-size: 0.82rem;
+  font-weight: 500;
+  border-radius: 9999px;
+  border: 1px solid var(--border);
+  background: var(--bg-card);
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  white-space: nowrap;
+}
+
+.owner-pill:hover {
+  border-color: var(--accent);
+  color: var(--text-primary);
+  background: var(--bg-secondary);
+}
+
+.owner-pill.active {
+  background: var(--accent);
+  color: #ffffff;
+  border-color: var(--accent);
+  box-shadow: 0 2px 8px rgba(79, 161, 115, 0.25);
+}
+
+.owner-pill .pill-badge {
+  font-size: 0.75rem;
+  padding: 1px 6px;
+  border-radius: 9999px;
+  background: rgba(0, 0, 0, 0.06);
+  font-weight: 600;
+}
+
+.owner-pill.active .pill-badge {
+  background: rgba(255, 255, 255, 0.25);
+  color: #ffffff;
+}
+
+.dark .owner-pill .pill-badge {
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.books-controls-bar {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  flex-wrap: wrap;
+  margin-bottom: 16px;
+}
+
+.books-search-box {
+  position: relative;
+  display: flex;
+  align-items: center;
+  flex: 1 1 240px;
+  min-width: 200px;
+  height: 38px;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  padding: 0 10px;
+  transition: all var(--transition-fast);
+}
+
+.books-search-box:focus-within {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 2px rgba(90, 179, 132, 0.2);
+}
+
+.books-search-box .search-icon {
+  font-size: 0.85rem;
+  color: var(--text-muted);
+  margin-right: 8px;
+  display: flex;
+  align-items: center;
+}
+
+.books-search-box input {
+  border: none;
+  background: transparent;
+  outline: none;
+  width: 100%;
+  font-size: 0.85rem;
+  color: var(--text-primary);
+  font-family: var(--font-sans);
+}
+
+.books-search-box .search-clear-btn {
+  background: none;
+  border: none;
+  color: var(--text-muted);
+  cursor: pointer;
+  font-size: 0.8rem;
+  padding: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  transition: color var(--transition-fast);
+}
+
+.books-search-box .search-clear-btn:hover {
+  color: var(--danger);
+}
+
+.books-filter-group {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.minimal-select {
+  height: 38px;
+  padding: 0 12px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  background: var(--bg-card);
+  color: var(--text-primary);
+  font-size: 0.83rem;
+  font-family: var(--font-sans);
+  outline: none;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.minimal-select:hover,
+.minimal-select:focus {
+  border-color: var(--accent);
+}
+
+.minimal-select.active-filter {
+  border-color: var(--accent);
+  background: rgba(90, 179, 132, 0.1);
+  font-weight: 500;
+  color: var(--accent);
+}
+
+.filter-reset-btn {
+  height: 38px;
+  padding: 0 10px;
+  font-size: 0.8rem;
+  border-radius: var(--radius-md);
+  color: var(--text-muted);
+}
+
+.filter-reset-btn:hover {
+  color: var(--danger);
+}
+
 /* ===== EMPTY STATE ===== */
 .empty-state {
   display: flex;
@@ -1693,6 +1856,32 @@ h3 { font-size: 1.25rem; }
     width: 100%;
     font-size: 0.8rem;
     padding: 8px 10px;
+  }
+
+  .books-controls-bar {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 8px;
+  }
+
+  .books-search-box {
+    width: 100%;
+    flex: none;
+  }
+
+  .books-filter-group {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    width: 100%;
+    gap: 6px;
+  }
+
+  .minimal-select {
+    width: 100%;
+  }
+
+  .filter-reset-btn {
+    grid-column: span 2;
   }
   
   .login-card {

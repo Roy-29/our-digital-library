@@ -126,23 +126,23 @@ export default function BooksClient({
 
       <div className="page-body">
         {/* Quick Owner Filter Pills */}
-        <div style={{ display: 'flex', gap: '8px', marginBottom: '14px', flexWrap: 'wrap', alignItems: 'center' }}>
+        <div className="owner-pills-bar">
           <button 
             type="button"
-            className={`btn btn-sm ${filterOwner === '' ? 'btn-primary' : 'btn-secondary'}`}
+            className={`owner-pill ${filterOwner === '' ? 'active' : ''}`}
             onClick={() => setFilterOwner('')}
-            style={{ borderRadius: '20px', padding: '6px 14px', fontSize: '0.85rem' }}
           >
-            📚 সব বই ({books.length})
+            <span>📚 সব বই</span>
+            <span className="pill-badge">{books.length}</span>
           </button>
           {user && (
             <button 
               type="button"
-              className={`btn btn-sm ${filterOwner === user.id ? 'btn-primary' : 'btn-secondary'}`}
+              className={`owner-pill ${filterOwner === user.id ? 'active' : ''}`}
               onClick={() => setFilterOwner(filterOwner === user.id ? '' : user.id)}
-              style={{ borderRadius: '20px', padding: '6px 14px', fontSize: '0.85rem' }}
             >
-              ⭐ আমার বই ({books.filter(b => b.owner === user.id).length})
+              <span>⭐ আমার বই</span>
+              <span className="pill-badge">{books.filter(b => b.owner === user.id).length}</span>
             </button>
           )}
           {OWNERS.filter(o => o.value !== user?.id).map(o => {
@@ -151,56 +151,85 @@ export default function BooksClient({
               <button
                 key={o.value}
                 type="button"
-                className={`btn btn-sm ${filterOwner === o.value ? 'btn-primary' : 'btn-secondary'}`}
+                className={`owner-pill ${filterOwner === o.value ? 'active' : ''}`}
                 onClick={() => setFilterOwner(filterOwner === o.value ? '' : o.value)}
-                style={{ borderRadius: '20px', padding: '6px 14px', fontSize: '0.85rem' }}
               >
-                👤 {o.label} ({count})
+                <span>👤 {o.label}</span>
+                <span className="pill-badge">{count}</span>
               </button>
             );
           })}
         </div>
 
-        {/* Search & Filter */}
-        <div className="search-bar" style={{ marginBottom: '12px', maxWidth: '100%' }}>
-          <span className="search-icon">🔍</span>
-          <input
-            type="text"
-            placeholder="বই, লেখক, ISBN, প্রকাশক খুঁজুন..."
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-          />
-        </div>
-
-        <div className="filter-bar">
-          <select value={filterOwner} onChange={(e) => setFilterOwner(e.target.value)}>
-            <option value="">সব মালিক</option>
-            {user && (
-              <option value={user.id}>⭐ আমার বই ({getOwnerLabel(user.id)})</option>
+        {/* Minimal Search & Filter Bar */}
+        <div className="books-controls-bar">
+          <div className="books-search-box">
+            <span className="search-icon">🔍</span>
+            <input
+              type="text"
+              placeholder="বই, লেখক, ISBN, প্রকাশক খুঁজুন..."
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+            />
+            {search && (
+              <button 
+                type="button" 
+                className="search-clear-btn" 
+                onClick={() => setSearch('')}
+                title="সার্চ মুছুন"
+              >
+                ✕
+              </button>
             )}
-            {OWNERS.filter(o => o.value !== user?.id).map(o => <option key={o.value} value={o.value}>{o.label}</option>)}
-          </select>
-          <select value={filterStatus} onChange={(e) => setFilterStatus(e.target.value)}>
-            <option value="">সব স্ট্যাটাস</option>
-            {BOOK_STATUSES.map(s => <option key={s.value} value={s.value}>{s.icon} {s.label}</option>)}
-          </select>
-          <select value={filterCategory} onChange={(e) => setFilterCategory(e.target.value)}>
-            <option value="">সব ক্যাটাগরি</option>
-            {categories.map(c => <option key={c.id} value={c.id}>{c.icon} {c.nameBn || c.name}</option>)}
-          </select>
-          <select value={filterGenre} onChange={(e) => setFilterGenre(e.target.value)}>
-            <option value="">সব ধরন</option>
-            {genres.map(g => <option key={g.id} value={g.id}>{g.icon} {g.nameBn || g.name}</option>)}
-          </select>
-          <select value={filterAuthor} onChange={(e) => setFilterAuthor(e.target.value)}>
-            <option value="">সব লেখক</option>
-            {authors.map(a => <option key={a.id} value={a.id}>{a.nameBn || a.name}</option>)}
-          </select>
-          {hasFilters && (
-            <button className="btn btn-ghost btn-sm" onClick={clearFilters}>
-              ✕ ফিল্টার মুছুন
-            </button>
-          )}
+          </div>
+
+          <div className="books-filter-group">
+            <select 
+              value={filterStatus} 
+              onChange={(e) => setFilterStatus(e.target.value)}
+              className={`minimal-select ${filterStatus ? 'active-filter' : ''}`}
+            >
+              <option value="">সব স্ট্যাটাস</option>
+              {BOOK_STATUSES.map(s => <option key={s.value} value={s.value}>{s.icon} {s.label}</option>)}
+            </select>
+
+            <select 
+              value={filterAuthor} 
+              onChange={(e) => setFilterAuthor(e.target.value)}
+              className={`minimal-select ${filterAuthor ? 'active-filter' : ''}`}
+            >
+              <option value="">সব লেখক</option>
+              {authors.map(a => <option key={a.id} value={a.id}>{a.nameBn || a.name}</option>)}
+            </select>
+
+            {categories.length > 0 && (
+              <select 
+                value={filterCategory} 
+                onChange={(e) => setFilterCategory(e.target.value)}
+                className={`minimal-select ${filterCategory ? 'active-filter' : ''}`}
+              >
+                <option value="">সব ক্যাটাগরি</option>
+                {categories.map(c => <option key={c.id} value={c.id}>{c.icon} {c.nameBn || c.name}</option>)}
+              </select>
+            )}
+
+            {genres.length > 0 && (
+              <select 
+                value={filterGenre} 
+                onChange={(e) => setFilterGenre(e.target.value)}
+                className={`minimal-select ${filterGenre ? 'active-filter' : ''}`}
+              >
+                <option value="">সব ধরন</option>
+                {genres.map(g => <option key={g.id} value={g.id}>{g.icon} {g.nameBn || g.name}</option>)}
+              </select>
+            )}
+
+            {hasFilters && (
+              <button className="btn btn-ghost btn-sm filter-reset-btn" onClick={clearFilters} title="ফিল্টার রিসেট করুন">
+                ✕ রিসেট
+              </button>
+            )}
+          </div>
         </div>
 
         {sortedBooks.length === 0 ? (
