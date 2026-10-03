@@ -7,6 +7,7 @@ import { getOwnerLabel } from '@/lib/types';
 const MENU_ITEMS = [
   { href: '/dashboard', icon: '🏠', label: 'ড্যাশবোর্ড', desc: 'পরিসংখ্যান ও সারসংক্ষেপ' },
   { href: '/dashboard/books', icon: '📚', label: 'সব বই', desc: 'সংগ্রহের সব বই দেখুন' },
+  { href: '/dashboard/sort', icon: '🔀', label: 'বই বাছাইকরণ', desc: 'যেকোনো তথ্য অনুযায়ী বই সাজান ও ফিল্টার করুন' },
   { href: '/dashboard/books/add', icon: '➕', label: 'নতুন বই যোগ', desc: 'সংগ্রহে নতুন বই যোগ করুন' },
   { href: '/dashboard/reading', icon: '📖', label: 'পড়ছি', desc: 'পড়ার অগ্রগতি ট্র্যাক করুন' },
   { href: '/dashboard/lending', icon: '📤', label: 'ধার দেওয়া', desc: 'ধার দেওয়া বই পরিচালনা' },

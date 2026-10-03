@@ -12,6 +12,7 @@ const NAV_ITEMS = [
   { section: 'প্রধান' },
   { href: '/dashboard', icon: '🏠', label: 'ড্যাশবোর্ড' },
   { href: '/dashboard/books', icon: '📚', label: 'সব বই' },
+  { href: '/dashboard/sort', icon: '🔀', label: 'বই বাছাইকরণ' },
   { href: '/dashboard/books/add', icon: '➕', label: 'নতুন বই যোগ' },
   { section: 'ট্র্যাকিং' },
   { href: '/dashboard/reading', icon: '📖', label: 'পড়ছি' },

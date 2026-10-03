@@ -199,32 +199,6 @@ export default function BooksClient({
             </select>
 
             <select 
-              value={filterCategory} 
-              onChange={(e) => setFilterCategory(e.target.value)}
-              className={`minimal-select ${filterCategory ? 'active-filter' : ''}`}
-            >
-              <option value="">সব ক্যাটাগরি</option>
-              {categories.map(c => (
-                <option key={c.id} value={c.id}>
-                  {c.icon ? `${c.icon} ` : ''}{c.nameBn || c.name}
-                </option>
-              ))}
-            </select>
-
-            <select 
-              value={filterGenre} 
-              onChange={(e) => setFilterGenre(e.target.value)}
-              className={`minimal-select ${filterGenre ? 'active-filter' : ''}`}
-            >
-              <option value="">সব ধরন</option>
-              {genres.map(g => (
-                <option key={g.id} value={g.id}>
-                  {g.icon ? `${g.icon} ` : ''}{g.nameBn || g.name}
-                </option>
-              ))}
-            </select>
-
-            <select 
               value={filterAuthor} 
               onChange={(e) => setFilterAuthor(e.target.value)}
               className={`minimal-select ${filterAuthor ? 'active-filter' : ''}`}
@@ -233,14 +207,14 @@ export default function BooksClient({
               {authors.map(a => <option key={a.id} value={a.id}>{a.nameBn || a.name}</option>)}
             </select>
 
-            <select 
-              value={filterPublisher} 
-              onChange={(e) => setFilterPublisher(e.target.value)}
-              className={`minimal-select ${filterPublisher ? 'active-filter' : ''}`}
+            <Link 
+              href="/dashboard/sort" 
+              className="btn btn-secondary btn-sm"
+              style={{ height: '38px', display: 'flex', alignItems: 'center', gap: '6px', whiteSpace: 'nowrap' }}
+              title="উন্নত সর্টিং ও ফিল্টারিং পেজ"
             >
-              <option value="">সব প্রকাশক</option>
-              {publishers.map(p => <option key={p.id} value={p.id}>{p.nameBn || p.name}</option>)}
-            </select>
+              🔀 সব ফিল্টার ও বাছাই
+            </Link>
 
             {hasFilters && (
               <button className="btn btn-ghost btn-sm filter-reset-btn" onClick={clearFilters} title="ফিল্টার রিসেট করুন">
