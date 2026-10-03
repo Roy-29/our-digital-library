@@ -13,8 +13,7 @@ export default function AddBookPage() {
   const supabase = createClient();
   const [saving, setSaving] = useState(false);
   // Reference data
-  const [authors, setAuthors] = useState<Author[]>([]);
-  const [translators, setTranslators] = useState<Author[]>([]);
+  const [allPersons, setAllPersons] = useState<Author[]>([]);
   const [publishers, setPublishers] = useState<Publisher[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
   const [genres, setGenres] = useState<Genre[]>([]);
@@ -25,25 +24,29 @@ export default function AddBookPage() {
   // Unique sorted lists for datalist dropdowns
   const uniqueAuthors = useMemo(() => {
     const set = new Set<string>();
-    authors.forEach((a) => {
-      const bn = a.name_bn?.trim();
-      const en = a.name?.trim();
-      if (bn) set.add(bn);
-      if (en) set.add(en);
-    });
+    allPersons
+      .filter((a: any) => a.is_author !== 0 && a.is_author !== false && a.isAuthor !== 0 && a.isAuthor !== false)
+      .forEach((a) => {
+        const bn = a.name_bn?.trim();
+        const en = a.name?.trim();
+        if (bn) set.add(bn);
+        if (en) set.add(en);
+      });
     return Array.from(set).sort((a, b) => a.localeCompare(b, 'bn'));
-  }, [authors]);
+  }, [allPersons]);
 
   const uniqueTranslators = useMemo(() => {
     const set = new Set<string>();
-    translators.forEach((t) => {
-      const bn = t.name_bn?.trim();
-      const en = t.name?.trim();
-      if (bn) set.add(bn);
-      if (en) set.add(en);
-    });
+    allPersons
+      .filter((t: any) => t.is_translator === 1 || t.is_translator === true || t.isTranslator === 1 || t.isTranslator === true)
+      .forEach((t) => {
+        const bn = t.name_bn?.trim();
+        const en = t.name?.trim();
+        if (bn) set.add(bn);
+        if (en) set.add(en);
+      });
     return Array.from(set).sort((a, b) => a.localeCompare(b, 'bn'));
-  }, [translators]);
+  }, [allPersons]);
 
   const uniquePublishers = useMemo(() => {
     const set = new Set<string>();
@@ -162,28 +165,18 @@ export default function AddBookPage() {
   }, [shelfId]);
 
   const fetchReferenceData = async () => {
-    const [a, p, c, g, r, b] = await Promise.all([
+    const [a, p, c, g, r] = await Promise.all([
       supabase.from('authors').select('*').order('name'),
       supabase.from('publishers').select('*').order('name'),
       supabase.from('categories').select('*').order('name'),
       supabase.from('genres').select('*').order('name'),
       supabase.from('rooms').select('*').order('name'),
-      supabase.from('books').select('*'),
     ]);
-    if (a.data) setAuthors(a.data);
+    if (a.data) setAllPersons(a.data);
     if (p.data) setPublishers(p.data);
     if (c.data) setCategories(c.data);
     if (g.data) setGenres(g.data);
     if (r.data) setRooms(r.data);
-    if (b.data && a.data) {
-      const transIds = new Set(
-        (b.data as any[])
-          .map((book: any) => book.translator_id || book.translatorId)
-          .filter(Boolean)
-      );
-      const transList = (a.data as Author[]).filter((auth: Author) => transIds.has(auth.id));
-      setTranslators(transList);
-    }
   };
 
   const uploadCover = async (): Promise<string | null> => {
@@ -224,19 +217,52 @@ export default function AddBookPage() {
       const t = name.trim().replace(/\s+/g, ' ');
       if (!t) return null;
       const lower = t.toLowerCase();
-      const existing = authors.find(
+      const existing = allPersons.find(
         a => (a.name_bn && a.name_bn.trim().toLowerCase() === lower) ||
              (a.name && a.name.trim().toLowerCase() === lower)
       );
-      if (existing) return existing.id;
+      if (existing) {
+        if ((existing as any).is_author === 0 || (existing as any).isAuthor === 0) {
+          await supabase.from('authors').update({ is_author: 1 }).eq('id', existing.id);
+        }
+        return existing.id;
+      }
       
-      const { data } = await supabase.from('authors').insert({ name_bn: t, name: t });
+      const { data } = await supabase.from('authors').insert({ name_bn: t, name: t, is_author: 1, is_translator: 0 });
       if (data?.id) return data.id;
       
       const { data: all } = await supabase.from('authors').select('*');
       const found = (all as any[])?.find(
         a => (a.name_bn && a.name_bn.trim().toLowerCase() === lower) ||
              (a.name && a.name.trim().toLowerCase() === lower)
+      );
+      return found?.id || null;
+    };
+
+    const resolveTranslator = async (name: string) => {
+      if (!name) return null;
+      const t = name.trim().replace(/\s+/g, ' ');
+      if (!t) return null;
+      const lower = t.toLowerCase();
+      const existing = allPersons.find(
+        p => (p.name_bn && p.name_bn.trim().toLowerCase() === lower) ||
+             (p.name && p.name.trim().toLowerCase() === lower)
+      );
+      if (existing) {
+        if ((existing as any).is_translator !== 1 && (existing as any).isTranslator !== 1) {
+          await supabase.from('authors').update({ is_translator: 1 }).eq('id', existing.id);
+        }
+        return existing.id;
+      }
+      
+      // Explicitly is_author = 0, is_translator = 1 so they are NEVER added to authors!
+      const { data } = await supabase.from('authors').insert({ name_bn: t, name: t, is_author: 0, is_translator: 1 });
+      if (data?.id) return data.id;
+
+      const { data: all } = await supabase.from('authors').select('*');
+      const found = (all as any[])?.find(
+        p => (p.name_bn && p.name_bn.trim().toLowerCase() === lower) ||
+             (p.name && p.name.trim().toLowerCase() === lower)
       );
       return found?.id || null;
     };
@@ -308,7 +334,7 @@ export default function AddBookPage() {
     };
 
     const finalAuthorId = await resolveAuthor(authorId);
-    const finalTranslatorId = await resolveAuthor(translatorId);
+    const finalTranslatorId = await resolveTranslator(translatorId);
     const finalPublisherId = await resolvePublisher(publisherId);
     const finalCategoryId = await resolveCategory(categoryId);
     const finalGenreId = await resolveGenre(genreId);

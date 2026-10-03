@@ -26,7 +26,11 @@ export default function AuthorsPage() {
   const fetchAuthors = async () => {
     setLoading(true);
     const { data } = await supabase.from('authors').select('*').order('name');
-    setAuthors(data || []);
+    // Only show actual authors (exclude pure translators)
+    const authorList = (data || []).filter(
+      (a: any) => a.is_author !== 0 && a.is_author !== false && a.isAuthor !== 0 && a.isAuthor !== false
+    );
+    setAuthors(authorList);
     setLoading(false);
   };
 
@@ -69,6 +73,7 @@ export default function AuthorsPage() {
       birth_year: birthYear ? parseInt(birthYear) : null,
       death_year: deathYear ? parseInt(deathYear) : null,
       nationality: nationality || null,
+      is_author: 1,
     };
 
     if (editingId) {

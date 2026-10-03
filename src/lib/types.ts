@@ -18,6 +18,10 @@ export interface Author {
   death_year: number | null;
   nationality: string | null;
   image_url: string | null;
+  is_author?: boolean | number;
+  is_translator?: boolean | number;
+  isAuthor?: boolean | number;
+  isTranslator?: boolean | number;
   created_at: string;
   updated_at: string;
 }

@@ -21,6 +21,8 @@ export const authors = sqliteTable('authors', {
   deathYear: integer('death_year'),
   nationality: text('nationality'),
   imageUrl: text('image_url'),
+  isAuthor: integer('is_author', { mode: 'boolean' }).notNull().default(true),
+  isTranslator: integer('is_translator', { mode: 'boolean' }).notNull().default(false),
   createdAt: text('created_at').default(sql`CURRENT_TIMESTAMP`),
   updatedAt: text('updated_at').default(sql`CURRENT_TIMESTAMP`),
 });
