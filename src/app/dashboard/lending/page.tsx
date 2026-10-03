@@ -54,13 +54,30 @@ export default function LendingPage() {
   const fetchData = async () => {
     setLoading(true);
     const [lRes, bRes, brRes] = await Promise.all([
-      supabase.from('lending_records').select('*, book:books(id, title, cover_url, owner), borrower:borrowers(*)').order('created_at', { ascending: false }),
-      supabase.from('books').select('id, title, status, owner').order('title'),
+      supabase.from('lending_records').select('*').order('created_at', { ascending: false }),
+      supabase.from('books').select('id, title, status, owner, cover_url').order('title'),
       supabase.from('borrowers').select('*').order('name'),
     ]);
-    setRecords(lRes.data || []);
-    setBooks(bRes.data || []);
-    setBorrowers(brRes.data || []);
+    const booksList = bRes.data || [];
+    const borrowersList = brRes.data || [];
+    const booksMap = new Map(booksList.map((b: any) => [b.id, b]));
+    const borrowersMap = new Map(borrowersList.map((br: any) => [br.id, br]));
+
+    const populatedRecords = (lRes.data || []).map((r: any) => {
+      const bid = r.book_id || r.bookId;
+      const brid = r.borrower_id || r.borrowerId;
+      return {
+        ...r,
+        book_id: bid,
+        borrower_id: brid,
+        book: booksMap.get(bid) || null,
+        borrower: borrowersMap.get(brid) || null,
+      };
+    });
+
+    setRecords(populatedRecords);
+    setBooks(booksList);
+    setBorrowers(borrowersList);
     setLoading(false);
   };
 
@@ -231,10 +248,21 @@ export default function LendingPage() {
     setSelectedBorrower(b);
     const { data } = await supabase
       .from('lending_records')
-      .select('*, book:books(id, title)')
+      .select('*')
       .eq('borrower_id', b.id)
       .order('date_lent', { ascending: false });
-    setBorrowerLendings(data || []);
+    
+    const booksMap = new Map(books.map((bk: any) => [bk.id, bk]));
+    const list = (data || []).map((item: any) => {
+      const bid = item.book_id || item.bookId;
+      return {
+        ...item,
+        book_id: bid,
+        book: booksMap.get(bid) || null,
+        borrower: b,
+      };
+    });
+    setBorrowerLendings(list);
   };
 
   const activeRecords = records.filter(r => !r.is_returned);
@@ -403,23 +431,26 @@ export default function LendingPage() {
                     </tr>
                   </thead>
                   <tbody>
-                    {(activeTab === 'active' ? activeRecords : historyRecords).map(r => (
-                      <tr key={r.id}>
-                        <td style={{ fontWeight: 500 }}>{r.book?.title || '—'}</td>
-                        <td>
-                          {r.borrower ? (
-                            <button
-                              type="button"
-                              className="btn btn-ghost btn-xs"
-                              style={{ fontWeight: 600, padding: 0 }}
-                              onClick={() => viewBorrowerDetails(r.borrower!)}
-                            >
-                              👤 {r.borrower.name}
-                            </button>
-                          ) : (
-                            '—'
-                          )}
-                        </td>
+                    {(activeTab === 'active' ? activeRecords : historyRecords).map(r => {
+                      const bookTitle = r.book?.title || books.find(b => b.id === (r.book_id || (r as any).bookId))?.title || '—';
+                      const borrowerObj = r.borrower || borrowers.find(b => b.id === (r.borrower_id || (r as any).borrowerId));
+                      return (
+                        <tr key={r.id}>
+                          <td style={{ fontWeight: 500 }}>{bookTitle}</td>
+                          <td>
+                            {borrowerObj ? (
+                              <button
+                                type="button"
+                                className="btn btn-ghost btn-xs"
+                                style={{ fontWeight: 600, padding: 0 }}
+                                onClick={() => viewBorrowerDetails(borrowerObj)}
+                              >
+                                👤 {borrowerObj.name}
+                              </button>
+                            ) : (
+                              '—'
+                            )}
+                          </td>
                         <td>{getOwnerLabel(r.lent_by)}</td>
                         <td>{r.date_lent}</td>
                         <td>{r.expected_return_date || '—'}</td>
@@ -442,7 +473,8 @@ export default function LendingPage() {
                           </div>
                         </td>
                       </tr>
-                    ))}
+                    );
+                  })}
                   </tbody>
                 </table>
               </div>
@@ -604,20 +636,23 @@ export default function LendingPage() {
                       </tr>
                     </thead>
                     <tbody>
-                      {borrowerLendings.map(l => (
-                        <tr key={l.id}>
-                          <td style={{ fontWeight: 500 }}>{l.book?.title || '—'}</td>
-                          <td>{l.date_lent}</td>
-                          <td>{l.date_returned || '—'}</td>
-                          <td>
-                            {l.is_returned ? (
-                              <span className="badge badge-green">✅ ফেরত</span>
-                            ) : (
-                              <span className="badge badge-yellow">📤 ধার চলছে</span>
-                            )}
-                          </td>
-                        </tr>
-                      ))}
+                      {borrowerLendings.map(l => {
+                        const bookTitle = l.book?.title || books.find(b => b.id === (l.book_id || (l as any).bookId))?.title || '—';
+                        return (
+                          <tr key={l.id}>
+                            <td style={{ fontWeight: 500 }}>{bookTitle}</td>
+                            <td>{l.date_lent}</td>
+                            <td>{l.date_returned || '—'}</td>
+                            <td>
+                              {l.is_returned ? (
+                                <span className="badge badge-green">✅ ফেরত</span>
+                              ) : (
+                                <span className="badge badge-yellow">📤 ধার চলছে</span>
+                              )}
+                            </td>
+                          </tr>
+                        );
+                      })}
                     </tbody>
                   </table>
                 </div>
