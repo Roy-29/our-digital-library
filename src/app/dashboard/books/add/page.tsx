@@ -14,6 +14,7 @@ export default function AddBookPage() {
   const [saving, setSaving] = useState(false);
   // Reference data
   const [authors, setAuthors] = useState<Author[]>([]);
+  const [translators, setTranslators] = useState<Author[]>([]);
   const [publishers, setPublishers] = useState<Publisher[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
   const [genres, setGenres] = useState<Genre[]>([]);
@@ -32,6 +33,17 @@ export default function AddBookPage() {
     });
     return Array.from(set).sort((a, b) => a.localeCompare(b, 'bn'));
   }, [authors]);
+
+  const uniqueTranslators = useMemo(() => {
+    const set = new Set<string>();
+    translators.forEach((t) => {
+      const bn = t.name_bn?.trim();
+      const en = t.name?.trim();
+      if (bn) set.add(bn);
+      if (en) set.add(en);
+    });
+    return Array.from(set).sort((a, b) => a.localeCompare(b, 'bn'));
+  }, [translators]);
 
   const uniquePublishers = useMemo(() => {
     const set = new Set<string>();
@@ -150,18 +162,28 @@ export default function AddBookPage() {
   }, [shelfId]);
 
   const fetchReferenceData = async () => {
-    const [a, p, c, g, r] = await Promise.all([
+    const [a, p, c, g, r, b] = await Promise.all([
       supabase.from('authors').select('*').order('name'),
       supabase.from('publishers').select('*').order('name'),
       supabase.from('categories').select('*').order('name'),
       supabase.from('genres').select('*').order('name'),
       supabase.from('rooms').select('*').order('name'),
+      supabase.from('books').select('*'),
     ]);
     if (a.data) setAuthors(a.data);
     if (p.data) setPublishers(p.data);
     if (c.data) setCategories(c.data);
     if (g.data) setGenres(g.data);
     if (r.data) setRooms(r.data);
+    if (b.data && a.data) {
+      const transIds = new Set(
+        (b.data as any[])
+          .map((book: any) => book.translator_id || book.translatorId)
+          .filter(Boolean)
+      );
+      const transList = (a.data as Author[]).filter((auth: Author) => transIds.has(auth.id));
+      setTranslators(transList);
+    }
   };
 
   const uploadCover = async (): Promise<string | null> => {
@@ -410,7 +432,7 @@ export default function AddBookPage() {
                       placeholder="অনুবাদকের নাম লিখুন বা নির্বাচন করুন" 
                     />
                     <datalist id="translator-options">
-                      {uniqueAuthors.map(name => (
+                      {uniqueTranslators.map(name => (
                         <option key={`trans-${name}`} value={name} />
                       ))}
                     </datalist>

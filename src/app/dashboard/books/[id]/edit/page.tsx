@@ -17,6 +17,7 @@ export default function EditBookPage() {
   const [activeTab, setActiveTab] = useState('basic');
 
   const [authors, setAuthors] = useState<Author[]>([]);
+  const [translators, setTranslators] = useState<Author[]>([]);
   const [publishers, setPublishers] = useState<Publisher[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
   const [genres, setGenres] = useState<Genre[]>([]);
@@ -35,6 +36,17 @@ export default function EditBookPage() {
     });
     return Array.from(set).sort((a, b) => a.localeCompare(b, 'bn'));
   }, [authors]);
+
+  const uniqueTranslators = useMemo(() => {
+    const set = new Set<string>();
+    translators.forEach((t) => {
+      const bn = t.name_bn?.trim();
+      const en = t.name?.trim();
+      if (bn) set.add(bn);
+      if (en) set.add(en);
+    });
+    return Array.from(set).sort((a, b) => a.localeCompare(b, 'bn'));
+  }, [translators]);
 
   const uniquePublishers = useMemo(() => {
     const set = new Set<string>();
@@ -125,13 +137,14 @@ export default function EditBookPage() {
   }, [params.id]);
 
   const fetchData = async () => {
-    const [bookRes, aRes, pRes, cRes, gRes, rRes] = await Promise.all([
+    const [bookRes, aRes, pRes, cRes, gRes, rRes, bRes] = await Promise.all([
       supabase.from('books').select('*').eq('id', params.id).single(),
       supabase.from('authors').select('*').order('name'),
       supabase.from('publishers').select('*').order('name'),
       supabase.from('categories').select('*').order('name'),
       supabase.from('genres').select('*').order('name'),
       supabase.from('rooms').select('*').order('name'),
+      supabase.from('books').select('*'),
     ]);
 
     if (aRes.data) setAuthors(aRes.data);
@@ -139,6 +152,15 @@ export default function EditBookPage() {
     if (cRes.data) setCategories(cRes.data);
     if (gRes.data) setGenres(gRes.data);
     if (rRes.data) setRooms(rRes.data);
+    if (bRes.data && aRes.data) {
+      const transIds = new Set(
+        (bRes.data as any[])
+          .map((book: any) => book.translator_id || book.translatorId)
+          .filter(Boolean)
+      );
+      const transList = (aRes.data as Author[]).filter((auth: Author) => transIds.has(auth.id));
+      setTranslators(transList);
+    }
 
     if (bookRes.error || !bookRes.data) {
       toast.error('বই পাওয়া যায়নি');
@@ -427,7 +449,7 @@ export default function EditBookPage() {
                       placeholder="অনুবাদকের নাম লিখুন বা নির্বাচন করুন" 
                     />
                     <datalist id="translator-options">
-                      {uniqueAuthors.map(name => (
+                      {uniqueTranslators.map(name => (
                         <option key={`trans-${name}`} value={name} />
                       ))}
                     </datalist>
