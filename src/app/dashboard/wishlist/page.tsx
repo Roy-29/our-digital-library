@@ -8,7 +8,7 @@ import toast from 'react-hot-toast';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 
-type OwnerFilter = 'all' | 'my' | BookOwner;
+type OwnerFilter = 'all' | BookOwner;
 
 interface AuthorOption {
   id: string;
@@ -268,19 +268,17 @@ export default function WishlistPage() {
   const tabCounts = useMemo(() => {
     return {
       all: pendingItems.length,
-      my: user?.id ? pendingItems.filter((i) => i.requested_by === user.id).length : 0,
       swapnil: pendingItems.filter((i) => i.requested_by === 'swapnil').length,
       bipro: pendingItems.filter((i) => i.requested_by === 'bipro').length,
       srrijan: pendingItems.filter((i) => i.requested_by === 'srrijan').length,
     };
-  }, [pendingItems, user]);
+  }, [pendingItems]);
 
   // Filter pending items
   const filteredPending = useMemo(() => {
     return pendingItems.filter((item) => {
       // Owner filter
-      if (selectedOwner === 'my' && item.requested_by !== user?.id) return false;
-      if (selectedOwner !== 'all' && selectedOwner !== 'my' && item.requested_by !== selectedOwner) return false;
+      if (selectedOwner !== 'all' && item.requested_by !== selectedOwner) return false;
 
       // Priority filter
       if (priorityFilter && item.priority !== priorityFilter) return false;
@@ -298,13 +296,12 @@ export default function WishlistPage() {
       }
       return true;
     });
-  }, [pendingItems, selectedOwner, priorityFilter, search, user]);
+  }, [pendingItems, selectedOwner, priorityFilter, search]);
 
   // Filter purchased items
   const filteredPurchased = useMemo(() => {
     return purchasedItems.filter((item) => {
-      if (selectedOwner === 'my' && item.requested_by !== user?.id) return false;
-      if (selectedOwner !== 'all' && selectedOwner !== 'my' && item.requested_by !== selectedOwner) return false;
+      if (selectedOwner !== 'all' && item.requested_by !== selectedOwner) return false;
 
       if (search.trim()) {
         const q = search.toLowerCase();
@@ -316,7 +313,7 @@ export default function WishlistPage() {
       }
       return true;
     });
-  }, [purchasedItems, selectedOwner, search, user]);
+  }, [purchasedItems, selectedOwner, search]);
 
   // Estimated total price for filtered pending items
   const totalEstimatedPrice = useMemo(() => {
@@ -344,7 +341,7 @@ export default function WishlistPage() {
       </div>
 
       <div className="page-body">
-        {/* Navigation Tabs (All, My, Swapnil, Bipro, Srrijan) */}
+        {/* Navigation Tabs (All, Swapnil, Bipro, Srrijan) */}
         <div className="tabs" style={{ marginBottom: '16px' }}>
           <button
             type="button"
@@ -366,48 +363,46 @@ export default function WishlistPage() {
             </span>
           </button>
 
-          <button
-            type="button"
-            className={`tab ${selectedOwner === 'my' ? 'active' : ''}`}
-            onClick={() => setSelectedOwner('my')}
-          >
-            <span>⭐ আমার উইশলিস্ট</span>
-            <span
-              style={{
-                marginLeft: '4px',
-                padding: '2px 8px',
-                borderRadius: '999px',
-                fontSize: '0.75rem',
-                background: selectedOwner === 'my' ? 'rgba(255,255,255,0.25)' : 'var(--bg-card)',
-                border: '1px solid var(--border-light)',
-              }}
-            >
-              {tabCounts.my}
-            </span>
-          </button>
-
-          {OWNERS.map((o) => (
-            <button
-              key={o.value}
-              type="button"
-              className={`tab ${selectedOwner === o.value ? 'active' : ''}`}
-              onClick={() => setSelectedOwner(o.value)}
-            >
-              <span>👤 {o.label}</span>
-              <span
-                style={{
-                  marginLeft: '4px',
-                  padding: '2px 8px',
-                  borderRadius: '999px',
-                  fontSize: '0.75rem',
-                  background: selectedOwner === o.value ? 'rgba(255,255,255,0.25)' : 'var(--bg-card)',
-                  border: '1px solid var(--border-light)',
-                }}
+          {OWNERS.map((o) => {
+            const isMe = user?.id === o.value;
+            const isTabActive = selectedOwner === o.value;
+            return (
+              <button
+                key={o.value}
+                type="button"
+                className={`tab ${isTabActive ? 'active' : ''}`}
+                onClick={() => setSelectedOwner(o.value)}
               >
-                {tabCounts[o.value] || 0}
-              </span>
-            </button>
-          ))}
+                <span>👤 {o.label}</span>
+                {isMe && (
+                  <span
+                    style={{
+                      fontSize: '0.7rem',
+                      padding: '1px 6px',
+                      borderRadius: '4px',
+                      background: isTabActive ? 'rgba(255,255,255,0.35)' : 'var(--accent)',
+                      color: '#fff',
+                      fontWeight: 700,
+                    }}
+                  >
+                    আপনি
+                  </span>
+                )}
+                <span
+                  style={{
+                    marginLeft: '4px',
+                    padding: '2px 8px',
+                    borderRadius: '999px',
+                    fontSize: '0.75rem',
+                    background: isTabActive ? 'rgba(255,255,255,0.25)' : 'var(--bg-card)',
+                    border: '1px solid var(--border-light)',
+                  }}
+                >
+                  {tabCounts[o.value] || 0}
+                </span>
+              </button>
+            );
+          })}
         </div>
 
         {/* Controls Bar: Search & Priority Filter & Price Summary */}
@@ -488,10 +483,8 @@ export default function WishlistPage() {
           <div className="empty-state">
             <div className="empty-icon">🛒</div>
             <h3>
-              {selectedOwner === 'my'
-                ? 'আপনার উইশলিস্ট বর্তমানে খালি'
-                : selectedOwner !== 'all'
-                ? `${getOwnerLabel(selectedOwner)}-এর কোনো উইশলিস্ট নেই`
+              {selectedOwner !== 'all'
+                ? `${getOwnerLabel(selectedOwner)}${selectedOwner === user?.id ? ' (আপনার)' : ''}-এর কোনো উইশলিস্ট নেই`
                 : 'কোনো উইশলিস্ট নেই'}
             </h3>
             <p>পছন্দের বই সংগ্রহে যোগ করতে নতুন উইশলিস্ট এন্ট্রি তৈরি করুন</p>
