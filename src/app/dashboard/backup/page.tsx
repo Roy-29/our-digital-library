@@ -1,8 +1,10 @@
 'use client';
 
 import { useState, useRef } from 'react';
-import { dbExportBackup, dbRestoreBackup, dbExportTableCsv } from '@/app/actions';
-import { BACKUP_TABLES } from '@/lib/types';
+import { dbExportBackup, dbRestoreBackup, dbExportTableCsv, dbImportBooks } from '@/app/actions';
+import { BACKUP_TABLES, getOwnerLabel } from '@/lib/types';
+import { useAuth } from '@/contexts/AuthContext';
+import * as XLSX from 'xlsx';
 import toast from 'react-hot-toast';
 import Link from 'next/link';
 
@@ -32,13 +34,24 @@ const CSV_OPTIONS = [
 ];
 
 export default function BackupPage() {
+  const { user } = useAuth();
+
   const [exportingJSON, setExportingJSON] = useState(false);
   const [exportingCsvTable, setExportingCsvTable] = useState<string | null>(null);
+
+  // Restore states
   const [importing, setImporting] = useState(false);
   const [showRestoreWarning, setShowRestoreWarning] = useState(false);
   const [importData, setImportData] = useState<any | null>(null);
   const [importStats, setImportStats] = useState<Record<string, number> | null>(null);
-  const fileRef = useRef<HTMLInputElement>(null);
+  const jsonFileRef = useRef<HTMLInputElement>(null);
+
+  // Excel / CSV Book Import states
+  const [importingSpreadsheet, setImportingSpreadsheet] = useState(false);
+  const [spreadsheetBooks, setSpreadsheetBooks] = useState<any[] | null>(null);
+  const [spreadsheetFileName, setSpreadsheetFileName] = useState('');
+  const [showSpreadsheetModal, setShowSpreadsheetModal] = useState(false);
+  const spreadsheetFileRef = useRef<HTMLInputElement>(null);
 
   // 1. Export JSON Full Backup
   const handleExportJSON = async () => {
@@ -71,7 +84,6 @@ export default function BackupPage() {
         toast.error(`${label}-এ কোনো তথ্য নেই`);
         return;
       }
-      // UTF-8 BOM is already included in res.csv for proper Excel Bengali rendering
       const blob = new Blob([res.csv], { type: 'text/csv;charset=utf-8;' });
       const url = URL.createObjectURL(blob);
       const a = document.createElement('a');
@@ -89,7 +101,7 @@ export default function BackupPage() {
   };
 
   // 3. Read JSON File for Restore
-  const handleImportFile = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleImportJsonFile = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
 
@@ -103,7 +115,6 @@ export default function BackupPage() {
           return;
         }
 
-        // Count items found in backup
         const stats: Record<string, number> = {};
         for (const t of BACKUP_TABLES) {
           if (Array.isArray(data[t])) {
@@ -119,7 +130,6 @@ export default function BackupPage() {
       }
     };
     reader.readAsText(file);
-    // Reset input so same file can be selected again
     e.target.value = '';
   };
 
@@ -143,13 +153,61 @@ export default function BackupPage() {
     }
   };
 
+  // 5. Read Excel / CSV File for Book Import
+  const handleSelectSpreadsheetFile = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    setSpreadsheetFileName(file.name);
+    const reader = new FileReader();
+    reader.onload = (ev) => {
+      try {
+        const buffer = ev.target?.result as ArrayBuffer;
+        const workbook = XLSX.read(buffer, { type: 'array' });
+        const firstSheetName = workbook.SheetNames[0];
+        const worksheet = workbook.Sheets[firstSheetName];
+        const rows: any[] = XLSX.utils.sheet_to_json(worksheet, { defval: '' });
+
+        if (!rows || rows.length === 0) {
+          toast.error('ফাইলটিতে কোনো তথ্য পাওয়া যায়নি');
+          return;
+        }
+
+        setSpreadsheetBooks(rows);
+        setShowSpreadsheetModal(true);
+      } catch (err: any) {
+        toast.error('Excel/CSV ফাইল পার্স করতে সমস্যা হয়েছে: ' + err.message);
+      }
+    };
+    reader.readAsArrayBuffer(file);
+    e.target.value = '';
+  };
+
+  // 6. Execute Excel / CSV Book Import
+  const handleExecuteSpreadsheetImport = async () => {
+    if (!spreadsheetBooks || spreadsheetBooks.length === 0) return;
+    setImportingSpreadsheet(true);
+    setShowSpreadsheetModal(false);
+
+    try {
+      const owner = user?.id || 'swapnil';
+      const res = await dbImportBooks(spreadsheetBooks, owner);
+      toast.success(`অভিনন্দন! ${res.count} টি বই সফলভাবে লাইব্রেরিতে যুক্ত হয়েছে! 📚`, { duration: 5000 });
+      setSpreadsheetBooks(null);
+    } catch (err: any) {
+      toast.error('ইম্পোর্ট করতে সমস্যা: ' + (err.message || 'Error'));
+    } finally {
+      setImportingSpreadsheet(false);
+    }
+  };
+
   return (
     <>
       <div className="page-header">
         <div>
           <h2>💾 ব্যাকআপ ও পুনরুদ্ধার</h2>
           <p style={{ fontSize: '0.85rem', color: 'var(--text-muted)', marginTop: '4px' }}>
-            আপনার লাইব্রেরির সকল বই, লেখক, প্রকাশক ও অন্যান্য ডেটার নিরাপদ ব্যাকআপ রাখুন এবং প্রয়োজনে পুনরুদ্ধার করুন
+            আপনার লাইব্রেরির সকল বই, লেখক, প্রকাশক ও অন্যান্য ডেটার নিরাপদ ব্যাকআপ রাখুন এবং প্রয়োজনে পুনরুদ্ধার বা ইম্পোর্ট করুন
           </p>
         </div>
       </div>
@@ -160,7 +218,7 @@ export default function BackupPage() {
           <div className="card">
             <div className="card-header" style={{ padding: '20px 24px', borderBottom: '1px solid var(--border-light)' }}>
               <h3 style={{ display: 'flex', alignItems: 'center', gap: '8px', margin: 0, fontSize: '1.15rem' }}>
-                <span>📄</span>
+                <span>📥</span>
                 <span>সম্পূর্ণ ডাটাবেস ব্যাকআপ (JSON)</span>
               </h3>
             </div>
@@ -174,7 +232,7 @@ export default function BackupPage() {
                 disabled={exportingJSON}
                 style={{ justifyContent: 'center', padding: '12px' }}
               >
-                {exportingJSON ? '⏳ ব্যাকআপ তৈরি হচ্ছে...' : '📥 সম্পূর্ণ ব্যাকআপ ডাউনলোড (JSON)'}
+                {exportingJSON ? '⏳ ব্যাকআপ তৈরি হচ্ছে...' : '📥 ব্যাকআপ ফাইল ডাউনলোড (JSON)'}
               </button>
             </div>
           </div>
@@ -184,23 +242,23 @@ export default function BackupPage() {
             <div className="card-header" style={{ padding: '20px 24px', borderBottom: '1px solid var(--border-light)' }}>
               <h3 style={{ display: 'flex', alignItems: 'center', gap: '8px', margin: 0, fontSize: '1.15rem' }}>
                 <span>⚡</span>
-                <span>ডেটা পুনরুদ্ধার (Restore)</span>
+                <span>ডেটা পুনরুদ্ধার (JSON Restore)</span>
               </h3>
             </div>
             <div className="card-body" style={{ padding: '24px' }}>
               <p className="text-sm text-muted" style={{ marginBottom: '16px', lineHeight: 1.6 }}>
-                আগে ডাউনলোড করা JSON ব্যাকআপ ফাইল নির্বাচন করুন। বিদ্যমান রেকর্ডগুলো আপডেট হবে এবং নতুন রেকর্ডগুলো সিস্টেমে যুক্ত হয়ে যাবে।
+                আগে ডাউনলোড করা JSON ব্যাকআপ ফাইল থেকে সকল টেবিলের তথ্য পুনরুদ্ধার করুন। রেকর্ডগুলো স্বয়ংক্রিয়ভাবে আপডেট ও সমন্বয় হবে।
               </p>
               <input
                 type="file"
                 accept=".json,application/json"
-                ref={fileRef}
-                onChange={handleImportFile}
+                ref={jsonFileRef}
+                onChange={handleImportJsonFile}
                 style={{ display: 'none' }}
               />
               <button
                 className="btn btn-gold w-full"
-                onClick={() => fileRef.current?.click()}
+                onClick={() => jsonFileRef.current?.click()}
                 disabled={importing}
                 style={{ justifyContent: 'center', padding: '12px' }}
               >
@@ -209,17 +267,50 @@ export default function BackupPage() {
             </div>
           </div>
 
-          {/* Card 3: CSV Export per Table */}
-          <div className="card" style={{ gridColumn: '1 / -1' }}>
+          {/* Card 3: Direct Excel / CSV Book Import */}
+          <div className="card">
             <div className="card-header" style={{ padding: '20px 24px', borderBottom: '1px solid var(--border-light)' }}>
               <h3 style={{ display: 'flex', alignItems: 'center', gap: '8px', margin: 0, fontSize: '1.15rem' }}>
                 <span>📊</span>
-                <span>Excel / CSV এক্সপোর্ট (টেবিল অনুযায়ী)</span>
+                <span>Excel / CSV থেকে বই ইম্পোর্ট</span>
               </h3>
             </div>
             <div className="card-body" style={{ padding: '24px' }}>
               <p className="text-sm text-muted" style={{ marginBottom: '16px', lineHeight: 1.6 }}>
-                যেকোনো টেবিলের ডেটা সরাসরি CSV ফাইলে এক্সপোর্ট করুন। ফাইলগুলো <strong>UTF-8 BOM</strong> এনকোডেড হওয়ায় Microsoft Excel বা Google Sheets-এ বাংলা লেখা পরিষ্কারভাবে পড়া যাবে।
+                যেকোনো Excel স্প্রেডশিট (.xlsx, .xls) বা .csv ফাইল থেকে এক ক্লিকে শত শত বই লাইব্রেরিতে সরাসরি ইম্পোর্ট করুন।
+              </p>
+              <input
+                type="file"
+                accept=".xlsx,.xls,.csv"
+                ref={spreadsheetFileRef}
+                onChange={handleSelectSpreadsheetFile}
+                style={{ display: 'none' }}
+              />
+              <button
+                className="btn btn-secondary w-full"
+                onClick={() => spreadsheetFileRef.current?.click()}
+                disabled={importingSpreadsheet}
+                style={{ justifyContent: 'center', padding: '12px', border: '1.5px dashed var(--accent)' }}
+              >
+                {importingSpreadsheet ? '⏳ ইম্পোর্ট হচ্ছে...' : '📤 Excel / CSV ফাইল আপলোড করুন'}
+              </button>
+              <span className="text-xs text-muted" style={{ display: 'block', marginTop: '8px', textAlign: 'center' }}>
+                সমর্থিত কলাম: বইয়ের নাম, লেখক, প্রকাশক, দাম, আইএসবিএন ইত্যাদি
+              </span>
+            </div>
+          </div>
+
+          {/* Card 4: CSV Export per Table */}
+          <div className="card" style={{ gridColumn: '1 / -1' }}>
+            <div className="card-header" style={{ padding: '20px 24px', borderBottom: '1px solid var(--border-light)' }}>
+              <h3 style={{ display: 'flex', alignItems: 'center', gap: '8px', margin: 0, fontSize: '1.15rem' }}>
+                <span>📑</span>
+                <span>Excel / CSV এক্সপোর্ট (টেবিল অনুযায়ী ডাউনলোড)</span>
+              </h3>
+            </div>
+            <div className="card-body" style={{ padding: '24px' }}>
+              <p className="text-sm text-muted" style={{ marginBottom: '16px', lineHeight: 1.6 }}>
+                যেকোনো টেবিলের ডেটা আলাদাভাবে CSV ফাইলে ডাউনলোড করুন। ফাইলগুলো <strong>UTF-8 BOM</strong> এনকোডেড হওয়ায় Microsoft Excel বা Google Sheets-এ কোনো ভাঙাচোরা অক্ষর ছাড়াই নিখুঁত বাংলা প্রদর্শিত হবে।
               </p>
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '12px' }}>
                 {CSV_OPTIONS.map((opt) => (
@@ -250,7 +341,7 @@ export default function BackupPage() {
           <div className="card-header" style={{ padding: '16px 24px', borderBottom: '1px solid var(--border-light)' }}>
             <h3 style={{ display: 'flex', alignItems: 'center', gap: '8px', margin: 0, fontSize: '1.05rem' }}>
               <span>ℹ️</span>
-              <span>ব্যাকআপে অন্তর্ভুক্ত টেবিলসমূহ</span>
+              <span>ব্যাকআপে অন্তর্ভুক্ত সকল টেবিল</span>
             </h3>
           </div>
           <div className="card-body" style={{ padding: '20px 24px' }}>
@@ -287,7 +378,7 @@ export default function BackupPage() {
         </div>
       </div>
 
-      {/* Restore Confirmation Modal with Summary */}
+      {/* Restore JSON Confirmation Modal */}
       {showRestoreWarning && importData && (
         <div className="confirm-overlay" onClick={() => setShowRestoreWarning(false)}>
           <div
@@ -342,6 +433,63 @@ export default function BackupPage() {
               </button>
               <button className="btn btn-danger" onClick={handleRestore}>
                 ⚡ হ্যাঁ, পুনরুদ্ধার করুন
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Excel / CSV Import Confirmation Modal */}
+      {showSpreadsheetModal && spreadsheetBooks && (
+        <div className="confirm-overlay" onClick={() => setShowSpreadsheetModal(false)}>
+          <div
+            className="confirm-dialog"
+            style={{ maxWidth: '500px', width: '92%' }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="confirm-icon">📚</div>
+            <h3>Excel / CSV থেকে বই ইম্পোর্ট</h3>
+            <p style={{ fontSize: '0.88rem', color: 'var(--text-muted)', marginBottom: '12px' }}>
+              ফাইল: <strong>{spreadsheetFileName}</strong>
+            </p>
+            <div
+              style={{
+                background: 'var(--bg-secondary)',
+                padding: '12px 16px',
+                borderRadius: 'var(--radius-md)',
+                marginBottom: '16px',
+                fontSize: '0.88rem',
+                textAlign: 'left',
+                border: '1px solid var(--border-light)',
+              }}
+            >
+              <div style={{ marginBottom: '6px' }}>
+                মোট শনাক্তকৃত বই: <strong style={{ color: 'var(--accent)' }}>{spreadsheetBooks.length} টি</strong>
+              </div>
+              <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>
+                মালিকানা নির্ধারণ:{' '}
+                <strong style={{ color: 'var(--text-primary)' }}>
+                  👤 {user?.name || getOwnerLabel(user?.id)}
+                </strong>
+              </div>
+              <div style={{ fontSize: '0.78rem', color: 'var(--text-muted)', marginTop: '6px' }}>
+                নমুনা বই:{' '}
+                <em>
+                  {spreadsheetBooks
+                    .slice(0, 3)
+                    .map((b) => b.title || b['বইয়ের নাম'] || b['বইয়ের নাম'] || b.Title || '—')
+                    .join(', ')}
+                  {spreadsheetBooks.length > 3 ? '...' : ''}
+                </em>
+              </div>
+            </div>
+
+            <div className="confirm-actions">
+              <button className="btn btn-secondary" onClick={() => setShowSpreadsheetModal(false)}>
+                বাতিল
+              </button>
+              <button className="btn btn-primary" onClick={handleExecuteSpreadsheetImport}>
+                📥 বইগুলো ইম্পোর্ট করুন
               </button>
             </div>
           </div>

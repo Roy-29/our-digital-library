@@ -123,6 +123,9 @@ export default function BooksClient({
               📚 Shelf
             </button>
           </div>
+          <Link href="/dashboard/backup" className="btn btn-secondary" title="Excel / CSV থেকে বই ইম্পোর্ট করুন">
+            📥 ইম্পোর্ট
+          </Link>
           <Link href="/dashboard/books/add" className="btn btn-primary">
             ➕ বই যোগ
           </Link>
