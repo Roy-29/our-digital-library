@@ -41,20 +41,42 @@ export const createClient = () => {
           (currentQuery as any)._single = true;
           return chain;
         },
-        insert: async (data: any) => {
+        insert: (data: any) => {
           // convert snake_case to camelCase for Drizzle
           const camelData: any = {};
           for (const key in data) {
             const camel = key.replace(/_([a-z])/g, (g) => g[1].toUpperCase());
             camelData[camel] = data[key];
           }
-          try {
-            const res = await dbInsert(table, camelData);
-            return { data: res, error: null };
-          } catch (error: any) {
-            console.error('Insert Error:', error);
-            return { data: null, error };
-          }
+
+          const executeInsert = async () => {
+            try {
+              const res = await dbInsert(table, camelData);
+              if (res && typeof res === 'object') {
+                const mappedRes: any = { ...res };
+                for (const key in res) {
+                  const snake = key.replace(/[A-Z]/g, (letter) => `_${letter.toLowerCase()}`);
+                  mappedRes[snake] = (res as any)[key];
+                }
+                return { data: mappedRes, error: null };
+              }
+              return { data: res, error: null };
+            } catch (error: any) {
+              console.error('Insert Error:', error);
+              return { data: null, error };
+            }
+          };
+
+          const promise = executeInsert();
+
+          const insertChain: any = {
+            select: () => insertChain,
+            single: () => insertChain,
+            then: (onfulfilled?: any, onrejected?: any) => promise.then(onfulfilled, onrejected),
+            catch: (onrejected?: any) => promise.catch(onrejected),
+          };
+
+          return insertChain;
         },
         update: (data: any) => {
           // convert snake_case to camelCase for Drizzle
@@ -65,15 +87,36 @@ export const createClient = () => {
           }
           currentQuery.action = 'update';
           const updateChain = {
-            eq: async (col: string, val: any) => {
+            eq: (col: string, val: any) => {
               if (col !== 'id') throw new Error('Proxy only supports updating by id');
-              try {
-                const res = await dbUpdate(table, val, camelData);
-                return { data: res, error: null };
-              } catch (error: any) {
-                console.error('Update Error:', error);
-                return { data: null, error };
-              }
+              const executeUpdate = async () => {
+                try {
+                  const res = await dbUpdate(table, val, camelData);
+                  if (res && typeof res === 'object') {
+                    const mappedRes: any = { ...res };
+                    for (const key in res) {
+                      const snake = key.replace(/[A-Z]/g, (letter) => `_${letter.toLowerCase()}`);
+                      mappedRes[snake] = (res as any)[key];
+                    }
+                    return { data: mappedRes, error: null };
+                  }
+                  return { data: res, error: null };
+                } catch (error: any) {
+                  console.error('Update Error:', error);
+                  return { data: null, error };
+                }
+              };
+
+              const promise = executeUpdate();
+
+              const updateResultChain: any = {
+                select: () => updateResultChain,
+                single: () => updateResultChain,
+                then: (onfulfilled?: any, onrejected?: any) => promise.then(onfulfilled, onrejected),
+                catch: (onrejected?: any) => promise.catch(onrejected),
+              };
+
+              return updateResultChain;
             }
           };
           return updateChain;

@@ -230,7 +230,7 @@ export default function AddBookPage() {
       );
       if (existing) return existing.id;
       
-      const { data } = await supabase.from('authors').insert({ name_bn: t, name: t }).select().single();
+      const { data } = await supabase.from('authors').insert({ name_bn: t, name: t });
       if (data?.id) return data.id;
       
       const { data: all } = await supabase.from('authors').select('*');
@@ -252,7 +252,7 @@ export default function AddBookPage() {
       );
       if (existing) return existing.id;
       
-      const { data } = await supabase.from('publishers').insert({ name_bn: t, name: t }).select().single();
+      const { data } = await supabase.from('publishers').insert({ name_bn: t, name: t });
       if (data?.id) return data.id;
       
       const { data: all } = await supabase.from('publishers').select('*');
@@ -274,7 +274,7 @@ export default function AddBookPage() {
       );
       if (existing) return existing.id;
       
-      const { data } = await supabase.from('categories').insert({ name_bn: t, name: t, icon: '🏷️' }).select().single();
+      const { data } = await supabase.from('categories').insert({ name_bn: t, name: t, icon: '🏷️' });
       if (data?.id) return data.id;
 
       const { data: all } = await supabase.from('categories').select('*');
@@ -296,7 +296,7 @@ export default function AddBookPage() {
       );
       if (existing) return existing.id;
       
-      const { data } = await supabase.from('genres').insert({ name_bn: t, name: t, icon: '📚' }).select().single();
+      const { data } = await supabase.from('genres').insert({ name_bn: t, name: t, icon: '📚' });
       if (data?.id) return data.id;
 
       const { data: all } = await supabase.from('genres').select('*');
