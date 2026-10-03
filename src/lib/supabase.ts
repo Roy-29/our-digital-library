@@ -1,4 +1,4 @@
-import { dbSelect, dbInsert, dbUpdate, dbDelete } from '@/app/actions';
+import { dbSelect, dbInsert, dbUpdate, dbDelete, dbUpsert } from '@/app/actions';
 
 // This is a proxy that mimics the Supabase client API but calls our Server Actions
 // to interact with the local SQLite (Drizzle) database directly from client components.
@@ -40,6 +40,26 @@ export const createClient = () => {
         single: () => {
           (currentQuery as any)._single = true;
           return chain;
+        },
+        upsert: (data: any, _opts?: any) => {
+          const executeUpsert = async () => {
+            try {
+              const res = await dbUpsert(table, data);
+              return { data: res, error: null };
+            } catch (error: any) {
+              console.error('Upsert Error:', error);
+              return { data: null, error };
+            }
+          };
+
+          const promise = executeUpsert();
+          const upsertChain: any = {
+            select: () => upsertChain,
+            single: () => upsertChain,
+            then: (onfulfilled?: any, onrejected?: any) => promise.then(onfulfilled, onrejected),
+            catch: (onrejected?: any) => promise.catch(onrejected),
+          };
+          return upsertChain;
         },
         insert: (data: any) => {
           // convert snake_case to camelCase for Drizzle
