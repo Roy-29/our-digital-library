@@ -11,6 +11,7 @@ import toast from 'react-hot-toast';
 type ViewMode = 'list' | 'grid';
 
 const SORT_OPTIONS = [
+  { value: 'createdAt', label: 'সংগ্রহে যোগের তারিখ' },
   { value: 'title', label: 'বইয়ের নাম (ক-হ / A-Z)' },
   { value: 'authorName', label: 'লেখক' },
   { value: 'translatorName', label: 'অনুবাদক' },
@@ -22,7 +23,6 @@ const SORT_OPTIONS = [
   { value: 'pageCount', label: 'পৃষ্ঠা সংখ্যা' },
   { value: 'readingProgress', label: 'পড়ার অগ্রগতি (%)' },
   { value: 'purchaseFinalPrice', label: 'বইয়ের দাম (৳)' },
-  { value: 'createdAt', label: 'সংগ্রহে যোগের তারিখ' },
 ];
 
 export default function SortClient({
@@ -79,11 +79,11 @@ export default function SortClient({
   const [filterHasQuote, setFilterHasQuote] = useState(false);
 
   // Active filter tab
-  const [activeTab, setActiveTab] = useState<'all' | 'literature' | 'ownership' | 'reading' | 'numbers'>('literature');
+  const [activeTab, setActiveTab] = useState<'literature' | 'ownership' | 'reading' | 'numbers'>('literature');
   const [showFilters, setShowFilters] = useState(true);
   const [deleteId, setDeleteId] = useState<string | null>(null);
 
-  // Translators list extracted from books or authors who have been translators
+  // Translators list extracted from books
   const translatorsList = useMemo(() => {
     const list: { id: string; name: string }[] = [];
     const seen = new Set<string>();
@@ -286,9 +286,9 @@ export default function SortClient({
       const lbl = filterProgress === 'finished' ? 'পড়া শেষ' : filterProgress === 'reading' ? 'পড়ছি' : 'পড়া হয়নি';
       list.push({ key: 'progress', label: `অগ্রগতি: ${lbl}`, clear: () => setFilterProgress('all') });
     }
-    if (filterFavorite) list.push({ key: 'fav', label: `⭐ শুধু প্রিয় বই`, clear: () => setFilterFavorite(false) });
+    if (filterFavorite) list.push({ key: 'fav', label: `⭐ প্রিয় বই`, clear: () => setFilterFavorite(false) });
     if (filterPurchased !== 'all') {
-      list.push({ key: 'purchased', label: filterPurchased === 'yes' ? 'সংগ্রহে আছে (কেনা)' : 'সংগ্রহে নেই', clear: () => setFilterPurchased('all') });
+      list.push({ key: 'purchased', label: filterPurchased === 'yes' ? 'সংগ্রহে কেনা আছে' : 'সংগ্রহে নেই', clear: () => setFilterPurchased('all') });
     }
     if (filterCondition !== 'all') list.push({ key: 'cond', label: `অবস্থা: ${filterCondition}`, clear: () => setFilterCondition('all') });
     if (filterPurchasedBy !== 'all') list.push({ key: 'purchasedBy', label: `কে কিনেছে: ${getOwnerLabel(filterPurchasedBy)}`, clear: () => setFilterPurchasedBy('all') });
@@ -336,20 +336,20 @@ export default function SortClient({
 
   return (
     <>
-      <div className="page-header">
+      <div className="page-header" style={{ flexWrap: 'wrap', gap: '16px' }}>
         <div>
           <h2>🔀 বই বাছাইকরণ ও অনুসন্ধান</h2>
           <p className="text-sm text-muted" style={{ marginTop: '4px' }}>
-            ফর্মের যেকোনো ফিল্ড অনুযায়ী বই খুঁজুন, ফিল্টার করুন এবং সাজান
+            বইয়ের যেকোনো তথ্যের ওপর ভিত্তি করে খুঁজুন, ফিল্টার করুন এবং সাজান
           </p>
         </div>
-        <div className="flex gap-3 items-center">
+        <div className="flex gap-3 items-center" style={{ flexWrap: 'wrap' }}>
           <div className="view-toggle">
             <button className={viewMode === 'list' ? 'active' : ''} onClick={() => setViewMode('list')}>
-              📋 List
+              📋 তালিকা
             </button>
             <button className={viewMode === 'grid' ? 'active' : ''} onClick={() => setViewMode('grid')}>
-              🔲 Grid
+              🔲 গ্রিড
             </button>
           </div>
           <Link href="/dashboard/books/add" className="btn btn-primary">
@@ -360,31 +360,35 @@ export default function SortClient({
 
       <div className="page-body">
         {/* Main Controls Card */}
-        <div className="card" style={{ padding: '20px', marginBottom: '20px', border: '1px solid var(--border)' }}>
-          {/* Top Sort & Search Toolbar */}
-          <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap', alignItems: 'center', marginBottom: '16px' }}>
-            {/* Search Input */}
-            <div className="books-search-box" style={{ flex: '1 1 280px' }}>
-              <span className="search-icon">🔍</span>
+        <div className="card" style={{ padding: '20px 24px', marginBottom: '24px', border: '1px solid var(--border)' }}>
+          {/* Row 1: Search Bar */}
+          <div style={{ marginBottom: '16px' }}>
+            <div className="books-search-box" style={{ width: '100%', height: '42px' }}>
+              <span className="search-icon" style={{ fontSize: '1rem' }}>🔍</span>
               <input
                 type="text"
-                placeholder="যেকোনো তথ্য লিখুন (বই, লেখক, অনুবাদক, প্রকাশক, নোট...)"
+                placeholder="বইয়ের নাম, মূল নাম, লেখক, অনুবাদক, প্রকাশক, ক্যাটাগরি, নোট বা বিবরণ দিয়ে খুঁজুন..."
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
+                style={{ fontSize: '0.9rem' }}
               />
               {search && (
                 <button type="button" className="search-clear-btn" onClick={() => setSearch('')}>✕</button>
               )}
             </div>
+          </div>
 
-            {/* Sort Selector */}
-            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
-              <span style={{ fontSize: '0.85rem', fontWeight: 600, color: 'var(--text-muted)' }}>সাজান:</span>
+          {/* Row 2: Sort Control Bar */}
+          <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap', alignItems: 'center', justifyContent: 'space-between', paddingBottom: '16px', borderBottom: '1px solid var(--border-light)' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap' }}>
+              <span style={{ fontSize: '0.85rem', fontWeight: 600, color: 'var(--text-secondary)' }}>
+                সাজানোর মাধ্যম:
+              </span>
               <select
                 value={sortBy}
                 onChange={(e) => setSortBy(e.target.value)}
                 className="minimal-select"
-                style={{ fontWeight: 500 }}
+                style={{ fontWeight: 500, minWidth: '170px' }}
               >
                 {SORT_OPTIONS.map((opt) => (
                   <option key={opt.value} value={opt.value}>
@@ -398,40 +402,58 @@ export default function SortClient({
                 className="btn btn-secondary btn-sm"
                 onClick={() => setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc')}
                 title={sortOrder === 'asc' ? 'ছোট থেকে বড় / ঊর্ধ্বক্রম' : 'বড় থেকে ছোট / নিম্নক্রম'}
-                style={{ height: '38px', padding: '0 12px', display: 'flex', alignItems: 'center', gap: '6px' }}
+                style={{ height: '38px', padding: '0 12px', display: 'flex', alignItems: 'center', gap: '6px', fontWeight: 500 }}
               >
                 {sortOrder === 'asc' ? '🔼 ঊর্ধ্বক্রম (A-Z)' : '🔽 নিম্নক্রম (Z-A)'}
               </button>
+            </div>
 
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
               <button
                 type="button"
                 className={`btn btn-sm ${showFilters ? 'btn-primary' : 'btn-secondary'}`}
                 onClick={() => setShowFilters(!showFilters)}
-                style={{ height: '38px', padding: '0 14px' }}
+                style={{ height: '38px', padding: '0 14px', display: 'flex', alignItems: 'center', gap: '6px' }}
               >
-                ⚙️ {showFilters ? 'ফিল্টার লুকান' : 'ফিল্টার প্যানেল'} {activeFilters.length > 0 && `(${activeFilters.length})`}
+                ⚙️ {showFilters ? 'ফিল্টার লুকান' : 'ফিল্টার খুলুন'}
+                {activeFilters.length > 0 && (
+                  <span style={{ background: 'rgba(255,255,255,0.25)', padding: '1px 6px', borderRadius: '10px', fontSize: '0.75rem', fontWeight: 700 }}>
+                    {activeFilters.length}
+                  </span>
+                )}
               </button>
+
+              {activeFilters.length > 0 && (
+                <button
+                  type="button"
+                  className="btn btn-ghost btn-sm"
+                  onClick={clearAllFilters}
+                  style={{ color: 'var(--danger)', height: '38px', padding: '0 10px' }}
+                >
+                  ✕ সব রিসেট
+                </button>
+              )}
             </div>
           </div>
 
           {/* Collapsible Advanced Filters Section */}
           {showFilters && (
-            <div style={{ paddingTop: '16px', borderTop: '1px solid var(--border-light)' }}>
-              {/* Filter Tabs */}
-              <div style={{ display: 'flex', gap: '8px', marginBottom: '16px', flexWrap: 'wrap' }}>
+            <div style={{ paddingTop: '16px' }}>
+              {/* Segmented Filter Category Tabs */}
+              <div style={{ display: 'flex', gap: '8px', marginBottom: '18px', flexWrap: 'wrap' }}>
                 <button
                   type="button"
                   className={`btn btn-sm ${activeTab === 'literature' ? 'btn-primary' : 'btn-secondary'}`}
                   onClick={() => setActiveTab('literature')}
-                  style={{ borderRadius: '20px', padding: '5px 14px', fontSize: '0.82rem' }}
+                  style={{ borderRadius: '20px', padding: '6px 16px', fontSize: '0.85rem', fontWeight: 500 }}
                 >
-                  📚 সাহিত্য ও প্রকাশনা
+                  📚 সাহিত্য ও বইয়ের তথ্য
                 </button>
                 <button
                   type="button"
                   className={`btn btn-sm ${activeTab === 'ownership' ? 'btn-primary' : 'btn-secondary'}`}
                   onClick={() => setActiveTab('ownership')}
-                  style={{ borderRadius: '20px', padding: '5px 14px', fontSize: '0.82rem' }}
+                  style={{ borderRadius: '20px', padding: '6px 16px', fontSize: '0.85rem', fontWeight: 500 }}
                 >
                   👤 মালিকানা ও সংগ্রহ
                 </button>
@@ -439,7 +461,7 @@ export default function SortClient({
                   type="button"
                   className={`btn btn-sm ${activeTab === 'reading' ? 'btn-primary' : 'btn-secondary'}`}
                   onClick={() => setActiveTab('reading')}
-                  style={{ borderRadius: '20px', padding: '5px 14px', fontSize: '0.82rem' }}
+                  style={{ borderRadius: '20px', padding: '6px 16px', fontSize: '0.85rem', fontWeight: 500 }}
                 >
                   📖 পড়া ও রেটিং
                 </button>
@@ -447,7 +469,7 @@ export default function SortClient({
                   type="button"
                   className={`btn btn-sm ${activeTab === 'numbers' ? 'btn-primary' : 'btn-secondary'}`}
                   onClick={() => setActiveTab('numbers')}
-                  style={{ borderRadius: '20px', padding: '5px 14px', fontSize: '0.82rem' }}
+                  style={{ borderRadius: '20px', padding: '6px 16px', fontSize: '0.85rem', fontWeight: 500 }}
                 >
                   🔢 পৃষ্ঠা, বছর ও দাম
                 </button>
@@ -455,14 +477,16 @@ export default function SortClient({
 
               {/* Tab 1: Literature & Publishing */}
               {activeTab === 'literature' && (
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', gap: '12px' }}>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(260px, 1fr))', gap: '16px' }}>
                   <div className="form-group" style={{ margin: 0 }}>
-                    <label className="form-label" style={{ fontSize: '0.78rem' }}>✍️ লেখক</label>
+                    <label className="form-label" style={{ fontSize: '0.82rem', fontWeight: 600, color: 'var(--text-secondary)' }}>
+                      ✍️ লেখক
+                    </label>
                     <select
                       className="form-select"
                       value={filterAuthor}
                       onChange={(e) => setFilterAuthor(e.target.value)}
-                      style={{ height: '36px', fontSize: '0.82rem' }}
+                      style={{ height: '38px', fontSize: '0.85rem', width: '100%' }}
                     >
                       <option value="">সব লেখক</option>
                       {authors.map((a) => (
@@ -472,12 +496,14 @@ export default function SortClient({
                   </div>
 
                   <div className="form-group" style={{ margin: 0 }}>
-                    <label className="form-label" style={{ fontSize: '0.78rem' }}>🔄 অনুবাদক</label>
+                    <label className="form-label" style={{ fontSize: '0.82rem', fontWeight: 600, color: 'var(--text-secondary)' }}>
+                      🔄 অনুবাদক
+                    </label>
                     <select
                       className="form-select"
                       value={filterTranslator}
                       onChange={(e) => setFilterTranslator(e.target.value)}
-                      style={{ height: '36px', fontSize: '0.82rem' }}
+                      style={{ height: '38px', fontSize: '0.85rem', width: '100%' }}
                     >
                       <option value="">সব (অনূদিত/মৌলিক)</option>
                       <option value="__has_translator__">✨ শুধুমাত্র অনূদিত বই</option>
@@ -488,12 +514,14 @@ export default function SortClient({
                   </div>
 
                   <div className="form-group" style={{ margin: 0 }}>
-                    <label className="form-label" style={{ fontSize: '0.78rem' }}>🏢 প্রকাশক</label>
+                    <label className="form-label" style={{ fontSize: '0.82rem', fontWeight: 600, color: 'var(--text-secondary)' }}>
+                      🏢 প্রকাশক
+                    </label>
                     <select
                       className="form-select"
                       value={filterPublisher}
                       onChange={(e) => setFilterPublisher(e.target.value)}
-                      style={{ height: '36px', fontSize: '0.82rem' }}
+                      style={{ height: '38px', fontSize: '0.85rem', width: '100%' }}
                     >
                       <option value="">সব প্রকাশক</option>
                       {publishers.map((p) => (
@@ -503,12 +531,14 @@ export default function SortClient({
                   </div>
 
                   <div className="form-group" style={{ margin: 0 }}>
-                    <label className="form-label" style={{ fontSize: '0.78rem' }}>🏷️ ক্যাটাগরি</label>
+                    <label className="form-label" style={{ fontSize: '0.82rem', fontWeight: 600, color: 'var(--text-secondary)' }}>
+                      🏷️ ক্যাটাগরি
+                    </label>
                     <select
                       className="form-select"
                       value={filterCategory}
                       onChange={(e) => setFilterCategory(e.target.value)}
-                      style={{ height: '36px', fontSize: '0.82rem' }}
+                      style={{ height: '38px', fontSize: '0.85rem', width: '100%' }}
                     >
                       <option value="">সব ক্যাটাগরি</option>
                       {categories.map((c) => (
@@ -518,12 +548,14 @@ export default function SortClient({
                   </div>
 
                   <div className="form-group" style={{ margin: 0 }}>
-                    <label className="form-label" style={{ fontSize: '0.78rem' }}>📚 ধরন (Genre)</label>
+                    <label className="form-label" style={{ fontSize: '0.82rem', fontWeight: 600, color: 'var(--text-secondary)' }}>
+                      📚 ধরন (Genre)
+                    </label>
                     <select
                       className="form-select"
                       value={filterGenre}
                       onChange={(e) => setFilterGenre(e.target.value)}
-                      style={{ height: '36px', fontSize: '0.82rem' }}
+                      style={{ height: '38px', fontSize: '0.85rem', width: '100%' }}
                     >
                       <option value="">সব ধরন</option>
                       {genres.map((g) => (
@@ -533,12 +565,14 @@ export default function SortClient({
                   </div>
 
                   <div className="form-group" style={{ margin: 0 }}>
-                    <label className="form-label" style={{ fontSize: '0.78rem' }}>🌐 ভাষা</label>
+                    <label className="form-label" style={{ fontSize: '0.82rem', fontWeight: 600, color: 'var(--text-secondary)' }}>
+                      🌐 ভাষা
+                    </label>
                     <select
                       className="form-select"
                       value={filterLanguage}
                       onChange={(e) => setFilterLanguage(e.target.value)}
-                      style={{ height: '36px', fontSize: '0.82rem' }}
+                      style={{ height: '38px', fontSize: '0.85rem', width: '100%' }}
                     >
                       <option value="">সব ভাষা</option>
                       {languages.map((lang) => (
@@ -551,14 +585,16 @@ export default function SortClient({
 
               {/* Tab 2: Ownership & Collection */}
               {activeTab === 'ownership' && (
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', gap: '12px' }}>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(260px, 1fr))', gap: '16px' }}>
                   <div className="form-group" style={{ margin: 0 }}>
-                    <label className="form-label" style={{ fontSize: '0.78rem' }}>👤 মালিক</label>
+                    <label className="form-label" style={{ fontSize: '0.82rem', fontWeight: 600, color: 'var(--text-secondary)' }}>
+                      👤 মালিক
+                    </label>
                     <select
                       className="form-select"
                       value={filterOwner}
                       onChange={(e) => setFilterOwner(e.target.value)}
-                      style={{ height: '36px', fontSize: '0.82rem' }}
+                      style={{ height: '38px', fontSize: '0.85rem', width: '100%' }}
                     >
                       <option value="">সব মালিক</option>
                       {OWNERS.map((o) => (
@@ -568,12 +604,14 @@ export default function SortClient({
                   </div>
 
                   <div className="form-group" style={{ margin: 0 }}>
-                    <label className="form-label" style={{ fontSize: '0.78rem' }}>📊 স্ট্যাটাস</label>
+                    <label className="form-label" style={{ fontSize: '0.82rem', fontWeight: 600, color: 'var(--text-secondary)' }}>
+                      📊 বর্তমান স্ট্যাটাস
+                    </label>
                     <select
                       className="form-select"
                       value={filterStatus}
                       onChange={(e) => setFilterStatus(e.target.value)}
-                      style={{ height: '36px', fontSize: '0.82rem' }}
+                      style={{ height: '38px', fontSize: '0.85rem', width: '100%' }}
                     >
                       <option value="">সব স্ট্যাটাস</option>
                       {BOOK_STATUSES.map((s) => (
@@ -583,26 +621,30 @@ export default function SortClient({
                   </div>
 
                   <div className="form-group" style={{ margin: 0 }}>
-                    <label className="form-label" style={{ fontSize: '0.78rem' }}>📦 সংগ্রহের ধরন</label>
+                    <label className="form-label" style={{ fontSize: '0.82rem', fontWeight: 600, color: 'var(--text-secondary)' }}>
+                      📦 সংগ্রহের ধরন
+                    </label>
                     <select
                       className="form-select"
                       value={filterPurchased}
                       onChange={(e) => setFilterPurchased(e.target.value)}
-                      style={{ height: '36px', fontSize: '0.82rem' }}
+                      style={{ height: '38px', fontSize: '0.85rem', width: '100%' }}
                     >
                       <option value="all">সব বই</option>
-                      <option value="yes">ফিজিক্যাল কপি কেনা আছে</option>
+                      <option value="yes">ফিজিক্যাল কেনা কপি আছে</option>
                       <option value="no">সংগ্রহে নেই (ই-বুক / পিডিএফ / পড়তে চাই)</option>
                     </select>
                   </div>
 
                   <div className="form-group" style={{ margin: 0 }}>
-                    <label className="form-label" style={{ fontSize: '0.78rem' }}>🛒 কে কিনেছে</label>
+                    <label className="form-label" style={{ fontSize: '0.82rem', fontWeight: 600, color: 'var(--text-secondary)' }}>
+                      🛒 কে কিনেছে
+                    </label>
                     <select
                       className="form-select"
                       value={filterPurchasedBy}
                       onChange={(e) => setFilterPurchasedBy(e.target.value)}
-                      style={{ height: '36px', fontSize: '0.82rem' }}
+                      style={{ height: '38px', fontSize: '0.85rem', width: '100%' }}
                     >
                       <option value="all">সবাই</option>
                       {OWNERS.map((o) => (
@@ -612,12 +654,14 @@ export default function SortClient({
                   </div>
 
                   <div className="form-group" style={{ margin: 0 }}>
-                    <label className="form-label" style={{ fontSize: '0.78rem' }}>🏷️ বইয়ের অবস্থা</label>
+                    <label className="form-label" style={{ fontSize: '0.82rem', fontWeight: 600, color: 'var(--text-secondary)' }}>
+                      🏷️ বইয়ের অবস্থা
+                    </label>
                     <select
                       className="form-select"
                       value={filterCondition}
                       onChange={(e) => setFilterCondition(e.target.value)}
-                      style={{ height: '36px', fontSize: '0.82rem' }}
+                      style={{ height: '38px', fontSize: '0.85rem', width: '100%' }}
                     >
                       <option value="all">সব অবস্থা</option>
                       <option value="new">নতুন (New)</option>
@@ -627,12 +671,14 @@ export default function SortClient({
                   </div>
 
                   <div className="form-group" style={{ margin: 0 }}>
-                    <label className="form-label" style={{ fontSize: '0.78rem' }}>📍 কেনার উৎস</label>
+                    <label className="form-label" style={{ fontSize: '0.82rem', fontWeight: 600, color: 'var(--text-secondary)' }}>
+                      📍 কেনার উৎস
+                    </label>
                     <select
                       className="form-select"
                       value={filterPurchaseSource}
                       onChange={(e) => setFilterPurchaseSource(e.target.value)}
-                      style={{ height: '36px', fontSize: '0.82rem' }}
+                      style={{ height: '38px', fontSize: '0.85rem', width: '100%' }}
                     >
                       <option value="">সব উৎস</option>
                       {purchaseSources.map((src) => (
@@ -645,14 +691,16 @@ export default function SortClient({
 
               {/* Tab 3: Reading & Rating */}
               {activeTab === 'reading' && (
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', gap: '12px', alignItems: 'center' }}>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(260px, 1fr))', gap: '16px', alignItems: 'center' }}>
                   <div className="form-group" style={{ margin: 0 }}>
-                    <label className="form-label" style={{ fontSize: '0.78rem' }}>⭐ সর্বনিম্ন রেটিং</label>
+                    <label className="form-label" style={{ fontSize: '0.82rem', fontWeight: 600, color: 'var(--text-secondary)' }}>
+                      ⭐ সর্বনিম্ন রেটিং
+                    </label>
                     <select
                       className="form-select"
                       value={filterRating}
                       onChange={(e) => setFilterRating(Number(e.target.value))}
-                      style={{ height: '36px', fontSize: '0.82rem' }}
+                      style={{ height: '38px', fontSize: '0.85rem', width: '100%' }}
                     >
                       <option value={0}>সব রেটিং</option>
                       <option value={5}>⭐⭐⭐⭐⭐ (৫ স্টার)</option>
@@ -664,12 +712,14 @@ export default function SortClient({
                   </div>
 
                   <div className="form-group" style={{ margin: 0 }}>
-                    <label className="form-label" style={{ fontSize: '0.78rem' }}>📈 পড়ার অগ্রগতি</label>
+                    <label className="form-label" style={{ fontSize: '0.82rem', fontWeight: 600, color: 'var(--text-secondary)' }}>
+                      📈 পড়ার অগ্রগতি
+                    </label>
                     <select
                       className="form-select"
                       value={filterProgress}
                       onChange={(e) => setFilterProgress(e.target.value)}
-                      style={{ height: '36px', fontSize: '0.82rem' }}
+                      style={{ height: '38px', fontSize: '0.85rem', width: '100%' }}
                     >
                       <option value="all">সব অগ্রগতি</option>
                       <option value="finished">✅ পড়া শেষ (১০০%)</option>
@@ -678,8 +728,8 @@ export default function SortClient({
                     </select>
                   </div>
 
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', paddingTop: '10px' }}>
-                    <label className="form-checkbox" style={{ fontSize: '0.85rem' }}>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                    <label className="form-checkbox" style={{ fontSize: '0.88rem', cursor: 'pointer' }}>
                       <input
                         type="checkbox"
                         checked={filterFavorite}
@@ -688,7 +738,7 @@ export default function SortClient({
                       ⭐ প্রিয় বই (Favorites only)
                     </label>
 
-                    <label className="form-checkbox" style={{ fontSize: '0.85rem' }}>
+                    <label className="form-checkbox" style={{ fontSize: '0.88rem', cursor: 'pointer' }}>
                       <input
                         type="checkbox"
                         checked={filterHasReview}
@@ -697,7 +747,7 @@ export default function SortClient({
                       📝 নিজস্ব রিভিউ রয়েছে
                     </label>
 
-                    <label className="form-checkbox" style={{ fontSize: '0.85rem' }}>
+                    <label className="form-checkbox" style={{ fontSize: '0.88rem', cursor: 'pointer' }}>
                       <input
                         type="checkbox"
                         checked={filterHasQuote}
@@ -711,17 +761,19 @@ export default function SortClient({
 
               {/* Tab 4: Numbers & Ranges */}
               {activeTab === 'numbers' && (
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 1fr))', gap: '14px' }}>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(260px, 1fr))', gap: '16px' }}>
                   <div className="form-group" style={{ margin: 0 }}>
-                    <label className="form-label" style={{ fontSize: '0.78rem' }}>📅 প্রকাশের বছর (হতে - পর্যন্ত)</label>
-                    <div style={{ display: 'flex', gap: '6px', alignItems: 'center' }}>
+                    <label className="form-label" style={{ fontSize: '0.82rem', fontWeight: 600, color: 'var(--text-secondary)' }}>
+                      📅 প্রকাশের বছর (হতে - পর্যন্ত)
+                    </label>
+                    <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
                       <input
                         type="number"
                         placeholder="শুরু (১৯৯০)"
                         className="form-input"
                         value={filterYearMin}
                         onChange={(e) => setFilterYearMin(e.target.value)}
-                        style={{ height: '36px', fontSize: '0.82rem' }}
+                        style={{ height: '38px', fontSize: '0.85rem' }}
                       />
                       <span className="text-muted">-</span>
                       <input
@@ -730,21 +782,23 @@ export default function SortClient({
                         className="form-input"
                         value={filterYearMax}
                         onChange={(e) => setFilterYearMax(e.target.value)}
-                        style={{ height: '36px', fontSize: '0.82rem' }}
+                        style={{ height: '38px', fontSize: '0.85rem' }}
                       />
                     </div>
                   </div>
 
                   <div className="form-group" style={{ margin: 0 }}>
-                    <label className="form-label" style={{ fontSize: '0.78rem' }}>📄 পৃষ্ঠা সংখ্যা (কম - বেশি)</label>
-                    <div style={{ display: 'flex', gap: '6px', alignItems: 'center' }}>
+                    <label className="form-label" style={{ fontSize: '0.82rem', fontWeight: 600, color: 'var(--text-secondary)' }}>
+                      📄 পৃষ্ঠা সংখ্যা (কম - বেশি)
+                    </label>
+                    <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
                       <input
                         type="number"
                         placeholder="কমপক্ষে (৫০)"
                         className="form-input"
                         value={filterPageMin}
                         onChange={(e) => setFilterPageMin(e.target.value)}
-                        style={{ height: '36px', fontSize: '0.82rem' }}
+                        style={{ height: '38px', fontSize: '0.85rem' }}
                       />
                       <span className="text-muted">-</span>
                       <input
@@ -753,21 +807,23 @@ export default function SortClient({
                         className="form-input"
                         value={filterPageMax}
                         onChange={(e) => setFilterPageMax(e.target.value)}
-                        style={{ height: '36px', fontSize: '0.82rem' }}
+                        style={{ height: '38px', fontSize: '0.85rem' }}
                       />
                     </div>
                   </div>
 
                   <div className="form-group" style={{ margin: 0 }}>
-                    <label className="form-label" style={{ fontSize: '0.78rem' }}>৳ বইয়ের দাম (হতে - পর্যন্ত)</label>
-                    <div style={{ display: 'flex', gap: '6px', alignItems: 'center' }}>
+                    <label className="form-label" style={{ fontSize: '0.82rem', fontWeight: 600, color: 'var(--text-secondary)' }}>
+                      ৳ বইয়ের দাম (হতে - পর্যন্ত)
+                    </label>
+                    <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
                       <input
                         type="number"
                         placeholder="ন্যূনতম ৳"
                         className="form-input"
                         value={filterPriceMin}
                         onChange={(e) => setFilterPriceMin(e.target.value)}
-                        style={{ height: '36px', fontSize: '0.82rem' }}
+                        style={{ height: '38px', fontSize: '0.85rem' }}
                       />
                       <span className="text-muted">-</span>
                       <input
@@ -776,7 +832,7 @@ export default function SortClient({
                         className="form-input"
                         value={filterPriceMax}
                         onChange={(e) => setFilterPriceMax(e.target.value)}
-                        style={{ height: '36px', fontSize: '0.82rem' }}
+                        style={{ height: '38px', fontSize: '0.85rem' }}
                       />
                     </div>
                   </div>
@@ -787,8 +843,8 @@ export default function SortClient({
 
           {/* Active Filter Chips */}
           {activeFilters.length > 0 && (
-            <div style={{ marginTop: '16px', paddingTop: '12px', borderTop: '1px solid var(--border-light)', display: 'flex', gap: '8px', flexWrap: 'wrap', alignItems: 'center' }}>
-              <span style={{ fontSize: '0.8rem', fontWeight: 600, color: 'var(--text-muted)' }}>সক্রিয় ফিল্টার:</span>
+            <div style={{ marginTop: '16px', paddingTop: '14px', borderTop: '1px solid var(--border-light)', display: 'flex', gap: '8px', flexWrap: 'wrap', alignItems: 'center' }}>
+              <span style={{ fontSize: '0.82rem', fontWeight: 600, color: 'var(--text-secondary)' }}>সক্রিয় ফিল্টার:</span>
               {activeFilters.map((chip) => (
                 <span
                   key={chip.key}
@@ -796,9 +852,9 @@ export default function SortClient({
                     display: 'inline-flex',
                     alignItems: 'center',
                     gap: '6px',
-                    padding: '3px 10px',
+                    padding: '4px 12px',
                     borderRadius: '999px',
-                    fontSize: '0.78rem',
+                    fontSize: '0.8rem',
                     background: 'rgba(79, 161, 115, 0.12)',
                     color: 'var(--accent)',
                     border: '1px solid rgba(79, 161, 115, 0.25)',
@@ -809,7 +865,7 @@ export default function SortClient({
                   <button
                     type="button"
                     onClick={chip.clear}
-                    style={{ background: 'none', border: 'none', color: 'inherit', cursor: 'pointer', padding: '0 2px', fontSize: '0.8rem' }}
+                    style={{ background: 'none', border: 'none', color: 'inherit', cursor: 'pointer', padding: '0 2px', fontSize: '0.85rem' }}
                     title="মুছুন"
                   >
                     ✕
@@ -820,31 +876,31 @@ export default function SortClient({
                 type="button"
                 className="btn btn-ghost btn-sm"
                 onClick={clearAllFilters}
-                style={{ fontSize: '0.78rem', color: 'var(--danger)', height: '28px', padding: '0 8px' }}
+                style={{ fontSize: '0.8rem', color: 'var(--danger)', height: '28px', padding: '0 8px' }}
               >
-                ✕ সব রিসেট
+                ✕ সব ক্লিয়ার
               </button>
             </div>
           )}
         </div>
 
-        {/* Results Count & Current Sort Status */}
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '14px', flexWrap: 'wrap', gap: '8px' }}>
-          <div style={{ fontSize: '0.9rem', fontWeight: 600, color: 'var(--text-primary)' }}>
+        {/* Results Counter & Active Sort Summary */}
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px', flexWrap: 'wrap', gap: '8px' }}>
+          <div style={{ fontSize: '0.95rem', fontWeight: 600, color: 'var(--text-primary)' }}>
             🔍 ফলাফল: <span style={{ color: 'var(--accent)' }}>{sortedBooks.length}</span> টি বই পাওয়া গেছে (মোট {books.length} টির মধ্যে)
           </div>
-          <div style={{ fontSize: '0.82rem', color: 'var(--text-muted)' }}>
-            সাজানো হয়েছে: <strong>{SORT_OPTIONS.find(o => o.value === sortBy)?.label}</strong> ({sortOrder === 'asc' ? 'A-Z' : 'Z-A'})
+          <div style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>
+            সাজানো হয়েছে: <strong style={{ color: 'var(--text-secondary)' }}>{SORT_OPTIONS.find(o => o.value === sortBy)?.label}</strong> ({sortOrder === 'asc' ? 'A-Z / ছোট থেকে বড়' : 'Z-A / বড় থেকে ছোট'})
           </div>
         </div>
 
-        {/* Results Rendering */}
+        {/* Results Content */}
         {sortedBooks.length === 0 ? (
           <div className="empty-state card" style={{ padding: '60px 20px', border: '1px solid var(--border)' }}>
             <div className="empty-icon" style={{ fontSize: '3rem' }}>🔍</div>
             <h3>কোনো বই পাওয়া যায়নি</h3>
             <p className="text-muted" style={{ maxWidth: '400px', margin: '8px auto 16px' }}>
-              আপনার নির্বাচিত ফিল্টার বা অনুসন্ধানের শর্তাবলীর সাথে কোনো বই মেলেনি। ফিল্টার রিসেট করে আবার চেষ্টা করুন।
+              আপনার ফিল্টার বা অনুসন্ধানের শর্তাবলীর সাথে কোনো বই মেলেনি। ফিল্টার রিসেট করে আবার চেষ্টা করুন।
             </p>
             <button className="btn btn-primary" onClick={clearAllFilters}>
               ✕ সব ফিল্টার রিসেট করুন
@@ -854,7 +910,7 @@ export default function SortClient({
           <div className="books-grid">
             {sortedBooks.map((book) => (
               <Link key={book.id} href={`/dashboard/books/${book.id}`} style={{ textDecoration: 'none' }}>
-                <div className="book-card">
+                <div className="book-card" style={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
                   <div className="book-cover">
                     {book.coverUrl ? (
                       <img src={book.coverUrl} alt={book.title} />
@@ -866,7 +922,7 @@ export default function SortClient({
                     )}
                     <span className={`status-badge status-${book.status}`}>{book.status}</span>
                   </div>
-                  <div className="book-info">
+                  <div className="book-info" style={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
                     <h4 className="book-title">{book.title}</h4>
                     <p className="book-author">
                       ✍️ {book.authorNameBn || book.authorName || 'অজানা লেখক'}
@@ -893,12 +949,12 @@ export default function SortClient({
                         </span>
                       )}
                     </div>
-                    <div className="book-meta" style={{ marginTop: '8px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <div className="book-meta" style={{ marginTop: 'auto', paddingTop: '10px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                       <span className="owner-badge">
                         {book.owner === 'swapnil' ? '⭐ স্বপ্নীল' : book.owner === 'bipro' ? '👤 বিপ্রতীব' : '👤 সৃজন'}
                       </span>
                       {book.rating ? (
-                        <span style={{ fontSize: '0.8rem', color: '#F59E0B' }}>⭐ {book.rating}</span>
+                        <span style={{ fontSize: '0.82rem', color: '#F59E0B', fontWeight: 600 }}>⭐ {book.rating}</span>
                       ) : (
                         <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>—</span>
                       )}
@@ -913,17 +969,13 @@ export default function SortClient({
             <table className="table">
               <thead>
                 <tr>
-                  <th style={{ width: '50px' }}>কভার</th>
-                  <th>বইয়ের নাম</th>
-                  <th>লেখক ও অনুবাদক</th>
-                  <th>প্রকাশক</th>
-                  <th>ক্যাটাগরি ও ধরন</th>
-                  <th>মালিক</th>
-                  <th>স্ট্যাটাস</th>
-                  <th>রেটিং</th>
-                  <th>পৃষ্ঠা / বছর</th>
-                  <th>দাম</th>
-                  <th style={{ width: '80px', textAlign: 'center' }}>অ্যাকশন</th>
+                  <th style={{ minWidth: '260px' }}>বই ও লেখক</th>
+                  <th style={{ minWidth: '140px' }}>প্রকাশক ও বছর</th>
+                  <th style={{ minWidth: '130px' }}>ক্যাটাগরি ও ধরন</th>
+                  <th style={{ minWidth: '120px' }}>মালিক ও স্ট্যাটাস</th>
+                  <th style={{ minWidth: '90px' }}>রেটিং ও পৃষ্ঠা</th>
+                  <th style={{ minWidth: '80px' }}>দাম</th>
+                  <th style={{ minWidth: '90px', textAlign: 'center' }}>অ্যাকশন</th>
                 </tr>
               </thead>
               <tbody>
@@ -931,88 +983,107 @@ export default function SortClient({
                   const isOwner = user?.id === book.owner;
                   return (
                     <tr key={book.id}>
+                      {/* Column 1: Combined Book & Author details with Cover */}
                       <td>
-                        <div style={{ width: '38px', height: '52px', borderRadius: '4px', overflow: 'hidden', background: 'var(--bg-secondary)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                          {book.coverUrl ? (
-                            <img src={book.coverUrl} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-                          ) : (
-                            <span style={{ fontSize: '1.1rem' }}>📖</span>
-                          )}
-                        </div>
-                      </td>
-                      <td>
-                        <Link href={`/dashboard/books/${book.id}`} style={{ fontWeight: 600, color: 'var(--text-primary)', textDecoration: 'none' }}>
-                          {book.title}
-                        </Link>
-                        {book.titleOriginal && (
-                          <div className="text-xs text-muted">{book.titleOriginal}</div>
-                        )}
-                        {book.isFavorite && <span style={{ marginLeft: '4px', color: '#F59E0B' }}>⭐</span>}
-                      </td>
-                      <td>
-                        <div style={{ fontWeight: 500 }}>
-                          {book.authorNameBn || book.authorName || '—'}
-                        </div>
-                        {book.translatorName && (
-                          <div className="text-xs text-muted">
-                            🔄 {book.translatorNameBn || book.translatorName}
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                          <div style={{ width: '40px', height: '54px', borderRadius: '4px', overflow: 'hidden', background: 'var(--bg-secondary)', flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 1px 4px rgba(0,0,0,0.1)' }}>
+                            {book.coverUrl ? (
+                              <img src={book.coverUrl} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                            ) : (
+                              <span style={{ fontSize: '1.2rem' }}>📖</span>
+                            )}
                           </div>
-                        )}
+                          <div style={{ minWidth: 0 }}>
+                            <Link href={`/dashboard/books/${book.id}`} style={{ fontWeight: 600, color: 'var(--text-primary)', textDecoration: 'none', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                              <span>{book.title}</span>
+                              {book.isFavorite && <span style={{ color: '#F59E0B' }}>⭐</span>}
+                            </Link>
+                            {book.titleOriginal && (
+                              <div className="text-xs text-muted" style={{ fontStyle: 'italic' }}>{book.titleOriginal}</div>
+                            )}
+                            <div style={{ fontSize: '0.82rem', color: 'var(--text-secondary)', marginTop: '2px' }}>
+                              ✍️ {book.authorNameBn || book.authorName || '—'}
+                              {book.translatorName && (
+                                <span className="text-xs text-muted" style={{ marginLeft: '6px' }}>
+                                  (🔄 {book.translatorNameBn || book.translatorName})
+                                </span>
+                              )}
+                            </div>
+                          </div>
+                        </div>
                       </td>
+
+                      {/* Column 2: Publisher & Year */}
                       <td>
-                        <span style={{ fontSize: '0.85rem' }}>
+                        <div style={{ fontWeight: 500, fontSize: '0.85rem' }}>
                           {book.publisherNameBn || book.publisherName || '—'}
-                        </span>
+                        </div>
+                        {book.publicationYear ? (
+                          <div className="text-xs text-muted" style={{ marginTop: '2px' }}>
+                            📅 {book.publicationYear} {book.edition && `• ${book.edition}`}
+                          </div>
+                        ) : null}
                       </td>
+
+                      {/* Column 3: Category & Genre */}
                       <td>
-                        <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
                           {book.genreName && (
-                            <span style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>
+                            <span style={{ fontSize: '0.78rem', color: 'var(--text-secondary)' }}>
                               {book.genreIcon ? `${book.genreIcon} ` : '📚 '}{book.genreNameBn || book.genreName}
                             </span>
                           )}
                           {book.categoryName && (
-                            <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>
+                            <span style={{ fontSize: '0.74rem', color: 'var(--text-muted)' }}>
                               🏷️ {book.categoryNameBn || book.categoryName}
                             </span>
                           )}
                           {!book.genreName && !book.categoryName && <span className="text-muted">—</span>}
                         </div>
                       </td>
+
+                      {/* Column 4: Owner & Status */}
                       <td>
-                        <span className="owner-badge">
-                          {book.owner === 'swapnil' ? '⭐ স্বপ্নীল' : book.owner === 'bipro' ? '👤 বিপ্রতীব' : '👤 সৃজন'}
-                        </span>
-                      </td>
-                      <td>
-                        <span className={`status-badge status-${book.status}`}>
-                          {book.status}
-                        </span>
-                      </td>
-                      <td>
-                        {book.rating ? (
-                          <span style={{ fontWeight: 600, color: '#F59E0B' }}>⭐ {book.rating}</span>
-                        ) : (
-                          <span className="text-muted">—</span>
-                        )}
-                      </td>
-                      <td>
-                        <div style={{ fontSize: '0.82rem' }}>
-                          {book.pageCount ? `${book.pageCount} পৃ.` : '—'}
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                          <span className="owner-badge">
+                            {book.owner === 'swapnil' ? '⭐ স্বপ্নীল' : book.owner === 'bipro' ? '👤 বিপ্রতীব' : '👤 সৃজন'}
+                          </span>
+                          <span className={`status-badge status-${book.status}`} style={{ width: 'fit-content' }}>
+                            {book.status}
+                          </span>
                         </div>
-                        {book.publicationYear && (
-                          <div className="text-xs text-muted">{book.publicationYear}</div>
-                        )}
                       </td>
+
+                      {/* Column 5: Rating & Pages */}
+                      <td>
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
+                          {book.rating ? (
+                            <span style={{ fontWeight: 600, color: '#F59E0B', fontSize: '0.85rem' }}>
+                              ⭐ {book.rating}
+                            </span>
+                          ) : (
+                            <span className="text-muted">—</span>
+                          )}
+                          {book.pageCount ? (
+                            <span style={{ fontSize: '0.78rem', color: 'var(--text-muted)' }}>
+                              {book.pageCount} পৃ.
+                            </span>
+                          ) : null}
+                        </div>
+                      </td>
+
+                      {/* Column 6: Price */}
                       <td>
                         {book.purchaseFinalPrice ? (
-                          <span style={{ fontWeight: 600, color: 'var(--accent)', fontSize: '0.85rem' }}>
+                          <span style={{ fontWeight: 600, color: 'var(--accent)', fontSize: '0.88rem' }}>
                             ৳{book.purchaseFinalPrice}
                           </span>
                         ) : (
                           <span className="text-muted">—</span>
                         )}
                       </td>
+
+                      {/* Column 7: Actions */}
                       <td style={{ textAlign: 'center' }}>
                         <div style={{ display: 'flex', gap: '6px', justifyContent: 'center' }}>
                           <Link href={`/dashboard/books/${book.id}`} className="btn-icon" title="বিস্তারিত দেখুন">
