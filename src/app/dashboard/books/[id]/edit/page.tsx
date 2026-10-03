@@ -392,6 +392,7 @@ export default function EditBookPage() {
       reading_progress: readingProgress, rating: rating || null,
       review: review || null, notes: notes || null, favorite_quote: favoriteQuote || null,
       is_favorite: isFavorite,
+      updated_at: new Date().toISOString(),
     };
 
     const { error } = await supabase.from('books').update(bookData).eq('id', params.id);

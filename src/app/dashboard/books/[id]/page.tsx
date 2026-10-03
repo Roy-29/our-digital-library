@@ -199,9 +199,27 @@ export default function BookDetailPage() {
               </div>
             </div>
 
-            <div className="text-sm text-muted" style={{ marginTop: '16px' }}>
-              যোগ হয়েছে: {new Date(book.created_at).toLocaleDateString('bn-BD')} · 
-              সর্বশেষ পরিবর্তন: {new Date(book.updated_at).toLocaleDateString('bn-BD')}
+            <div className="text-sm text-muted" style={{ marginTop: '16px', display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
+              <span>
+                📅 যোগ হয়েছে:{' '}
+                {new Date(book.created_at).toLocaleDateString('bn-BD', {
+                  day: 'numeric',
+                  month: 'long',
+                  year: 'numeric',
+                })}
+              </span>
+              {book.updated_at &&
+                book.created_at &&
+                Math.abs(new Date(book.updated_at).getTime() - new Date(book.created_at).getTime()) > 60000 && (
+                  <span>
+                    · ✏️ সর্বশেষ পরিবর্তন:{' '}
+                    {new Date(book.updated_at).toLocaleDateString('bn-BD', {
+                      day: 'numeric',
+                      month: 'long',
+                      year: 'numeric',
+                    })}
+                  </span>
+                )}
             </div>
           </div>
         </div>
