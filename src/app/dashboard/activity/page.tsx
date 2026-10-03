@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { createClient } from '@/lib/supabase';
-import { ActivityLog } from '@/lib/types';
+import { ActivityLog, formatRelativeTimeBn } from '@/lib/types';
 
 export default function ActivityPage() {
   const [logs, setLogs] = useState<ActivityLog[]>([]);
@@ -29,17 +29,7 @@ export default function ActivityPage() {
   };
 
   const formatDate = (dateStr: string) => {
-    const d = new Date(dateStr);
-    const now = new Date();
-    const diff = now.getTime() - d.getTime();
-    const mins = Math.floor(diff / 60000);
-    if (mins < 1) return 'এইমাত্র';
-    if (mins < 60) return `${mins} মিনিট আগে`;
-    const hours = Math.floor(mins / 60);
-    if (hours < 24) return `${hours} ঘণ্টা আগে`;
-    const days = Math.floor(hours / 24);
-    if (days < 7) return `${days} দিন আগে`;
-    return d.toLocaleDateString('bn-BD');
+    return formatRelativeTimeBn(dateStr);
   };
 
   return (

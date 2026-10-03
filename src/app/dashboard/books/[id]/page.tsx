@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { createClient } from '@/lib/supabase';
-import { Book, BOOK_STATUSES, getOwnerLabel } from '@/lib/types';
+import { Book, BOOK_STATUSES, getOwnerLabel, parseDbDate, formatDateBn } from '@/lib/types';
 import { useAuth } from '@/contexts/AuthContext';
 import Link from 'next/link';
 import toast from 'react-hot-toast';
@@ -199,28 +199,27 @@ export default function BookDetailPage() {
               </div>
             </div>
 
-            <div className="text-sm text-muted" style={{ marginTop: '16px', display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
-              <span>
-                📅 যোগ হয়েছে:{' '}
-                {new Date(book.created_at).toLocaleDateString('bn-BD', {
-                  day: 'numeric',
-                  month: 'long',
-                  year: 'numeric',
-                })}
-              </span>
-              {book.updated_at &&
-                book.created_at &&
-                Math.abs(new Date(book.updated_at).getTime() - new Date(book.created_at).getTime()) > 60000 && (
+            {(() => {
+              const createdDate = parseDbDate(book.created_at);
+              const updatedDate = parseDbDate(book.updated_at);
+              const isUpdated =
+                createdDate &&
+                updatedDate &&
+                Math.abs(updatedDate.getTime() - createdDate.getTime()) > 60000;
+
+              return (
+                <div className="text-sm text-muted" style={{ marginTop: '16px', display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
                   <span>
-                    · ✏️ সর্বশেষ পরিবর্তন:{' '}
-                    {new Date(book.updated_at).toLocaleDateString('bn-BD', {
-                      day: 'numeric',
-                      month: 'long',
-                      year: 'numeric',
-                    })}
+                    📅 যোগ হয়েছে: {formatDateBn(book.created_at)}
                   </span>
-                )}
-            </div>
+                  {isUpdated && (
+                    <span>
+                      · ✏️ সর্বশেষ পরিবর্তন: {formatDateBn(book.updated_at)}
+                    </span>
+                  )}
+                </div>
+              );
+            })()}
           </div>
         </div>
       </div>

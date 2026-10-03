@@ -381,6 +381,8 @@ export default function AddBookPage() {
       favorite_quote: favoriteQuote || null,
       is_favorite: isFavorite,
       added_by: user?.id || null,
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
     };
 
     const { data, error } = await supabase.from('books').insert(bookData);

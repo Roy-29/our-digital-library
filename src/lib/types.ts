@@ -319,3 +319,47 @@ export const PRIORITIES: { value: WishlistPriority; label: string; color: string
   { value: 'medium', label: 'মাঝারি', color: '#3B82F6' },
   { value: 'low', label: 'কম', color: '#6B7280' },
 ];
+
+/**
+ * Safely parse a database timestamp string.
+ * SQLite's CURRENT_TIMESTAMP produces 'YYYY-MM-DD HH:MM:SS' in UTC without a 'Z'.
+ * If parsed directly without 'Z', browsers parse it in local time, skewing the date/time by timezone offset.
+ */
+export function parseDbDate(dateStr: string | null | undefined): Date | null {
+  if (!dateStr) return null;
+  const trimmed = dateStr.trim();
+  // If format is 'YYYY-MM-DD HH:MM:SS' or 'YYYY-MM-DD HH:MM:SS.SSS'
+  if (/^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}/.test(trimmed)) {
+    return new Date(trimmed.replace(' ', 'T') + 'Z');
+  }
+  // If format is 'YYYY-MM-DDTHH:MM:SS' without timezone
+  if (/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}$/.test(trimmed)) {
+    return new Date(trimmed + 'Z');
+  }
+  const d = new Date(trimmed);
+  return isNaN(d.getTime()) ? null : d;
+}
+
+export function formatDateBn(
+  dateStr: string | null | undefined, 
+  options: Intl.DateTimeFormatOptions = { day: 'numeric', month: 'long', year: 'numeric' }
+): string {
+  const d = parseDbDate(dateStr);
+  if (!d) return '—';
+  return d.toLocaleDateString('bn-BD', options);
+}
+
+export function formatRelativeTimeBn(dateStr: string | null | undefined): string {
+  const d = parseDbDate(dateStr);
+  if (!d) return '—';
+  const now = new Date();
+  const diff = now.getTime() - d.getTime();
+  const mins = Math.floor(diff / 60000);
+  if (mins < 1) return 'এইমাত্র';
+  if (mins < 60) return `${mins.toLocaleString('bn-BD')} মিনিট আগে`;
+  const hours = Math.floor(mins / 60);
+  if (hours < 24) return `${hours.toLocaleString('bn-BD')} ঘণ্টা আগে`;
+  const days = Math.floor(hours / 24);
+  if (days < 7) return `${days.toLocaleString('bn-BD')} দিন আগে`;
+  return formatDateBn(dateStr);
+}
