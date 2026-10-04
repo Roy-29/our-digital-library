@@ -144,11 +144,11 @@ export default function MagazinesPage() {
             <p>আপনার সংগ্রহে এখনও কোনো ম্যাগাজিন যোগ করা হয়নি। নতুন ম্যাগাজিন যোগ করতে উপরের বাটনে ক্লিক করুন।</p>
           </div>
         ) : (
-          <div className="books-grid">
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))', gap: '20px' }}>
             {filteredMagazines.map((mag: any) => (
-              <div key={mag.id} className="book-card">
-                <div className="book-card-info" style={{ padding: '16px' }}>
-                  <h3 className="book-title" style={{ fontSize: '1.2rem', marginBottom: '8px' }}>{mag.title}</h3>
+              <div key={mag.id} className="card" style={{ display: 'flex', flexDirection: 'column' }}>
+                <div style={{ padding: '20px' }}>
+                  <h3 style={{ fontSize: '1.25rem', fontWeight: 600, marginBottom: '12px', color: '#111827' }}>{mag.title}</h3>
                   
                   {mag.issue_month && (
                     <div className="book-meta">
@@ -176,12 +176,13 @@ export default function MagazinesPage() {
                       <span className={`status-badge status-${mag.status === 'আছে' ? 'owned' : 'missing'}`}>
                         {mag.status}
                       </span>
-                      <span className="badge badge-gray" style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
-                        👤 {getOwnerLabel(mag.owner)}
-                        {user?.id === mag.owner && (
-                          <span style={{ color: '#10b981', fontSize: '0.8rem' }}> (✅ আপনি)</span>
+                      <div style={{ fontSize: '0.85rem', color: '#6b7280', display: 'flex', alignItems: 'center', gap: '4px', fontWeight: 500 }}>
+                        {user?.id === mag.owner ? (
+                          <span style={{ color: '#059669' }}>✅ আপনার</span>
+                        ) : (
+                          <span>👤 {getOwnerLabel(mag.owner)}</span>
                         )}
-                      </span>
+                      </div>
                     </div>
                     
                     {user?.id === mag.owner && (
