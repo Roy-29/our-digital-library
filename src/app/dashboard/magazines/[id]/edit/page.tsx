@@ -230,7 +230,7 @@ export default function EditMagazinePage({ params }: { params: Promise<{ id: str
             </div>
           </div>
           
-          <div className="form-actions">
+          <div className="form-actions" style={{ display: 'flex', justifyContent: 'flex-end', gap: '12px', marginTop: '24px' }}>
             <Link href="/dashboard/magazines" className="btn btn-secondary">
               বাতিল
             </Link>
