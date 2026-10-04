@@ -82,7 +82,18 @@ export default function BookDetailPage() {
   return (
     <>
       <div className="page-header">
-        <h2>📖 {book.title}</h2>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+          <button 
+            onClick={() => router.back()} 
+            className="btn btn-secondary"
+            title="আগের পেজে ফিরে যান"
+            style={{ padding: '8px 16px', display: 'flex', alignItems: 'center', gap: '8px' }}
+          >
+            <span>⬅️</span>
+            <span style={{ fontSize: '0.9rem', fontWeight: 500 }}>ফিরে যান</span>
+          </button>
+          <h2 style={{ margin: 0 }}>📖 {book.title}</h2>
+        </div>
         {isOwner && (
           <div className="flex gap-2 page-header-actions">
             <Link href={`/dashboard/books/${book.id}/edit`} className="btn btn-primary">✏️ সম্পাদনা</Link>
