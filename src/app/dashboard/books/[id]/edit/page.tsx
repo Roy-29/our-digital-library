@@ -112,7 +112,7 @@ export default function EditBookPage() {
   const [categoryId, setCategoryId] = useState('');
   const [genreId, setGenreId] = useState('');
   const [owner, setOwner] = useState<BookOwner>('swapnil');
-  const [status, setStatus] = useState(book?.status || 'আছে');
+  const [status, setStatus] = useState<BookStatus>('আছে');
   const [isPurchased, setIsPurchased] = useState(true);
   const [purchaseDate, setPurchaseDate] = useState('');
   const [purchaseSource, setPurchaseSource] = useState('');
