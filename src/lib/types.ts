@@ -91,19 +91,21 @@ export type BookOwner = 'swapnil' | 'bipro' | 'srrijan';
 
 export type BookStatus = 
   | 'আছে'
-  | 'পড়ছি'
-  | 'পড়া শেষ'
-  | 'পড়া বাকি'
-  | 'আবার পড়ব'
-  | 'ধার দেওয়া'
-  | 'ফেরত পাওয়া বাকি'
-  | 'হারিয়ে গেছে'
-  | 'কিনতে হবে'
+  | 'নাই'
+  | 'উইশলিস্ট'
+  | 'ধার দেওয়া'
+  | 'হারিয়ে গেছে';
+
+export type ReadingStatus = 
+  | 'পড়বো'
+  | 'পড়ছি'
+  | 'পড়া শেষ'
+  | 'পড়া বাকি'
+  | 'আবার পড়বো'
   | 'পড়া শেষ (কাছে নেই)'
-  | 'কিনবো'
   | 'পড়ছি (কাছে নেই)'
   | 'ধার করে পড়া'
-  | 'ই-বুক / পিডিএফ';
+  | 'লাইব্রেরি থেকে পড়া';
 
 export type BookCondition = 'new' | 'used' | 'gift' | 'unknown';
 
@@ -119,6 +121,7 @@ export interface Book {
   page_count: number | null;
   description: string | null;
   cover_url: string | null;
+  copies?: number;
   
   author_id: string | null;
   translator_id: string | null;
@@ -146,6 +149,7 @@ export interface Book {
   purchased_by: string | null;
   book_condition: BookCondition;
   
+  reading_status: ReadingStatus | null;
   reading_start_date: string | null;
   reading_finish_date: string | null;
   reading_progress: number;
@@ -275,27 +279,28 @@ export interface DashboardStats {
 // Status display config
 export const BOOK_STATUSES: { value: BookStatus; label: string; icon: string; color: string }[] = [
   { value: 'আছে', label: 'আছে', icon: '🟢', color: '#22C55E' },
-  { value: 'পড়ছি', label: 'পড়ছি', icon: '📖', color: '#3B82F6' },
-  { value: 'পড়া শেষ', label: 'পড়া শেষ', icon: '✅', color: '#10B981' },
-  { value: 'পড়া বাকি', label: 'পড়া বাকি', icon: '📕', color: '#EF4444' },
-  { value: 'আবার পড়ব', label: 'আবার পড়ব', icon: '🔄', color: '#8B5CF6' },
-  { value: 'ধার দেওয়া', label: 'ধার দেওয়া', icon: '📤', color: '#F59E0B' },
-  { value: 'ফেরত পাওয়া বাকি', label: 'ফেরত পাওয়া বাকি', icon: '⏰', color: '#EF4444' },
+  { value: 'নাই', label: 'নাই', icon: '❌', color: '#EF4444' },
+  { value: 'উইশলিস্ট', label: 'উইশলিস্ট', icon: '🛒', color: '#06B6D4' },
+  { value: 'ধার দেওয়া', label: 'ধার দেওয়া', icon: '📤', color: '#F59E0B' },
   { value: 'হারিয়ে গেছে', label: 'হারিয়ে গেছে', icon: '❌', color: '#DC2626' },
-  { value: 'কিনতে হবে', label: 'উইশলিস্ট (কিনতে হবে)', icon: '🛒', color: '#06B6D4' },
+];
+
+export const READING_STATUSES: { value: ReadingStatus; label: string; icon: string; color: string }[] = [
+  { value: 'পড়বো', label: 'পড়বো / এখনো শুরু করিনি', icon: '📌', color: '#64748B' },
+  { value: 'পড়ছি', label: 'পড়ছি', icon: '📖', color: '#3B82F6' },
+  { value: 'পড়া শেষ', label: 'পড়া শেষ', icon: '✅', color: '#10B981' },
+  { value: 'পড়া বাকি', label: 'পড়া বাকি', icon: '📕', color: '#EF4444' },
+  { value: 'আবার পড়বো', label: 'আবার পড়বো', icon: '🔄', color: '#8B5CF6' },
   { value: 'পড়া শেষ (কাছে নেই)', label: 'পড়া শেষ (কাছে নেই)', icon: '📘', color: '#0284C7' },
-  { value: 'কিনবো', label: 'কিনবো', icon: '🛒', color: '#D97706' },
   { value: 'পড়ছি (কাছে নেই)', label: 'পড়ছি (কাছে নেই)', icon: '📖', color: '#2563EB' },
   { value: 'ধার করে পড়া', label: 'ধার করে পড়া', icon: '🤝', color: '#7C3AED' },
-  { value: 'ই-বুক / পিডিএফ', label: 'ই-বুক / পিডিএফ', icon: '📱', color: '#059669' },
+  { value: 'লাইব্রেরি থেকে পড়া', label: 'লাইব্রেরি থেকে পড়া', icon: '🏛️', color: '#D97706' },
 ];
 
 export const UNOWNED_STATUSES: BookStatus[] = [
-  'পড়া শেষ (কাছে নেই)',
-  'কিনবো',
-  'পড়ছি (কাছে নেই)',
-  'ধার করে পড়া',
-  'ই-বুক / পিডিএফ',
+  'নাই',
+  'উইশলিস্ট',
+  'হারিয়ে গেছে',
 ];
 
 export const OWNERS: { value: BookOwner; label: string }[] = [
@@ -383,3 +388,35 @@ export const BACKUP_TABLES = [
 ] as const;
 
 export type BackupTable = (typeof BACKUP_TABLES)[number];
+
+const enDigits = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9'];
+const bnDigits = ['০', '১', '২', '৩', '৪', '৫', '৬', '৭', '৮', '৯'];
+
+export function enToBnNumber(number: number | string | null | undefined): string {
+  if (number === null || number === undefined || number === '') return '';
+  const str = number.toString();
+  let result = '';
+  for (let i = 0; i < str.length; i++) {
+    const idx = enDigits.indexOf(str[i]);
+    if (idx !== -1) {
+      result += bnDigits[idx];
+    } else {
+      result += str[i];
+    }
+  }
+  return result;
+}
+
+export function bnToEnNumber(numberStr: string | null | undefined): string {
+  if (!numberStr) return '';
+  let result = '';
+  for (let i = 0; i < numberStr.length; i++) {
+    const idx = bnDigits.indexOf(numberStr[i]);
+    if (idx !== -1) {
+      result += enDigits[idx];
+    } else {
+      result += numberStr[i];
+    }
+  }
+  return result;
+}

@@ -8,8 +8,8 @@ const client = createClient({
 
 async function main() {
   const users = [
-    { id: 'swapnil', name: 'Swapnil', role: 'admin' },
-    { id: 'bipro', name: 'Bipro', role: 'admin' },
+    { id: 'swapnil', name: 'স্বপ্নীল', role: 'admin' },
+    { id: 'bipro', name: 'বিপ্রতীব', role: 'admin' },
     { id: 'srrijan', name: 'সৃজন', role: 'admin' },
   ];
 

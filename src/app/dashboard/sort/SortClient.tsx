@@ -3,7 +3,7 @@
 import { useState, useMemo } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { BOOK_STATUSES, OWNERS, getOwnerLabel } from '@/lib/types';
+import { BOOK_STATUSES, OWNERS, getOwnerLabel, enToBnNumber, bnToEnNumber } from '@/lib/types';
 import { useAuth } from '@/contexts/AuthContext';
 import { createClient } from '@/lib/supabase';
 import toast from 'react-hot-toast';
@@ -150,14 +150,14 @@ export default function SortClient({
       if (filterCondition !== 'all' && book.bookCondition !== filterCondition) return false;
       if (filterPurchaseSource && book.purchaseSource !== filterPurchaseSource) return false;
 
-      if (filterYearMin && (!book.publicationYear || book.publicationYear < parseInt(filterYearMin))) return false;
-      if (filterYearMax && (!book.publicationYear || book.publicationYear > parseInt(filterYearMax))) return false;
+      if (filterYearMin && (!book.publicationYear || book.publicationYear < parseInt(bnToEnNumber(filterYearMin)))) return false;
+      if (filterYearMax && (!book.publicationYear || book.publicationYear > parseInt(bnToEnNumber(filterYearMax)))) return false;
 
-      if (filterPageMin && (!book.pageCount || book.pageCount < parseInt(filterPageMin))) return false;
-      if (filterPageMax && (!book.pageCount || book.pageCount > parseInt(filterPageMax))) return false;
+      if (filterPageMin && (!book.pageCount || book.pageCount < parseInt(bnToEnNumber(filterPageMin)))) return false;
+      if (filterPageMax && (!book.pageCount || book.pageCount > parseInt(bnToEnNumber(filterPageMax)))) return false;
 
-      if (filterPriceMin && (!book.purchaseFinalPrice || book.purchaseFinalPrice < parseFloat(filterPriceMin))) return false;
-      if (filterPriceMax && (!book.purchaseFinalPrice || book.purchaseFinalPrice > parseFloat(filterPriceMax))) return false;
+      if (filterPriceMin && (!book.purchaseFinalPrice || book.purchaseFinalPrice < parseFloat(bnToEnNumber(filterPriceMin)))) return false;
+      if (filterPriceMax && (!book.purchaseFinalPrice || book.purchaseFinalPrice > parseFloat(bnToEnNumber(filterPriceMax)))) return false;
 
       if (filterHasReview && !book.review?.trim()) return false;
       if (filterHasQuote && !book.favoriteQuote?.trim()) return false;
@@ -748,19 +748,19 @@ export default function SortClient({
                     </label>
                     <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
                       <input
-                        type="number"
+                        type="text"
                         placeholder="শুরু (১৯৯০)"
                         className="filter-input"
                         value={filterYearMin}
-                        onChange={(e) => setFilterYearMin(e.target.value)}
+                        onChange={(e) => setFilterYearMin(enToBnNumber(e.target.value.replace(/[^0-9০-৯]/g, '')))}
                       />
                       <span className="text-muted" style={{ fontWeight: 'bold' }}>—</span>
                       <input
-                        type="number"
+                        type="text"
                         placeholder="শেষ (২০২৬)"
                         className="filter-input"
                         value={filterYearMax}
-                        onChange={(e) => setFilterYearMax(e.target.value)}
+                        onChange={(e) => setFilterYearMax(enToBnNumber(e.target.value.replace(/[^0-9০-৯]/g, '')))}
                       />
                     </div>
                   </div>
@@ -771,19 +771,19 @@ export default function SortClient({
                     </label>
                     <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
                       <input
-                        type="number"
+                        type="text"
                         placeholder="কমপক্ষে (৫০)"
                         className="filter-input"
                         value={filterPageMin}
-                        onChange={(e) => setFilterPageMin(e.target.value)}
+                        onChange={(e) => setFilterPageMin(enToBnNumber(e.target.value.replace(/[^0-9০-৯]/g, '')))}
                       />
                       <span className="text-muted" style={{ fontWeight: 'bold' }}>—</span>
                       <input
-                        type="number"
+                        type="text"
                         placeholder="সর্বোচ্চ (১০০০)"
                         className="filter-input"
                         value={filterPageMax}
-                        onChange={(e) => setFilterPageMax(e.target.value)}
+                        onChange={(e) => setFilterPageMax(enToBnNumber(e.target.value.replace(/[^0-9০-৯]/g, '')))}
                       />
                     </div>
                   </div>
@@ -794,19 +794,19 @@ export default function SortClient({
                     </label>
                     <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
                       <input
-                        type="number"
+                        type="text"
                         placeholder="ন্যূনতম ৳"
                         className="filter-input"
                         value={filterPriceMin}
-                        onChange={(e) => setFilterPriceMin(e.target.value)}
+                        onChange={(e) => setFilterPriceMin(enToBnNumber(e.target.value.replace(/[^0-9০-৯.]/g, '')))}
                       />
                       <span className="text-muted" style={{ fontWeight: 'bold' }}>—</span>
                       <input
-                        type="number"
+                        type="text"
                         placeholder="সর্বোচ্চ ৳"
                         className="filter-input"
                         value={filterPriceMax}
-                        onChange={(e) => setFilterPriceMax(e.target.value)}
+                        onChange={(e) => setFilterPriceMax(enToBnNumber(e.target.value.replace(/[^0-9০-৯.]/g, '')))}
                       />
                     </div>
                   </div>

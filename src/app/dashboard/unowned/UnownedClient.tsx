@@ -188,7 +188,8 @@ export default function UnownedClient({
     const payload = {
       title: newTitle.trim(),
       title_original: newTitleOriginal.trim() || null,
-      status: newStatus,
+      status: 'নাই',
+      reading_status: newStatus,
       owner: (user?.id as BookOwner) || 'swapnil',
       is_purchased: false,
       purchase_source: newSource.trim() || null,
@@ -220,6 +221,7 @@ export default function UnownedClient({
           title: payload.title,
           titleOriginal: payload.title_original,
           status: payload.status,
+          readingStatus: payload.reading_status,
           owner: payload.owner,
           isPurchased: false,
           purchaseSource: payload.purchase_source,
@@ -259,7 +261,7 @@ export default function UnownedClient({
   // Filters
   const filteredBooks = books.filter((book) => {
     if (filterOwner && book.owner !== filterOwner) return false;
-    if (filterStatus && book.status !== filterStatus) return false;
+    if (filterStatus && book.status !== filterStatus && book.readingStatus !== filterStatus) return false;
 
     if (!search) return true;
     const q = search.toLowerCase();
@@ -332,7 +334,7 @@ export default function UnownedClient({
         >
           {UNOWNED_CATEGORIES.map((cat) => {
             const count = cat.value
-              ? books.filter((b) => b.status === cat.value).length
+              ? books.filter((b) => b.status === cat.value || b.readingStatus === cat.value).length
               : books.length;
             const active = filterStatus === cat.value;
             return (

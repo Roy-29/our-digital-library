@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { createClient } from '@/lib/supabase';
-import { Book, BOOK_STATUSES, getOwnerLabel, parseDbDate, formatDateBn } from '@/lib/types';
+import { Book, BOOK_STATUSES, READING_STATUSES, getOwnerLabel, parseDbDate, formatDateBn } from '@/lib/types';
 import { useAuth } from '@/contexts/AuthContext';
 import Link from 'next/link';
 import toast from 'react-hot-toast';
@@ -100,7 +100,10 @@ export default function BookDetailPage() {
             <span>⬅️</span>
             <span style={{ fontSize: '0.9rem', fontWeight: 500 }}>ফিরে যান</span>
           </button>
-          <h2 style={{ margin: 0 }}>📖 {book.title}</h2>
+          <h2 style={{ margin: 0, display: 'flex', alignItems: 'center', gap: '8px' }}>
+            📖 {book.title}
+            {(book.copies || 1) > 1 && <span className="badge" style={{ fontSize: '0.8rem', padding: '4px 8px' }}>{(book.copies || 1)} কপি</span>}
+          </h2>
         </div>
         {isOwner && (
           <div className="flex gap-2 page-header-actions">
@@ -159,6 +162,7 @@ export default function BookDetailPage() {
                 <DetailRow label="ISBN" value={book.isbn} />
                 <DetailRow label="ভাষা" value={book.language} />
                 <DetailRow label="সংস্করণ" value={book.edition} />
+                <DetailRow label="কপি" value={book.copies && book.copies > 1 ? `${book.copies} কপি` : null} />
                 <DetailRow label="প্রকাশের বছর" value={book.publication_year?.toString()} />
                 <DetailRow label="পৃষ্ঠা" value={book.page_count?.toString()} />
                 <DetailRow label="ক্যাটাগরি" value={book.category ? `${book.category.icon} ${book.category.name_bn || book.category.name}` : null} />
@@ -174,7 +178,7 @@ export default function BookDetailPage() {
               </div>
             </div>
 
-            {(book.is_purchased || book.purchase_source || book.purchase_date || book.book_condition) && (
+            {(book.is_purchased || book.purchase_source || book.purchase_date || book.purchase_price || book.purchase_discount || book.purchase_final_price || (book.book_condition && book.book_condition !== 'unknown')) && (
               <div className="card" style={{ marginBottom: '16px' }}>
                 <div className="card-header"><h3>💰 সংগ্রহ ও উৎস</h3></div>
                 <div className="card-body">
@@ -184,14 +188,28 @@ export default function BookDetailPage() {
                   <DetailRow label="দাম" value={book.purchase_price ? `৳${book.purchase_price}` : null} />
                   <DetailRow label="ছাড়" value={book.purchase_discount ? `৳${book.purchase_discount}` : null} />
                   <DetailRow label="চূড়ান্ত দাম" value={book.purchase_final_price ? `৳${book.purchase_final_price}` : null} />
-                  <DetailRow label="অবস্থা" value={book.book_condition === 'new' ? 'নতুন' : book.book_condition === 'used' ? 'পুরনো' : book.book_condition === 'gift' ? 'উপহার' : book.book_condition === 'unknown' ? null : book.book_condition} />
+                  {book.book_condition !== 'unknown' && (
+                    <DetailRow label="অবস্থা" value={book.book_condition === 'new' ? 'নতুন' : book.book_condition === 'used' ? 'পুরনো' : book.book_condition === 'gift' ? 'উপহার' : book.book_condition} />
+                  )}
                 </div>
               </div>
             )}
 
-            <div className="card" style={{ marginBottom: '16px' }}>
-              <div className="card-header"><h3>📖 পড়ার তথ্য</h3></div>
-              <div className="card-body">
+            {(book.reading_status || book.reading_start_date || book.reading_finish_date || book.reading_progress > 0 || book.rating || book.review || book.notes || book.favorite_quote) && (
+              <div className="card" style={{ marginBottom: '16px' }}>
+                <div className="card-header"><h3>📖 পড়ার তথ্য</h3></div>
+                <div className="card-body">
+                {book.reading_status && (
+                  <DetailRow 
+                    label="পড়ার অবস্থা" 
+                    value={
+                      (() => {
+                        const statusObj = READING_STATUSES.find(s => s.value === book.reading_status);
+                        return statusObj ? `${statusObj.icon} ${statusObj.label}` : book.reading_status;
+                      })()
+                    } 
+                  />
+                )}
                 <DetailRow label="পড়া শুরু" value={book.reading_start_date} />
                 <DetailRow label="পড়া শেষ" value={book.reading_finish_date} />
                 {book.reading_progress > 0 && (
@@ -214,6 +232,7 @@ export default function BookDetailPage() {
                 )}
               </div>
             </div>
+            )}
 
             {(() => {
               const createdDate = parseDbDate(book.created_at);

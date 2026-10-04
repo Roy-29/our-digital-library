@@ -3,7 +3,7 @@
 import { useEffect, useState, useMemo } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { createClient } from '@/lib/supabase';
-import { Author, Publisher, Category, Genre, Room, Shelf, Rack, BOOK_STATUSES, OWNERS, BookStatus, BookOwner, BookCondition, Book, getOwnerLabel } from '@/lib/types';
+import { Author, Publisher, Category, Genre, Room, Shelf, Rack, BOOK_STATUSES, READING_STATUSES, OWNERS, BookStatus, ReadingStatus, BookOwner, BookCondition, Book, getOwnerLabel, enToBnNumber, bnToEnNumber } from '@/lib/types';
 import { useAuth } from '@/contexts/AuthContext';
 import toast from 'react-hot-toast';
 
@@ -45,6 +45,19 @@ export default function EditBookPage() {
       .forEach((t) => {
         const bn = t.name_bn?.trim();
         const en = t.name?.trim();
+        if (bn) set.add(bn);
+        if (en) set.add(en);
+      });
+    return Array.from(set).sort((a, b) => a.localeCompare(b, 'bn'));
+  }, [allPersons]);
+
+  const uniqueIllustrators = useMemo(() => {
+    const set = new Set<string>();
+    allPersons
+      .filter((i: any) => i.is_illustrator === 1 || i.is_illustrator === true || i.isIllustrator === 1 || i.isIllustrator === true)
+      .forEach((i) => {
+        const bn = i.name_bn?.trim();
+        const en = i.name?.trim();
         if (bn) set.add(bn);
         if (en) set.add(en);
       });
@@ -112,6 +125,7 @@ export default function EditBookPage() {
   const [publisherId, setPublisherId] = useState('');
   const [categoryId, setCategoryId] = useState('');
   const [genreId, setGenreId] = useState('');
+  const [copies, setCopies] = useState(1);
   const [owner, setOwner] = useState<BookOwner>('swapnil');
   const [status, setStatus] = useState<BookStatus>('আছে');
   const [isPurchased, setIsPurchased] = useState(true);
@@ -129,6 +143,7 @@ export default function EditBookPage() {
   const [notes, setNotes] = useState('');
   const [favoriteQuote, setFavoriteQuote] = useState('');
   const [isFavorite, setIsFavorite] = useState(false);
+  const [readingStatus, setReadingStatus] = useState<ReadingStatus | ''>('');
 
   useEffect(() => {
     fetchData();
@@ -169,8 +184,8 @@ export default function EditBookPage() {
     setIsbn(b.isbn || '');
     setLanguage(b.language || 'বাংলা');
     setEdition(b.edition || '');
-    setPubYear(b.publication_year?.toString() || '');
-    setPageCount(b.page_count?.toString() || '');
+    setPubYear(b.publication_year ? enToBnNumber(b.publication_year) : '');
+    setPageCount(b.page_count ? enToBnNumber(b.page_count) : '');
     setDescription(b.description || '');
     setCoverUrl(b.cover_url || '');
     setAuthorId(aRes.data?.find((a: any) => a.id === b.author_id)?.name_bn || aRes.data?.find((a: any) => a.id === b.author_id)?.name || '');
@@ -179,15 +194,17 @@ export default function EditBookPage() {
     setPublisherId(pRes.data?.find((p: any) => p.id === b.publisher_id)?.name_bn || pRes.data?.find((p: any) => p.id === b.publisher_id)?.name || '');
     setCategoryId(cRes.data?.find((c: any) => c.id === b.category_id)?.name_bn || cRes.data?.find((c: any) => c.id === b.category_id)?.name || '');
     setGenreId(gRes.data?.find((g: any) => g.id === b.genre_id)?.name_bn || gRes.data?.find((g: any) => g.id === b.genre_id)?.name || '');
+    setCopies(b.copies || 1);
     setOwner(b.owner);
     setStatus(b.status);
     setIsPurchased(b.is_purchased);
     setPurchaseDate(b.purchase_date || '');
     setPurchaseSource(b.purchase_source || '');
-    setPurchasePrice(b.purchase_price?.toString() || '');
-    setPurchaseDiscount(b.purchase_discount?.toString() || '');
-    setPurchaseFinalPrice(b.purchase_final_price?.toString() || '');
+    setPurchasePrice(b.purchase_price ? enToBnNumber(b.purchase_price) : '');
+    setPurchaseDiscount(b.purchase_discount ? enToBnNumber(b.purchase_discount) : '');
+    setPurchaseFinalPrice(b.purchase_final_price ? enToBnNumber(b.purchase_final_price) : '');
     setBookCondition(b.book_condition);
+    setReadingStatus(b.reading_status || '');
     setReadingStartDate(b.reading_start_date || '');
     setReadingFinishDate(b.reading_finish_date || '');
     setReadingProgress(b.reading_progress);
@@ -282,10 +299,13 @@ export default function EditBookPage() {
              (p.name && p.name.trim().toLowerCase() === lower)
       );
       if (existing) {
+        if ((existing as any).is_illustrator !== 1 && (existing as any).isIllustrator !== 1) {
+          await supabase.from('authors').update({ is_illustrator: 1 }).eq('id', existing.id);
+        }
         return existing.id;
       }
       
-      const { data } = await supabase.from('authors').insert({ name_bn: t, name: t, is_author: 1, is_translator: 0 });
+      const { data } = await supabase.from('authors').insert({ name_bn: t, name: t, is_author: 0, is_translator: 0, is_illustrator: 1 });
       if (data?.id) return data.id;
 
       const { data: all } = await supabase.from('authors').select('*');
@@ -374,21 +394,23 @@ export default function EditBookPage() {
     const bookData = {
       title: title.trim(), title_original: titleOriginal || null, subtitle: subtitle || null,
       isbn: isbn || null, language, edition: edition || null,
-      publication_year: pubYear ? parseInt(pubYear) : null, page_count: pageCount ? parseInt(pageCount) : null,
+      publication_year: pubYear ? parseInt(bnToEnNumber(pubYear)) : null, page_count: pageCount ? parseInt(bnToEnNumber(pageCount)) : null,
       description: description || null, cover_url: uploadedCoverUrl,
       author_id: finalAuthorId || null, translator_id: finalTranslatorId || null,
       illustrator_id: finalIllustratorId || null,
       publisher_id: finalPublisherId || null, category_id: finalCategoryId || null, genre_id: finalGenreId || null,
       owner, status,
       is_purchased: isPurchased, purchase_date: purchaseDate || null, purchase_source: purchaseSource || null,
-      purchase_price: purchasePrice ? parseFloat(purchasePrice) : null,
-      purchase_discount: purchaseDiscount ? parseFloat(purchaseDiscount) : null,
-      purchase_final_price: purchaseFinalPrice ? parseFloat(purchaseFinalPrice) : null,
+      purchase_price: purchasePrice ? parseFloat(bnToEnNumber(purchasePrice)) : null,
+      purchase_discount: purchaseDiscount ? parseFloat(bnToEnNumber(purchaseDiscount)) : null,
+      purchase_final_price: purchaseFinalPrice ? parseFloat(bnToEnNumber(purchaseFinalPrice)) : null,
       purchased_by: owner || user?.id || null, book_condition: bookCondition,
+      reading_status: readingStatus || null,
       reading_start_date: readingStartDate || null, reading_finish_date: readingFinishDate || null,
       reading_progress: readingProgress, rating: rating || null,
       review: review || null, notes: notes || null, favorite_quote: favoriteQuote || null,
       is_favorite: isFavorite,
+      copies,
       updated_at: new Date().toISOString(),
     };
 
@@ -418,6 +440,13 @@ export default function EditBookPage() {
     { key: 'cover', label: '🖼️ কভার' },
   ];
 
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLFormElement>) => {
+    const target = e.target as HTMLElement;
+    if (e.key === 'Enter' && target.tagName !== 'TEXTAREA' && target.tagName !== 'BUTTON') {
+      e.preventDefault();
+    }
+  };
+
   return (
     <>
       <div className="page-header">
@@ -425,7 +454,7 @@ export default function EditBookPage() {
         <button className="btn btn-secondary" onClick={() => router.back()}>← ফিরে যান</button>
       </div>
       <div className="page-body">
-        <form onSubmit={handleSubmit}>
+        <form onSubmit={handleSubmit} onKeyDown={handleKeyDown}>
           <div className="form-sections" style={{ display: 'flex', flexDirection: 'column', gap: '32px' }}>
 <div className="card">
               <div className="card-header" style={{ padding: '20px 32px', borderBottom: '1px solid var(--border-light)' }}>
@@ -437,6 +466,16 @@ export default function EditBookPage() {
                   <input className="form-input" value={title} onChange={e => setTitle(e.target.value)} placeholder="বইয়ের নাম লিখুন" required />
                 </div>
                 <div className="form-row">
+                  <div className="form-group">
+                    <label className="form-label">কপির সংখ্যা</label>
+                    <select className="form-select" value={copies} onChange={e => setCopies(parseInt(e.target.value))}>
+                      <option value={1}>১ কপি</option>
+                      <option value={2}>২ কপি</option>
+                      <option value={3}>৩ কপি</option>
+                      <option value={4}>৪ কপি</option>
+                      <option value={5}>৫ কপি</option>
+                    </select>
+                  </div>
                   <div className="form-group">
                     <label className="form-label">Original Title</label>
                     <input className="form-input" value={titleOriginal} onChange={e => setTitleOriginal(e.target.value)} placeholder="English title" />
@@ -489,7 +528,7 @@ export default function EditBookPage() {
                       placeholder="আঁকিয়ের নাম লিখুন বা নির্বাচন করুন" 
                     />
                     <datalist id="illustrator-options">
-                      {uniqueAuthors.map(name => (
+                      {uniqueIllustrators.map(name => (
                         <option key={`ill-${name}`} value={name} />
                       ))}
                     </datalist>
@@ -559,11 +598,11 @@ export default function EditBookPage() {
                   </div>
                   <div className="form-group">
                     <label className="form-label">প্রকাশের বছর</label>
-                    <input className="form-input" type="number" value={pubYear} onChange={e => setPubYear(e.target.value)} placeholder="2024" />
+                    <input className="form-input" type="text" value={pubYear} onChange={e => setPubYear(enToBnNumber(e.target.value.replace(/[^0-9০-৯]/g, '')))} placeholder="২০২৪" />
                   </div>
                   <div className="form-group">
                     <label className="form-label">পৃষ্ঠা সংখ্যা</label>
-                    <input className="form-input" type="number" value={pageCount} onChange={e => setPageCount(e.target.value)} />
+                    <input className="form-input" type="text" value={pageCount} onChange={e => setPageCount(enToBnNumber(e.target.value.replace(/[^0-9০-৯]/g, '')))} />
                   </div>
                 </div>
                 <div className="form-group">
@@ -667,15 +706,15 @@ export default function EditBookPage() {
                     <div className="form-row">
                       <div className="form-group">
                         <label className="form-label">দাম (৳)</label>
-                        <input className="form-input" type="number" step="0.01" value={purchasePrice} onChange={e => setPurchasePrice(e.target.value)} />
+                        <input className="form-input" type="text" value={purchasePrice} onChange={e => setPurchasePrice(enToBnNumber(e.target.value.replace(/[^0-9০-৯.]/g, '')))} />
                       </div>
                       <div className="form-group">
                         <label className="form-label">ছাড় (৳)</label>
-                        <input className="form-input" type="number" step="0.01" value={purchaseDiscount} onChange={e => setPurchaseDiscount(e.target.value)} />
+                        <input className="form-input" type="text" value={purchaseDiscount} onChange={e => setPurchaseDiscount(enToBnNumber(e.target.value.replace(/[^0-9০-৯.]/g, '')))} />
                       </div>
                       <div className="form-group">
                         <label className="form-label">চূড়ান্ত দাম (৳)</label>
-                        <input className="form-input" type="number" step="0.01" value={purchaseFinalPrice} onChange={e => setPurchaseFinalPrice(e.target.value)} />
+                        <input className="form-input" type="text" value={purchaseFinalPrice} onChange={e => setPurchaseFinalPrice(enToBnNumber(e.target.value.replace(/[^0-9০-৯.]/g, '')))} />
                       </div>
                     </div>
                   </>
@@ -688,6 +727,27 @@ export default function EditBookPage() {
                 <h3 style={{ margin: 0, fontSize: '1.2rem', color: 'var(--text-primary)' }}>📖 পড়া</h3>
               </div>
               <div className="card-body">
+                <div className="form-group">
+                  <label className="form-label">পড়ার অবস্থা (Reading Status)</label>
+                  <select 
+                    className="form-select" 
+                    value={readingStatus} 
+                    onChange={e => {
+                      const val = e.target.value as ReadingStatus | '';
+                      setReadingStatus(val);
+                      if (val === 'পড়বো' || val === 'পড়া বাকি' || val === 'আবার পড়বো') {
+                        setReadingProgress(0);
+                      } else if (val === 'পড়া শেষ' || val === 'পড়া শেষ (কাছে নেই)') {
+                        setReadingProgress(100);
+                      } else if (val === 'পড়ছি' || val === 'পড়ছি (কাছে নেই)' || val === 'ধার করে পড়া' || val === 'লাইব্রেরি থেকে পড়া') {
+                        if (readingProgress === 0) setReadingProgress(10);
+                      }
+                    }}
+                  >
+                    <option value="">নির্বাচন করুন...</option>
+                    {READING_STATUSES.map(rs => <option key={rs.value} value={rs.value}>{rs.icon} {rs.label}</option>)}
+                  </select>
+                </div>
                 <div className="form-row">
                   <div className="form-group">
                     <label className="form-label">পড়া শুরু</label>
@@ -699,7 +759,7 @@ export default function EditBookPage() {
                   </div>
                 </div>
                 <div className="form-group">
-                  <label className="form-label">পড়ার অগ্রগতি ({readingProgress}%)</label>
+                  <label className="form-label">পড়ার অগ্রগতি ({enToBnNumber(readingProgress)}%)</label>
                   <input type="range" min="0" max="100" value={readingProgress} onChange={e => setReadingProgress(parseInt(e.target.value))} style={{ width: '100%' }} />
                   <div className="progress-bar mt-2">
                     <div className="progress-bar-fill" style={{ width: `${readingProgress}%` }} />

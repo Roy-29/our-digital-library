@@ -2,7 +2,7 @@
 
 import { useEffect, useState, useMemo } from 'react';
 import { createClient } from '@/lib/supabase';
-import { WishlistItem, PRIORITIES, getOwnerLabel, BookOwner, OWNERS } from '@/lib/types';
+import { WishlistItem, PRIORITIES, getOwnerLabel, BookOwner, OWNERS, enToBnNumber, bnToEnNumber } from '@/lib/types';
 import { useAuth } from '@/contexts/AuthContext';
 import toast from 'react-hot-toast';
 import { useRouter } from 'next/navigation';
@@ -112,7 +112,7 @@ export default function WishlistPage() {
     setAuthorName(item.author_name || '');
     setPublisherName(item.publisher_name || '');
     setIsbn(item.isbn || '');
-    setEstimatedPrice(item.estimated_price?.toString() || '');
+    setEstimatedPrice(item.estimated_price ? enToBnNumber(item.estimated_price) : '');
     setPriority(item.priority || 'medium');
     setSource(item.source || '');
     setNotes(item.notes || '');
@@ -141,7 +141,7 @@ export default function WishlistPage() {
         author_name: authorName.trim() || null,
         publisher_name: publisherName.trim() || null,
         isbn: isbn.trim() || null,
-        estimated_price: estimatedPrice ? parseFloat(estimatedPrice) : null,
+        estimated_price: estimatedPrice ? parseFloat(bnToEnNumber(estimatedPrice)) : null,
         priority,
         source: source.trim() || null,
         notes: notes.trim() || null,
@@ -165,7 +165,7 @@ export default function WishlistPage() {
         author_name: authorName.trim() || null,
         publisher_name: publisherName.trim() || null,
         isbn: isbn.trim() || null,
-        estimated_price: estimatedPrice ? parseFloat(estimatedPrice) : null,
+        estimated_price: estimatedPrice ? parseFloat(bnToEnNumber(estimatedPrice)) : null,
         priority,
         source: source.trim() || null,
         notes: notes.trim() || null,
@@ -901,12 +901,10 @@ export default function WishlistPage() {
                     <label className="form-label">আনুমানিক দাম (৳)</label>
                     <input
                       className="form-input"
-                      type="number"
-                      min="0"
-                      step="any"
+                      type="text"
                       placeholder="যেমন: ৩৫০"
                       value={estimatedPrice}
-                      onChange={(e) => setEstimatedPrice(e.target.value)}
+                      onChange={(e) => setEstimatedPrice(enToBnNumber(e.target.value.replace(/[^0-9০-৯.]/g, '')))}
                     />
                   </div>
 

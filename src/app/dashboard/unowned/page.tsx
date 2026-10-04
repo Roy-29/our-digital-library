@@ -7,11 +7,8 @@ export const dynamic = 'force-dynamic';
 
 export default async function UnownedBooksPage() {
   const unownedStatuses = [
-    'পড়া শেষ (কাছে নেই)',
-    'কিনবো',
-    'পড়ছি (কাছে নেই)',
-    'ধার করে পড়া',
-    'ই-বুক / পিডিএফ',
+    'নাই',
+    'হারিয়ে গেছে'
   ];
 
   const unownedBooks = await db.select({
@@ -21,6 +18,7 @@ export default async function UnownedBooksPage() {
     isbn: books.isbn,
     coverUrl: books.coverUrl,
     status: books.status,
+    readingStatus: books.readingStatus,
     owner: books.owner,
     rating: books.rating,
     review: books.review,
@@ -46,7 +44,6 @@ export default async function UnownedBooksPage() {
   .where(
     or(
       inArray(books.status, unownedStatuses),
-      eq(books.status, 'কিনতে হবে'),
       eq(books.isPurchased, false)
     )
   )

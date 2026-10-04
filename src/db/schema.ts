@@ -23,6 +23,7 @@ export const authors = sqliteTable('authors', {
   imageUrl: text('image_url'),
   isAuthor: integer('is_author', { mode: 'boolean' }).notNull().default(true),
   isTranslator: integer('is_translator', { mode: 'boolean' }).notNull().default(false),
+  isIllustrator: integer('is_illustrator', { mode: 'boolean' }).notNull().default(false),
   createdAt: text('created_at').default(sql`CURRENT_TIMESTAMP`),
   updatedAt: text('updated_at').default(sql`CURRENT_TIMESTAMP`),
 });
@@ -105,6 +106,7 @@ export const books = sqliteTable('books', {
   pageCount: integer('page_count'),
   description: text('description'),
   coverUrl: text('cover_url'),
+  copies: integer('copies').default(1),
   
   authorId: text('author_id').references(() => authors.id, { onDelete: 'set null' }),
   translatorId: text('translator_id').references(() => authors.id, { onDelete: 'set null' }),
@@ -132,6 +134,7 @@ export const books = sqliteTable('books', {
   purchasedBy: text('purchased_by'),
   bookCondition: text('book_condition').default('new'),
   
+  readingStatus: text('reading_status'),
   readingStartDate: text('reading_start_date'),
   readingFinishDate: text('reading_finish_date'),
   readingProgress: integer('reading_progress').default(0),

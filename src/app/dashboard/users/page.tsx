@@ -3,6 +3,8 @@
 import { useEffect, useState } from 'react';
 import { createClient } from '@/lib/supabase';
 import Link from 'next/link';
+import { useAuth } from '@/contexts/AuthContext';
+import { enToBnNumber } from '@/lib/types';
 
 interface UserProfile {
   id: string;
@@ -12,7 +14,9 @@ interface UserProfile {
 }
 
 export default function UsersPage() {
+  const { user: currentUser } = useAuth();
   const [users, setUsers] = useState<UserProfile[]>([]);
+  const [bookCounts, setBookCounts] = useState<Record<string, number>>({});
   const [loading, setLoading] = useState(true);
   const supabase = createClient();
 
@@ -21,9 +25,23 @@ export default function UsersPage() {
   }, []);
 
   const fetchUsers = async () => {
-    const { data, error } = await supabase.from('profiles').select('*').order('display_name');
-    if (!error && data) {
-      setUsers(data);
+    const [profilesRes, booksRes] = await Promise.all([
+      supabase.from('profiles').select('*').order('display_name'),
+      supabase.from('books').select('owner')
+    ]);
+
+    if (profilesRes.data) {
+      setUsers(profilesRes.data);
+    }
+    
+    if (booksRes.data) {
+      const counts: Record<string, number> = {};
+      booksRes.data.forEach((b: { owner: string }) => {
+        if (b.owner) {
+          counts[b.owner] = (counts[b.owner] || 0) + 1;
+        }
+      });
+      setBookCounts(counts);
     }
     setLoading(false);
   };
@@ -52,6 +70,7 @@ export default function UsersPage() {
                   <tr>
                     <th style={{ textAlign: 'left', padding: '16px' }}>নাম</th>
                     <th style={{ textAlign: 'left', padding: '16px' }}>আইডি</th>
+                    <th style={{ textAlign: 'center', padding: '16px' }}>মোট বই</th>
                     <th style={{ textAlign: 'left', padding: '16px' }}>রোল (Role)</th>
                     <th style={{ textAlign: 'right', padding: '16px' }}>অ্যাকশন</th>
                   </tr>
@@ -73,17 +92,33 @@ export default function UsersPage() {
                               user.display_name.charAt(0).toUpperCase()
                             )}
                           </div>
-                          <span style={{ fontWeight: 600 }}>{user.display_name}</span>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                            <span style={{ fontWeight: 600 }}>{user.display_name}</span>
+                            {currentUser?.id === user.id && (
+                              <span className="badge" style={{ background: '#10b981', color: 'white', fontSize: '0.7rem', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                                ✅ আপনি
+                              </span>
+                            )}
+                          </div>
                         </div>
                       </td>
                       <td style={{ padding: '16px', color: 'var(--text-muted)' }}>@{user.id}</td>
+                      <td style={{ padding: '16px', textAlign: 'center', fontWeight: 500 }}>
+                        {enToBnNumber((bookCounts[user.id] || 0).toString())} টি
+                      </td>
                       <td style={{ padding: '16px' }}>
                         <span className="badge badge-gray">{user.role}</span>
                       </td>
                       <td style={{ padding: '16px', textAlign: 'right' }}>
-                        <Link href={`/dashboard/users/${user.id}`} className="btn btn-secondary btn-sm">
-                          বিস্তারিত ➡️
-                        </Link>
+                        {currentUser?.id === user.id ? (
+                          <Link href={`/dashboard/users/${user.id}`} className="btn btn-secondary btn-sm">
+                            বিস্তারিত ➡️
+                          </Link>
+                        ) : (
+                          <span className="btn btn-secondary btn-sm" style={{ opacity: 0.4, cursor: 'not-allowed' }} title="শুধুমাত্র নিজের বিস্তারিত দেখা যাবে">
+                            বিস্তারিত 🚫
+                          </span>
+                        )}
                       </td>
                     </tr>
                   ))}

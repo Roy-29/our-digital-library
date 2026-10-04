@@ -35,7 +35,13 @@ export async function dbSelect(table: string, orderByCol?: string, ascending = t
   if (orderByCol) {
     query = query.orderBy(ascending ? asc(t[orderByCol as keyof typeof t] as any) : desc(t[orderByCol as keyof typeof t] as any));
   }
-  return await query;
+  try {
+    return await query;
+  } catch (error: any) {
+    console.error(`[dbSelect ERROR on table ${table}]:`, error);
+    console.error(`Cause:`, error.cause);
+    throw error;
+  }
 }
 
 export async function dbInsert(table: string, data: any) {

@@ -263,7 +263,10 @@ export default function BooksClient({
                     </span>
                   </div>
                   <div className="book-card-body">
-                    <div className="book-card-title">{book.title}</div>
+                    <div className="book-card-title" style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                      {book.title}
+                      {(book.copies || 1) > 1 && <span className="badge" style={{ fontSize: '0.65rem', padding: '2px 6px' }}>{(book.copies || 1)} কপি</span>}
+                    </div>
                     <div className="book-card-author">{book.authorNameBn || book.authorName || ''}</div>
                     <div className="book-card-meta">
                       <span className="book-card-owner">
@@ -311,8 +314,9 @@ export default function BooksClient({
                 {sortedBooks.map((book) => (
                   <tr key={book.id}>
                     <td>
-                      <Link href={`/dashboard/books/${book.id}`} style={{ textDecoration: 'none', color: 'var(--text-primary)', fontWeight: 600 }}>
+                      <Link href={`/dashboard/books/${book.id}`} style={{ textDecoration: 'none', color: 'var(--text-primary)', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '6px' }}>
                         {book.title}
+                        {(book.copies || 1) > 1 && <span className="badge" style={{ fontSize: '0.65rem', padding: '2px 6px' }}>{(book.copies || 1)} কপি</span>}
                       </Link>
                       <div className="text-xs text-muted" style={{ marginTop: '2px' }}>
                         {(book.authorNameBn || book.authorName) && (
