@@ -5,6 +5,7 @@ import { createClient } from '@/lib/supabase';
 import { LendingRecord, Borrower, getOwnerLabel } from '@/lib/types';
 import { useAuth } from '@/contexts/AuthContext';
 import toast from 'react-hot-toast';
+import Link from 'next/link';
 
 export default function LendingPage() {
   const [records, setRecords] = useState<LendingRecord[]>([]);
@@ -543,7 +544,11 @@ export default function LendingPage() {
                       const borrowerObj = r.borrower || borrowers.find(b => b.id === (r.borrower_id || (r as any).borrowerId));
                       return (
                         <tr key={r.id}>
-                          <td style={{ fontWeight: 500 }}>{bookTitle}</td>
+                          <td style={{ fontWeight: 500 }}>
+                            <Link href={`/dashboard/books/${r.book_id || (r as any).bookId}`} className="text-primary hover:underline" style={{ color: 'inherit', textDecoration: 'none' }} onMouseOver={e => e.currentTarget.style.textDecoration = 'underline'} onMouseOut={e => e.currentTarget.style.textDecoration = 'none'}>
+                              {bookTitle}
+                            </Link>
+                          </td>
                           <td>
                             {borrowerObj ? (
                               <button
