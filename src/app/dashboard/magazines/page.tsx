@@ -27,7 +27,6 @@ export default function MagazinesPage() {
         setLoading(false);
       }
     }
-    }
     fetchMagazines();
   }, []);
 
