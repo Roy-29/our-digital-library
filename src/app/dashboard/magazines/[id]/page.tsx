@@ -160,7 +160,7 @@ export default function ViewMagazinePage({ params }: { params: Promise<{ id: str
           </div>
         </div>
         
-        <div style={{ marginTop: '24px' }}>
+        <div style={{ marginTop: '24px', display: 'flex', justifyContent: 'flex-end' }}>
           <Link href="/dashboard/magazines" className="btn btn-secondary">
             ← ফিরে যান
           </Link>
