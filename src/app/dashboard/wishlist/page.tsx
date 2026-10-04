@@ -1002,7 +1002,6 @@ export default function WishlistPage() {
             </div>
           </div>
         </div>
-        </div>
       )}
 
       {/* DETAILS MODAL */}
