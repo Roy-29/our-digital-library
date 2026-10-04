@@ -25,17 +25,7 @@ export default function BookDetailPage() {
   const fetchBook = async () => {
     const { data, error } = await supabase
       .from('books')
-      .select(`
-        *,
-        author:authors!books_author_id_fkey(*),
-        translator:authors!books_translator_id_fkey(*),
-        publisher:publishers(*),
-        category:categories(*),
-        genre:genres(*),
-        room:rooms(*),
-        shelf:shelves(*),
-        rack:racks(*)
-      `)
+      .select('*')
       .eq('id', params.id)
       .single();
     
@@ -44,6 +34,22 @@ export default function BookDetailPage() {
       router.push('/dashboard/books');
       return;
     }
+
+    // Since our mock client doesn't support PostgREST joins, fetch relations manually
+    const [authorRes, translatorRes, publisherRes, categoryRes, genreRes] = await Promise.all([
+      data.author_id ? supabase.from('authors').select('*').eq('id', data.author_id).single() : Promise.resolve({ data: null }),
+      data.translator_id ? supabase.from('authors').select('*').eq('id', data.translator_id).single() : Promise.resolve({ data: null }),
+      data.publisher_id ? supabase.from('publishers').select('*').eq('id', data.publisher_id).single() : Promise.resolve({ data: null }),
+      data.category_id ? supabase.from('categories').select('*').eq('id', data.category_id).single() : Promise.resolve({ data: null }),
+      data.genre_id ? supabase.from('genres').select('*').eq('id', data.genre_id).single() : Promise.resolve({ data: null }),
+    ]);
+
+    data.author = authorRes.data;
+    data.translator = translatorRes.data;
+    data.publisher = publisherRes.data;
+    data.category = categoryRes.data;
+    data.genre = genreRes.data;
+
     setBook(data);
     setLoading(false);
   };
