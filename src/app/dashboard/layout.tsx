@@ -24,6 +24,7 @@ const NAV_ITEMS = [
   { href: '/dashboard/publishers', icon: '🏢', label: 'প্রকাশক' },
   { href: '/dashboard/categories', icon: '🏷️', label: 'Category / Genre' },
   { section: 'অন্যান্য' },
+  { href: '/dashboard/users', icon: '👥', label: 'ব্যবহারকারী' },
   { href: '/dashboard/activity', icon: '📋', label: 'কার্যকলাপ' },
   { href: '/dashboard/backup', icon: '💾', label: 'ব্যাকআপ' },
 ];
