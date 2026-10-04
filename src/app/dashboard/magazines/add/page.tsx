@@ -20,9 +20,7 @@ export default function AddMagazinePage() {
   const [issueYear, setIssueYear] = useState('');
   const [volume, setVolume] = useState('');
   const [publisher, setPublisher] = useState('');
-  const [pageCount, setPageCount] = useState('');
   const [status, setStatus] = useState('আছে');
-  const [readingStatus, setReadingStatus] = useState('পড়া হয়নি');
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -37,10 +35,8 @@ export default function AddMagazinePage() {
         issue_year: issueYear ? parseInt(bnToEnNumber(issueYear)) : null,
         volume: volume.trim() || null,
         publisher_id: publisher || null,
-        page_count: pageCount ? parseInt(bnToEnNumber(pageCount)) : null,
         owner: user.id,
         status,
-        reading_status: readingStatus,
         added_by: user.id,
         created_at: new Date().toISOString(),
         updated_at: new Date().toISOString(),
@@ -124,23 +120,13 @@ export default function AddMagazinePage() {
                 </div>
               </div>
 
-              <div className="form-row">
-                <div className="form-group">
+                <div className="form-group" style={{ gridColumn: '1 / -1' }}>
                   <label className="form-label">সংখ্যা (Volume/Issue)</label>
                   <input 
                     className="form-input" 
                     value={volume} 
                     onChange={e => setVolume(e.target.value)} 
                     placeholder="যেমন: ১৪" 
-                  />
-                </div>
-                <div className="form-group">
-                  <label className="form-label">পৃষ্ঠা সংখ্যা</label>
-                  <input 
-                    className="form-input" 
-                    type="number" 
-                    value={pageCount} 
-                    onChange={e => setPageCount(e.target.value)} 
                   />
                 </div>
               </div>

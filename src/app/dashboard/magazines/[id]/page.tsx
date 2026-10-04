@@ -117,12 +117,7 @@ export default function ViewMagazinePage({ params }: { params: Promise<{ id: str
                 </span>
               </div>
 
-              {magazine.reading_status && (
-                <div className="info-group">
-                  <span style={{ display: 'block', fontSize: '0.85rem', color: '#6b7280', marginBottom: '4px' }}>পড়ার স্ট্যাটাস</span>
-                  <span style={{ fontWeight: 500 }}>{magazine.reading_status}</span>
-                </div>
-              )}
+
 
               {magazine.issue_month && (
                 <div className="info-group">
@@ -145,12 +140,7 @@ export default function ViewMagazinePage({ params }: { params: Promise<{ id: str
                 </div>
               )}
 
-              {magazine.page_count && (
-                <div className="info-group">
-                  <span style={{ display: 'block', fontSize: '0.85rem', color: '#6b7280', marginBottom: '4px' }}>পৃষ্ঠা সংখ্যা</span>
-                  <span style={{ fontWeight: 500 }}>{enToBnNumber(magazine.page_count.toString())}</span>
-                </div>
-              )}
+
 
             </div>
             

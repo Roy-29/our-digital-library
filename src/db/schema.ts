@@ -206,3 +206,25 @@ export const activityLog = sqliteTable('activity_log', {
   details: text('details', { mode: 'json' }), // stores JSON as string in sqlite
   createdAt: text('created_at').default(sql`CURRENT_TIMESTAMP`),
 });
+
+// MAGAZINES
+export const magazines = sqliteTable('magazines', {
+  id: text('id').primaryKey().$defaultFn(() => crypto.randomUUID()),
+  title: text('title').notNull(),
+  issueMonth: text('issue_month'),
+  issueYear: integer('issue_year'),
+  volume: text('volume'),
+  publisherId: text('publisher_id').references(() => publishers.id, { onDelete: 'set null' }),
+  coverUrl: text('cover_url'),
+  pageCount: integer('page_count'),
+  
+  owner: text('owner').notNull().default('swapnil'),
+  status: text('status').notNull().default('আছে'),
+  
+  readingStatus: text('reading_status'),
+  readingProgress: integer('reading_progress').default(0),
+  
+  addedBy: text('added_by').references(() => profiles.id, { onDelete: 'set null' }),
+  createdAt: text('created_at').default(sql`CURRENT_TIMESTAMP`),
+  updatedAt: text('updated_at').default(sql`CURRENT_TIMESTAMP`),
+});

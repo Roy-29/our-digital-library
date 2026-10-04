@@ -23,9 +23,7 @@ export default function EditMagazinePage({ params }: { params: Promise<{ id: str
   const [issueYear, setIssueYear] = useState('');
   const [volume, setVolume] = useState('');
   const [publisher, setPublisher] = useState('');
-  const [pageCount, setPageCount] = useState('');
   const [status, setStatus] = useState('আছে');
-  const [readingStatus, setReadingStatus] = useState('পড়া হয়নি');
 
   useEffect(() => {
     async function fetchMagazine() {
@@ -45,9 +43,7 @@ export default function EditMagazinePage({ params }: { params: Promise<{ id: str
           setIssueYear(data.issue_year ? data.issue_year.toString() : '');
           setVolume(data.volume || '');
           setPublisher(data.publisher_id || '');
-          setPageCount(data.page_count ? data.page_count.toString() : '');
           setStatus(data.status || 'আছে');
-          setReadingStatus(data.reading_status || 'পড়া হয়নি');
         }
       } catch (err: any) {
         toast.error('তথ্য লোড করতে সমস্যা: ' + err.message);
@@ -73,9 +69,7 @@ export default function EditMagazinePage({ params }: { params: Promise<{ id: str
         issue_year: issueYear ? parseInt(bnToEnNumber(issueYear)) : null,
         volume: volume.trim() || null,
         publisher_id: publisher || null,
-        page_count: pageCount ? parseInt(bnToEnNumber(pageCount)) : null,
         status,
-        reading_status: readingStatus,
         updated_at: new Date().toISOString(),
       };
 
@@ -167,25 +161,13 @@ export default function EditMagazinePage({ params }: { params: Promise<{ id: str
                 </div>
               </div>
               
-              <div className="form-row">
-                <div className="form-group">
+                <div className="form-group" style={{ gridColumn: '1 / -1' }}>
                   <label className="form-label">সংখ্যা (Volume)</label>
                   <input 
                     className="form-input" 
                     value={volume} 
                     onChange={e => setVolume(e.target.value)} 
                     placeholder="যেমন: ২য় বর্ষ, ৫ম সংখ্যা" 
-                  />
-                </div>
-                <div className="form-group">
-                  <label className="form-label">পৃষ্ঠা সংখ্যা</label>
-                  <input 
-                    className="form-input" 
-                    type="text"
-                    inputMode="numeric"
-                    value={enToBnNumber(pageCount)} 
-                    onChange={e => setPageCount(e.target.value)} 
-                    placeholder="যেমন: ১২০" 
                   />
                 </div>
               </div>
@@ -197,35 +179,20 @@ export default function EditMagazinePage({ params }: { params: Promise<{ id: str
               <h3>📌 সংগ্রহ ও স্ট্যাটাস</h3>
             </div>
             <div className="card-body">
-              <div className="form-row">
-                <div className="form-group">
-                  <label className="form-label">বর্তমান অবস্থা *</label>
-                  <select 
-                    className="form-input"
-                    value={status}
-                    onChange={e => setStatus(e.target.value)}
-                  >
-                    <option value="আছে">আছে</option>
-                    <option value="পড়া হচ্ছে">পড়া হচ্ছে</option>
-                    <option value="ধার দেওয়া হয়েছে">ধার দেওয়া হয়েছে</option>
-                    <option value="নাই">নাই</option>
-                    <option value="হারিয়ে গেছে">হারিয়ে গেছে</option>
-                    <option value="উইশলিস্ট">উইশলিস্ট</option>
-                  </select>
-                </div>
-
-                <div className="form-group">
-                  <label className="form-label">পড়ার স্ট্যাটাস *</label>
-                  <select 
-                    className="form-input"
-                    value={readingStatus}
-                    onChange={e => setReadingStatus(e.target.value)}
-                  >
-                    <option value="পড়া হয়নি">পড়া হয়নি</option>
-                    <option value="পড়া হচ্ছে">পড়া হচ্ছে</option>
-                    <option value="পড়া শেষ">পড়া শেষ</option>
-                  </select>
-                </div>
+              <div className="form-group">
+                <label className="form-label">বর্তমান অবস্থা *</label>
+                <select 
+                  className="form-input"
+                  value={status}
+                  onChange={e => setStatus(e.target.value)}
+                >
+                  <option value="আছে">আছে</option>
+                  <option value="পড়া হচ্ছে">পড়া হচ্ছে</option>
+                  <option value="ধার দেওয়া হয়েছে">ধার দেওয়া হয়েছে</option>
+                  <option value="নাই">নাই</option>
+                  <option value="হারিয়ে গেছে">হারিয়ে গেছে</option>
+                  <option value="উইশলিস্ট">উইশলিস্ট</option>
+                </select>
               </div>
             </div>
           </div>
