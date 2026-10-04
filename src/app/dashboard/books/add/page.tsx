@@ -111,11 +111,6 @@ export default function AddBookPage() {
   const [genreId, setGenreId] = useState('');
   const [owner, setOwner] = useState<BookOwner>('swapnil');
   const [status, setStatus] = useState<BookStatus>('আছে');
-  const [roomId, setRoomId] = useState('');
-  const [shelfId, setShelfId] = useState('');
-  const [rackId, setRackId] = useState('');
-  const [rackRow, setRackRow] = useState('');
-  const [rackPosition, setRackPosition] = useState('');
   const [isPurchased, setIsPurchased] = useState(true);
   const [purchaseDate, setPurchaseDate] = useState('');
   const [purchaseSource, setPurchaseSource] = useState('');
@@ -143,40 +138,17 @@ export default function AddBookPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  useEffect(() => {
-    if (roomId) {
-      supabase.from('shelves').select('*').eq('room_id', roomId).order('name').then(({ data }: { data: any }) => {
-        setShelves(data || []);
-        setShelfId('');
-        setRackId('');
-      });
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [roomId]);
-
-  useEffect(() => {
-    if (shelfId) {
-      supabase.from('racks').select('*').eq('shelf_id', shelfId).order('position_order').then(({ data }: { data: any }) => {
-        setRacks(data || []);
-        setRackId('');
-      });
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [shelfId]);
-
   const fetchReferenceData = async () => {
-    const [a, p, c, g, r] = await Promise.all([
+    const [a, p, c, g] = await Promise.all([
       supabase.from('authors').select('*').order('name'),
       supabase.from('publishers').select('*').order('name'),
       supabase.from('categories').select('*').order('name'),
       supabase.from('genres').select('*').order('name'),
-      supabase.from('rooms').select('*').order('name'),
     ]);
     if (a.data) setAllPersons(a.data);
     if (p.data) setPublishers(p.data);
     if (c.data) setCategories(c.data);
     if (g.data) setGenres(g.data);
-    if (r.data) setRooms(r.data);
   };
 
   const uploadCover = async (): Promise<string | null> => {
@@ -359,11 +331,6 @@ export default function AddBookPage() {
       genre_id: finalGenreId || null,
       owner: (user?.id as BookOwner) || owner,
       status,
-      room_id: roomId || null,
-      shelf_id: shelfId || null,
-      rack_id: rackId || null,
-      rack_row: rackRow ? parseInt(rackRow) : null,
-      rack_position: rackPosition ? parseInt(rackPosition) : null,
       is_purchased: isPurchased,
       purchase_date: purchaseDate || null,
       purchase_source: purchaseSource || null,
@@ -546,7 +513,7 @@ export default function AddBookPage() {
 
           <div className="card">
               <div className="card-header" style={{ padding: '20px 32px', borderBottom: '1px solid var(--border-light)' }}>
-                <h3 style={{ margin: 0, fontSize: '1.2rem', color: 'var(--text-primary)' }}>👤 মালিকানা</h3>
+                <h3 style={{ margin: 0, fontSize: '1.2rem', color: 'var(--text-primary)' }}>👤 মালিকানা ও স্ট্যাটাস</h3>
               </div>
               <div className="card-body">
                 <div className="form-row">

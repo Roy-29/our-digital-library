@@ -112,12 +112,7 @@ export default function EditBookPage() {
   const [categoryId, setCategoryId] = useState('');
   const [genreId, setGenreId] = useState('');
   const [owner, setOwner] = useState<BookOwner>('swapnil');
-  const [status, setStatus] = useState<BookStatus>('আছে');
-  const [roomId, setRoomId] = useState('');
-  const [shelfId, setShelfId] = useState('');
-  const [rackId, setRackId] = useState('');
-  const [rackRow, setRackRow] = useState('');
-  const [rackPosition, setRackPosition] = useState('');
+  const [status, setStatus] = useState(book?.status || 'আছে');
   const [isPurchased, setIsPurchased] = useState(true);
   const [purchaseDate, setPurchaseDate] = useState('');
   const [purchaseSource, setPurchaseSource] = useState('');
@@ -184,11 +179,6 @@ export default function EditBookPage() {
     setGenreId(gRes.data?.find((g: any) => g.id === b.genre_id)?.name_bn || gRes.data?.find((g: any) => g.id === b.genre_id)?.name || '');
     setOwner(b.owner);
     setStatus(b.status);
-    setRoomId(b.room_id || '');
-    setShelfId(b.shelf_id || '');
-    setRackId(b.rack_id || '');
-    setRackRow(b.rack_row?.toString() || '');
-    setRackPosition(b.rack_position?.toString() || '');
     setIsPurchased(b.is_purchased);
     setPurchaseDate(b.purchase_date || '');
     setPurchaseSource(b.purchase_source || '');
@@ -205,32 +195,12 @@ export default function EditBookPage() {
     setFavoriteQuote(b.favorite_quote || '');
     setIsFavorite(b.is_favorite);
 
-    // Load shelves/racks if room/shelf is set
-    if (b.room_id) {
-      const { data: shelvesData } = await supabase.from('shelves').select('*').eq('room_id', b.room_id).order('name');
-      if (shelvesData) setShelves(shelvesData);
-    }
-    if (b.shelf_id) {
-      const { data: racksData } = await supabase.from('racks').select('*').eq('shelf_id', b.shelf_id).order('position_order');
-      if (racksData) setRacks(racksData);
-    }
+
 
     setLoading(false);
   };
 
-  useEffect(() => {
-    if (roomId && !loading) {
-      supabase.from('shelves').select('*').eq('room_id', roomId).order('name').then(({ data }: { data: any }) => setShelves(data || []));
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [roomId]);
 
-  useEffect(() => {
-    if (shelfId && !loading) {
-      supabase.from('racks').select('*').eq('shelf_id', shelfId).order('position_order').then(({ data }: { data: any }) => setRacks(data || []));
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [shelfId]);
 
   const uploadCover = async (): Promise<string | null> => {
     return coverUrl.trim() || null;
@@ -381,8 +351,6 @@ export default function EditBookPage() {
       author_id: finalAuthorId || null, translator_id: finalTranslatorId || null,
       publisher_id: finalPublisherId || null, category_id: finalCategoryId || null, genre_id: finalGenreId || null,
       owner, status,
-      room_id: roomId || null, shelf_id: shelfId || null, rack_id: rackId || null,
-      rack_row: rackRow ? parseInt(rackRow) : null, rack_position: rackPosition ? parseInt(rackPosition) : null,
       is_purchased: isPurchased, purchase_date: purchaseDate || null, purchase_source: purchaseSource || null,
       purchase_price: purchasePrice ? parseFloat(purchasePrice) : null,
       purchase_discount: purchaseDiscount ? parseFloat(purchaseDiscount) : null,
@@ -416,7 +384,6 @@ export default function EditBookPage() {
   const tabs = [
     { key: 'basic', label: '📋 মূল তথ্য' },
     { key: 'ownership', label: '👤 মালিকানা' },
-    { key: 'location', label: '📍 অবস্থান' },
     { key: 'purchase', label: '💰 ক্রয়' },
     { key: 'reading', label: '📖 পড়া' },
     { key: 'cover', label: '🖼️ কভার' },
@@ -562,7 +529,7 @@ export default function EditBookPage() {
 
           <div className="card">
               <div className="card-header" style={{ padding: '20px 32px', borderBottom: '1px solid var(--border-light)' }}>
-                <h3 style={{ margin: 0, fontSize: '1.2rem', color: 'var(--text-primary)' }}>👤 মালিকানা</h3>
+                <h3 style={{ margin: 0, fontSize: '1.2rem', color: 'var(--text-primary)' }}>👤 মালিকানা ও স্ট্যাটাস</h3>
               </div>
               <div className="card-body">
                 <div className="form-row">
