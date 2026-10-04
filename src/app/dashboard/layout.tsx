@@ -14,6 +14,7 @@ const NAV_ITEMS = [
   { href: '/dashboard/books', icon: '📚', label: 'সব বই' },
   { href: '/dashboard/sort', icon: '🔀', label: 'বই বাছাইকরণ' },
   { href: '/dashboard/books/add', icon: '➕', label: 'নতুন বই যোগ' },
+  { href: '/dashboard/magazines', icon: '📰', label: 'ম্যাগাজিন' },
   { section: 'ট্র্যাকিং' },
   { href: '/dashboard/reading', icon: '📖', label: 'পড়ছি' },
   { href: '/dashboard/lending', icon: '📤', label: 'ধার দেওয়া' },
