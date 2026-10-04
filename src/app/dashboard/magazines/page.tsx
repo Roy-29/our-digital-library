@@ -11,6 +11,8 @@ import { Trash2, Edit2 } from 'lucide-react';
 export default function MagazinesPage() {
   const [magazines, setMagazines] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [search, setSearch] = useState('');
+  const [filterOwner, setFilterOwner] = useState('');
   const { user } = useAuth();
   const supabase = createClient();
   
@@ -56,6 +58,18 @@ export default function MagazinesPage() {
       toast.error('ম্যাগাজিন মুছতে সমস্যা: ' + err.message);
     }
   };
+
+  const filteredMagazines = magazines.filter((mag) => {
+    if (filterOwner && mag.owner !== filterOwner) return false;
+    
+    if (!search) return true;
+    const q = search.toLowerCase();
+    return (
+      mag.title?.toLowerCase().includes(q) ||
+      mag.issue_month?.toLowerCase().includes(q) ||
+      mag.volume?.toLowerCase().includes(q)
+    );
+  });
   
   return (
     <>
@@ -69,12 +83,63 @@ export default function MagazinesPage() {
       </div>
 
       <div className="page-body">
+        {/* Quick Owner Filter Pills */}
+        <div className="owner-pills-bar">
+          <button 
+            type="button"
+            className={`owner-pill ${filterOwner === '' ? 'active' : ''}`}
+            onClick={() => setFilterOwner('')}
+          >
+            <span>📰 সব ম্যাগাজিন</span>
+            <span className="pill-badge">{magazines.length}</span>
+          </button>
+          {user && (
+            <button 
+              type="button"
+              className={`owner-pill ${filterOwner === user.id ? 'active' : ''}`}
+              onClick={() => setFilterOwner(user.id)}
+            >
+              <span>✅ আমার ম্যাগাজিন</span>
+              <span className="pill-badge">{magazines.filter(m => m.owner === user.id).length}</span>
+            </button>
+          )}
+          {['swapnil', 'bipro'].map(ownerId => {
+            if (user?.id === ownerId) return null;
+            const count = magazines.filter(m => m.owner === ownerId).length;
+            if (count === 0) return null;
+            return (
+              <button 
+                key={ownerId}
+                type="button"
+                className={`owner-pill ${filterOwner === ownerId ? 'active' : ''}`}
+                onClick={() => setFilterOwner(ownerId)}
+              >
+                <span>👤 {getOwnerLabel(ownerId)}</span>
+                <span className="pill-badge">{count}</span>
+              </button>
+            );
+          })}
+        </div>
+
+        {/* Search */}
+        <div className="filters-section" style={{ marginBottom: '24px' }}>
+          <div className="search-box">
+            <span className="search-icon">🔍</span>
+            <input 
+              type="text" 
+              placeholder="ম্যাগাজিনের নাম, মাস বা সংখ্যা খুঁজুন..." 
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+            />
+          </div>
+        </div>
+
         {loading ? (
           <div className="loading-state">
             <div className="spinner" />
             <p>লোড হচ্ছে...</p>
           </div>
-        ) : magazines.length === 0 ? (
+        ) : filteredMagazines.length === 0 ? (
           <div className="empty-state">
             <div className="empty-icon">📰</div>
             <h3>কোনো ম্যাগাজিন নেই</h3>
@@ -82,7 +147,7 @@ export default function MagazinesPage() {
           </div>
         ) : (
           <div className="books-grid">
-            {magazines.map((mag: any) => (
+            {filteredMagazines.map((mag: any) => (
               <div key={mag.id} className="book-card">
                 <div className="book-card-info" style={{ padding: '16px' }}>
                   <h3 className="book-title" style={{ fontSize: '1.2rem', marginBottom: '8px' }}>{mag.title}</h3>
