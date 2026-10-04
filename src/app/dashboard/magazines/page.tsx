@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { createClient } from '@/lib/supabase';
-import { enToBnNumber, getOwnerLabel } from '@/lib/types';
+import { enToBnNumber, getOwnerLabel, OWNERS } from '@/lib/types';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from 'react-hot-toast';
 import { Trash2, Edit2 } from 'lucide-react';
@@ -83,7 +83,6 @@ export default function MagazinesPage() {
       </div>
 
       <div className="page-body">
-        {/* Quick Owner Filter Pills */}
         <div className="owner-pills-bar">
           <button 
             type="button"
@@ -99,22 +98,22 @@ export default function MagazinesPage() {
               className={`owner-pill ${filterOwner === user.id ? 'active' : ''}`}
               onClick={() => setFilterOwner(user.id)}
             >
-              <span>✅ আমার ম্যাগাজিন</span>
+              <span>⭐ আমার ম্যাগাজিন</span>
               <span className="pill-badge">{magazines.filter(m => m.owner === user.id).length}</span>
             </button>
           )}
-          {['swapnil', 'bipro'].map(ownerId => {
-            if (user?.id === ownerId) return null;
-            const count = magazines.filter(m => m.owner === ownerId).length;
+          {OWNERS.map(owner => {
+            if (user?.id === owner.value) return null;
+            const count = magazines.filter(m => m.owner === owner.value).length;
             if (count === 0) return null;
             return (
               <button 
-                key={ownerId}
+                key={owner.value}
                 type="button"
-                className={`owner-pill ${filterOwner === ownerId ? 'active' : ''}`}
-                onClick={() => setFilterOwner(ownerId)}
+                className={`owner-pill ${filterOwner === owner.value ? 'active' : ''}`}
+                onClick={() => setFilterOwner(owner.value)}
               >
-                <span>👤 {getOwnerLabel(ownerId)}</span>
+                <span>👤 {owner.label}</span>
                 <span className="pill-badge">{count}</span>
               </button>
             );
