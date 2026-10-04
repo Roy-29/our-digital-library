@@ -170,7 +170,6 @@ export default function EditMagazinePage({ params }: { params: Promise<{ id: str
                     placeholder="যেমন: ২য় বর্ষ, ৫ম সংখ্যা" 
                   />
                 </div>
-              </div>
             </div>
           </div>
           
