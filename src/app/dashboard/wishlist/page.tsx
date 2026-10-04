@@ -50,6 +50,9 @@ export default function WishlistPage() {
   const [priority, setPriority] = useState('medium');
   const [source, setSource] = useState('');
   const [notes, setNotes] = useState('');
+  const [coverUrl, setCoverUrl] = useState('');
+
+  const [detailsItem, setDetailsItem] = useState<WishlistItem | null>(null);
 
   useEffect(() => {
     fetchData();
@@ -89,6 +92,7 @@ export default function WishlistPage() {
     setPriority('medium');
     setSource('');
     setNotes('');
+    setCoverUrl('');
     setEditingId(null);
   };
 
@@ -112,6 +116,7 @@ export default function WishlistPage() {
     setPriority(item.priority || 'medium');
     setSource(item.source || '');
     setNotes(item.notes || '');
+    setCoverUrl(item.cover_url || '');
     setShowModal(true);
   };
 
@@ -140,6 +145,7 @@ export default function WishlistPage() {
         priority,
         source: source.trim() || null,
         notes: notes.trim() || null,
+        cover_url: coverUrl.trim() || null,
         requested_by: existing?.requested_by || currentUserId,
       };
 
@@ -163,6 +169,7 @@ export default function WishlistPage() {
         priority,
         source: source.trim() || null,
         notes: notes.trim() || null,
+        cover_url: coverUrl.trim() || null,
         requested_by: currentUserId,
       };
 
@@ -536,7 +543,12 @@ export default function WishlistPage() {
                       return (
                         <tr key={item.id}>
                           <td>
-                            <div style={{ fontWeight: 600, color: 'var(--text-primary)', fontSize: '0.95rem' }}>
+                            <div 
+                              style={{ fontWeight: 600, color: 'var(--accent)', fontSize: '0.95rem', cursor: 'pointer' }}
+                              onClick={() => setDetailsItem(item)}
+                              onMouseOver={e => e.currentTarget.style.textDecoration = 'underline'}
+                              onMouseOut={e => e.currentTarget.style.textDecoration = 'none'}
+                            >
                               {item.title}
                             </div>
                             {item.notes && (
@@ -726,7 +738,16 @@ export default function WishlistPage() {
                     <tbody>
                       {filteredPurchased.map((item) => (
                         <tr key={item.id} style={{ opacity: 0.75 }}>
-                          <td style={{ fontWeight: 600 }}>{item.title}</td>
+                          <td style={{ fontWeight: 600 }}>
+                            <span 
+                              style={{ cursor: 'pointer', color: 'var(--accent)' }}
+                              onClick={() => setDetailsItem(item)}
+                              onMouseOver={e => e.currentTarget.style.textDecoration = 'underline'}
+                              onMouseOut={e => e.currentTarget.style.textDecoration = 'none'}
+                            >
+                              {item.title}
+                            </span>
+                          </td>
                           <td>{item.author_name || '—'}</td>
                           <td>
                             <span className="badge" style={{ background: 'var(--bg-secondary)', color: 'var(--text-primary)' }}>
@@ -926,6 +947,16 @@ export default function WishlistPage() {
                   />
                 </div>
 
+                <div className="form-group">
+                  <label className="form-label">কভার ছবির URL (ঐচ্ছিক)</label>
+                  <input
+                    className="form-input"
+                    value={coverUrl}
+                    onChange={(e) => setCoverUrl(e.target.value)}
+                    placeholder="https://..."
+                  />
+                </div>
+
                 {/* Notes */}
                 <div className="form-group">
                   <label className="form-label">নোট / বিশেষ মন্তব্য</label>
@@ -967,6 +998,87 @@ export default function WishlistPage() {
               </button>
               <button className="btn btn-danger" onClick={handleDelete}>
                 🗑️ মুছে ফেলুন
+              </button>
+            </div>
+          </div>
+        </div>
+        </div>
+      )}
+
+      {/* DETAILS MODAL */}
+      {detailsItem && (
+        <div className="modal-overlay" onClick={() => setDetailsItem(null)}>
+          <div
+            className="modal"
+            style={{ maxWidth: '500px', width: '92%' }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="modal-header">
+              <h3>📖 বইয়ের বিস্তারিত</h3>
+              <button className="btn btn-ghost btn-icon" onClick={() => setDetailsItem(null)}>
+                ✕
+              </button>
+            </div>
+            <div className="modal-body" style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+              <div style={{ display: 'flex', gap: '20px' }}>
+                {detailsItem.cover_url && (
+                  <div style={{ width: '120px', flexShrink: 0 }}>
+                    <img src={detailsItem.cover_url} alt={detailsItem.title} style={{ width: '100%', borderRadius: 'var(--radius-sm)', border: '1px solid var(--border-light)' }} />
+                  </div>
+                )}
+                <div style={{ flex: 1 }}>
+                  <h2 style={{ fontSize: '1.25rem', marginBottom: '8px', color: 'var(--text-primary)' }}>{detailsItem.title}</h2>
+                  {detailsItem.author_name && <p style={{ color: 'var(--text-secondary)', marginBottom: '4px' }}><strong>লেখক:</strong> {detailsItem.author_name}</p>}
+                  {detailsItem.publisher_name && <p style={{ color: 'var(--text-secondary)', marginBottom: '4px' }}><strong>প্রকাশক:</strong> {detailsItem.publisher_name}</p>}
+                  {detailsItem.isbn && <p style={{ color: 'var(--text-muted)', fontSize: '0.85rem', marginBottom: '12px' }}>ISBN: {detailsItem.isbn}</p>}
+                  
+                  <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap', marginBottom: '12px' }}>
+                    <span className="badge" style={{ background: 'var(--bg-secondary)', border: '1px solid var(--border-light)' }}>
+                      👤 {getOwnerLabel(detailsItem.requested_by)}
+                    </span>
+                    {detailsItem.priority && (
+                      <span className="badge" style={{ background: `${PRIORITIES.find(p => p.value === detailsItem.priority)?.color || '#999'}15`, color: PRIORITIES.find(p => p.value === detailsItem.priority)?.color || '#999' }}>
+                        {PRIORITIES.find(p => p.value === detailsItem.priority)?.label} অগ্রাধিকার
+                      </span>
+                    )}
+                  </div>
+                  
+                  {detailsItem.estimated_price && (
+                    <p style={{ fontWeight: 600, color: 'var(--accent)', marginBottom: '8px' }}>
+                      আনুমানিক দাম: ৳{detailsItem.estimated_price.toLocaleString('bn-BD')}
+                    </p>
+                  )}
+                </div>
+              </div>
+
+              {detailsItem.source && (
+                <div style={{ background: 'var(--bg-secondary)', padding: '12px', borderRadius: 'var(--radius-sm)' }}>
+                  <strong style={{ display: 'block', marginBottom: '4px', fontSize: '0.85rem', color: 'var(--text-muted)' }}>প্রাপ্তিস্থান:</strong>
+                  {detailsItem.source}
+                </div>
+              )}
+
+              {detailsItem.notes && (
+                <div style={{ background: 'var(--bg-secondary)', padding: '12px', borderRadius: 'var(--radius-sm)' }}>
+                  <strong style={{ display: 'block', marginBottom: '4px', fontSize: '0.85rem', color: 'var(--text-muted)' }}>নোট:</strong>
+                  <div style={{ whiteSpace: 'pre-wrap' }}>{detailsItem.notes}</div>
+                </div>
+              )}
+            </div>
+            <div className="modal-footer">
+              {!detailsItem.is_purchased && user?.id === detailsItem.requested_by && (
+                <button 
+                  className="btn btn-gold" 
+                  onClick={() => {
+                    setDetailsItem(null);
+                    handlePurchased(detailsItem);
+                  }}
+                >
+                  🛒 কেনা হয়েছে
+                </button>
+              )}
+              <button type="button" className="btn btn-secondary" onClick={() => setDetailsItem(null)}>
+                বন্ধ করুন
               </button>
             </div>
           </div>
