@@ -108,6 +108,7 @@ export const books = sqliteTable('books', {
   
   authorId: text('author_id').references(() => authors.id, { onDelete: 'set null' }),
   translatorId: text('translator_id').references(() => authors.id, { onDelete: 'set null' }),
+  illustratorId: text('illustrator_id').references(() => authors.id, { onDelete: 'set null' }),
   publisherId: text('publisher_id').references(() => publishers.id, { onDelete: 'set null' }),
   categoryId: text('category_id').references(() => categories.id, { onDelete: 'set null' }),
   genreId: text('genre_id').references(() => genres.id, { onDelete: 'set null' }),

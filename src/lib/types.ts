@@ -122,6 +122,7 @@ export interface Book {
   
   author_id: string | null;
   translator_id: string | null;
+  illustrator_id: string | null;
   publisher_id: string | null;
   category_id: string | null;
   genre_id: string | null;
@@ -161,6 +162,7 @@ export interface Book {
   // Joined relations
   author?: Author;
   translator?: Author;
+  illustrator?: Author;
   publisher?: Publisher;
   category?: Category;
   genre?: Genre;

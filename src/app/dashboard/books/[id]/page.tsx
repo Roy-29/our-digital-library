@@ -36,9 +36,10 @@ export default function BookDetailPage() {
     }
 
     // Since our mock client doesn't support PostgREST joins, fetch relations manually
-    const [authorRes, translatorRes, publisherRes, categoryRes, genreRes] = await Promise.all([
+    const [authorRes, translatorRes, illustratorRes, publisherRes, categoryRes, genreRes] = await Promise.all([
       data.author_id ? supabase.from('authors').select('*').eq('id', data.author_id).single() : Promise.resolve({ data: null }),
       data.translator_id ? supabase.from('authors').select('*').eq('id', data.translator_id).single() : Promise.resolve({ data: null }),
+      data.illustrator_id ? supabase.from('authors').select('*').eq('id', data.illustrator_id).single() : Promise.resolve({ data: null }),
       data.publisher_id ? supabase.from('publishers').select('*').eq('id', data.publisher_id).single() : Promise.resolve({ data: null }),
       data.category_id ? supabase.from('categories').select('*').eq('id', data.category_id).single() : Promise.resolve({ data: null }),
       data.genre_id ? supabase.from('genres').select('*').eq('id', data.genre_id).single() : Promise.resolve({ data: null }),
@@ -46,6 +47,7 @@ export default function BookDetailPage() {
 
     data.author = authorRes.data;
     data.translator = translatorRes.data;
+    data.illustrator = illustratorRes.data;
     data.publisher = publisherRes.data;
     data.category = categoryRes.data;
     data.genre = genreRes.data;
@@ -152,6 +154,7 @@ export default function BookDetailPage() {
                 <DetailRow label="Subtitle" value={book.subtitle} />
                 <DetailRow label="লেখক" value={book.author?.name_bn || book.author?.name} />
                 <DetailRow label="অনুবাদক" value={book.translator?.name_bn || book.translator?.name} />
+                <DetailRow label="আঁকিয়ে" value={book.illustrator?.name_bn || book.illustrator?.name} />
                 <DetailRow label="প্রকাশক" value={book.publisher?.name_bn || book.publisher?.name} />
                 <DetailRow label="ISBN" value={book.isbn} />
                 <DetailRow label="ভাষা" value={book.language} />

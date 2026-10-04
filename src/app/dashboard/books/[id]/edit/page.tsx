@@ -108,6 +108,7 @@ export default function EditBookPage() {
   const [coverUrl, setCoverUrl] = useState('');
   const [authorId, setAuthorId] = useState('');
   const [translatorId, setTranslatorId] = useState('');
+  const [illustratorId, setIllustratorId] = useState('');
   const [publisherId, setPublisherId] = useState('');
   const [categoryId, setCategoryId] = useState('');
   const [genreId, setGenreId] = useState('');
@@ -174,6 +175,7 @@ export default function EditBookPage() {
     setCoverUrl(b.cover_url || '');
     setAuthorId(aRes.data?.find((a: any) => a.id === b.author_id)?.name_bn || aRes.data?.find((a: any) => a.id === b.author_id)?.name || '');
     setTranslatorId(aRes.data?.find((a: any) => a.id === b.translator_id)?.name_bn || aRes.data?.find((a: any) => a.id === b.translator_id)?.name || '');
+    setIllustratorId(aRes.data?.find((a: any) => a.id === b.illustrator_id)?.name_bn || aRes.data?.find((a: any) => a.id === b.illustrator_id)?.name || '');
     setPublisherId(pRes.data?.find((p: any) => p.id === b.publisher_id)?.name_bn || pRes.data?.find((p: any) => p.id === b.publisher_id)?.name || '');
     setCategoryId(cRes.data?.find((c: any) => c.id === b.category_id)?.name_bn || cRes.data?.find((c: any) => c.id === b.category_id)?.name || '');
     setGenreId(gRes.data?.find((g: any) => g.id === b.genre_id)?.name_bn || gRes.data?.find((g: any) => g.id === b.genre_id)?.name || '');
@@ -267,6 +269,31 @@ export default function EditBookPage() {
              (p.name && p.name.trim().toLowerCase() === lower)
       );
       return found?.id || null;
+      return found?.id || null;
+    };
+    
+    const resolveIllustrator = async (name: string) => {
+      if (!name) return null;
+      const t = name.trim().replace(/\s+/g, ' ');
+      if (!t) return null;
+      const lower = t.toLowerCase();
+      const existing = allPersons.find(
+        p => (p.name_bn && p.name_bn.trim().toLowerCase() === lower) ||
+             (p.name && p.name.trim().toLowerCase() === lower)
+      );
+      if (existing) {
+        return existing.id;
+      }
+      
+      const { data } = await supabase.from('authors').insert({ name_bn: t, name: t, is_author: 1, is_translator: 0 });
+      if (data?.id) return data.id;
+
+      const { data: all } = await supabase.from('authors').select('*');
+      const found = (all as any[])?.find(
+        p => (p.name_bn && p.name_bn.trim().toLowerCase() === lower) ||
+             (p.name && p.name.trim().toLowerCase() === lower)
+      );
+      return found?.id || null;
     };
     
     const resolvePublisher = async (name: string) => {
@@ -337,6 +364,7 @@ export default function EditBookPage() {
 
     const finalAuthorId = await resolveAuthor(authorId);
     const finalTranslatorId = await resolveTranslator(translatorId);
+    const finalIllustratorId = await resolveIllustrator(illustratorId);
     const finalPublisherId = await resolvePublisher(publisherId);
     const finalCategoryId = await resolveCategory(categoryId);
     const finalGenreId = await resolveGenre(genreId);
@@ -349,6 +377,7 @@ export default function EditBookPage() {
       publication_year: pubYear ? parseInt(pubYear) : null, page_count: pageCount ? parseInt(pageCount) : null,
       description: description || null, cover_url: uploadedCoverUrl,
       author_id: finalAuthorId || null, translator_id: finalTranslatorId || null,
+      illustrator_id: finalIllustratorId || null,
       publisher_id: finalPublisherId || null, category_id: finalCategoryId || null, genre_id: finalGenreId || null,
       owner, status,
       is_purchased: isPurchased, purchase_date: purchaseDate || null, purchase_source: purchaseSource || null,
@@ -451,6 +480,21 @@ export default function EditBookPage() {
                 </div>
                 <div className="form-row">
                   <div className="form-group">
+                    <label className="form-label">🎨 আঁকিয়ে (Illustrator)</label>
+                    <input 
+                      className="form-input" 
+                      value={illustratorId} 
+                      onChange={e => setIllustratorId(e.target.value)} 
+                      list="illustrator-options"
+                      placeholder="আঁকিয়ের নাম লিখুন বা নির্বাচন করুন" 
+                    />
+                    <datalist id="illustrator-options">
+                      {uniqueAuthors.map(name => (
+                        <option key={`ill-${name}`} value={name} />
+                      ))}
+                    </datalist>
+                  </div>
+                  <div className="form-group">
                     <label className="form-label">🏢 প্রকাশক</label>
                     <input 
                       className="form-input" 
@@ -465,6 +509,8 @@ export default function EditBookPage() {
                       ))}
                     </datalist>
                   </div>
+                </div>
+                <div className="form-row">
                   <div className="form-group">
                     <label className="form-label">ISBN</label>
                     <input className="form-input" value={isbn} onChange={e => setIsbn(e.target.value)} placeholder="978-..." />
