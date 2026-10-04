@@ -159,8 +159,6 @@ export default function MagazinesPage() {
                         )}
                       </div>
                     </div>
-                      </div>
-                    </div>
                   </div>
                 </div>
               </div>
