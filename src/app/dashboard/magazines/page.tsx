@@ -146,7 +146,7 @@ export default function MagazinesPage() {
         ) : (
           <div className="books-grid">
             {filteredMagazines.map((mag: any) => (
-              <div key={mag.id} className="book-card" style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
+              <div key={mag.id} className="book-card" style={{ display: 'flex', flexDirection: 'column', height: '100%', minHeight: '320px' }}>
                 <div className="book-card-info" style={{ padding: '16px', flexGrow: 1, display: 'flex', flexDirection: 'column' }}>
                   <h3 className="book-title" style={{ fontSize: '1.25rem', fontWeight: 600, marginBottom: '12px' }}>{mag.title}</h3>
                   
