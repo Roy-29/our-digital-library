@@ -114,8 +114,10 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
           >
             ✕
           </button>
-          <h1>📚 ডিজিটাল বইয়ের ঘর</h1>
-          <p>Personal Digital Library</p>
+          <Link href="/dashboard" style={{ textDecoration: 'none', color: 'inherit', display: 'block' }}>
+            <h1>📚 ডিজিটাল বইয়ের ঘর</h1>
+            <p>Personal Digital Library</p>
+          </Link>
         </div>
 
         {/* User Card at top of sidebar for quick visibility on mobile */}

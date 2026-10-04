@@ -38,8 +38,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     // Check local storage on mount
     const savedUserId = localStorage.getItem('library_user_id') as UserId;
     if (savedUserId && USERS[savedUserId]) {
-      // Small timeout defers the state update out of the synchronous effect body, satisfying the strict linter
-      setTimeout(() => setUser(USERS[savedUserId]), 0);
+      setUser(USERS[savedUserId]);
     }
     setLoading(false);
   }, []);
