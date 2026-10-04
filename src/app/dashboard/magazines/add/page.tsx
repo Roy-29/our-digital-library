@@ -5,6 +5,8 @@ import { useRouter } from 'next/navigation';
 import { createClient } from '@/lib/supabase';
 import { useAuth } from '@/contexts/AuthContext';
 import Link from 'next/link';
+import { toast } from 'react-hot-toast';
+import { bnToEnNumber } from '@/lib/types';
 
 export default function AddMagazinePage() {
   const router = useRouter();
@@ -27,13 +29,46 @@ export default function AddMagazinePage() {
     if (!title || !user) return;
     
     setSaving(true);
-    // TODO: implement actual save to DB via API or Supabase direct
-    // For now, this is a placeholder
     
-    setTimeout(() => {
+    try {
+      const magazineData = {
+        title: title.trim(),
+        issue_month: issueMonth.trim() || null,
+        issue_year: issueYear ? parseInt(bnToEnNumber(issueYear)) : null,
+        volume: volume.trim() || null,
+        publisher_id: publisher || null,
+        page_count: pageCount ? parseInt(bnToEnNumber(pageCount)) : null,
+        owner: user.id,
+        status,
+        reading_status: readingStatus,
+        added_by: user.id,
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+      };
+
+      const { data, error } = await supabase.from('magazines').insert(magazineData).select().single();
+
+      if (error) {
+        toast.error('ম্যাগাজিন যোগ করতে সমস্যা: ' + error.message);
+      } else {
+        // Log activity
+        await supabase.from('activity_log').insert({
+          user_id: user.id,
+          action: 'magazine_added',
+          entity_type: 'magazine',
+          entity_id: data?.id,
+          entity_name: title.trim(),
+          details: { owner: user.id, status },
+        });
+
+        toast.success('ম্যাগাজিন সফলভাবে যোগ হয়েছে! 📰');
+        router.push('/dashboard/magazines');
+      }
+    } catch (err: any) {
+      toast.error('দুঃখিত, একটি সমস্যা হয়েছে: ' + err.message);
+    } finally {
       setSaving(false);
-      router.push('/dashboard/magazines');
-    }, 1000);
+    }
   };
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLFormElement>) => {
