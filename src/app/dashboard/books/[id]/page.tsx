@@ -143,6 +143,7 @@ export default function BookDetailPage() {
               <div className="card-body">
                 <DetailRow label="বইয়ের নাম" value={book.title} />
                 <DetailRow label="Original Title" value={book.title_original} />
+                <DetailRow label="Subtitle" value={book.subtitle} />
                 <DetailRow label="লেখক" value={book.author?.name_bn || book.author?.name} />
                 <DetailRow label="অনুবাদক" value={book.translator?.name_bn || book.translator?.name} />
                 <DetailRow label="প্রকাশক" value={book.publisher?.name_bn || book.publisher?.name} />
@@ -164,16 +165,17 @@ export default function BookDetailPage() {
               </div>
             </div>
 
-            {book.is_purchased && (
+            {(book.is_purchased || book.purchase_source || book.purchase_date || book.book_condition) && (
               <div className="card" style={{ marginBottom: '16px' }}>
-                <div className="card-header"><h3>💰 ক্রয় তথ্য</h3></div>
+                <div className="card-header"><h3>💰 সংগ্রহ ও উৎস</h3></div>
                 <div className="card-body">
-                  <DetailRow label="কেনার তারিখ" value={book.purchase_date} />
+                  <DetailRow label="সংগ্রহের ধরণ" value={book.is_purchased ? 'কেনা হয়েছে (সংগ্রহে আছে)' : 'পড়ার উৎস'} />
+                  <DetailRow label={book.is_purchased ? 'কেনার তারিখ' : 'সংগ্রহের তারিখ'} value={book.purchase_date} />
                   <DetailRow label="উৎস" value={book.purchase_source} />
                   <DetailRow label="দাম" value={book.purchase_price ? `৳${book.purchase_price}` : null} />
                   <DetailRow label="ছাড়" value={book.purchase_discount ? `৳${book.purchase_discount}` : null} />
                   <DetailRow label="চূড়ান্ত দাম" value={book.purchase_final_price ? `৳${book.purchase_final_price}` : null} />
-                  <DetailRow label="অবস্থা" value={book.book_condition === 'new' ? 'নতুন' : book.book_condition === 'used' ? 'পুরনো' : book.book_condition === 'gift' ? 'উপহার' : book.book_condition} />
+                  <DetailRow label="অবস্থা" value={book.book_condition === 'new' ? 'নতুন' : book.book_condition === 'used' ? 'পুরনো' : book.book_condition === 'gift' ? 'উপহার' : book.book_condition === 'unknown' ? null : book.book_condition} />
                 </div>
               </div>
             )}
