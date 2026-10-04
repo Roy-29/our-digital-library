@@ -146,8 +146,8 @@ export default function MagazinesPage() {
         ) : (
           <div className="books-grid">
             {filteredMagazines.map((mag: any) => (
-              <div key={mag.id} className="book-card" style={{ display: 'flex', flexDirection: 'column', height: '100%', minHeight: '320px' }}>
-                <div className="book-card-info" style={{ padding: '16px', flexGrow: 1, display: 'flex', flexDirection: 'column' }}>
+              <div key={mag.id} className="book-card" style={{ display: 'flex', flexDirection: 'column', height: '100%', minHeight: '320px', transition: 'transform 0.2s, box-shadow 0.2s' }}>
+                <Link href={`/dashboard/magazines/${mag.id}`} style={{ textDecoration: 'none', color: 'inherit', flexGrow: 1, display: 'flex', flexDirection: 'column', padding: '16px' }}>
                   <h3 className="book-title" style={{ fontSize: '1.25rem', fontWeight: 600, marginBottom: '12px' }}>{mag.title}</h3>
                   
                   {mag.issue_month && (
@@ -170,6 +170,9 @@ export default function MagazinesPage() {
                       <span>সংখ্যা: {mag.volume}</span>
                     </div>
                   )}
+                </Link>
+                
+                <div className="book-card-info" style={{ padding: '16px', paddingTop: 0, display: 'flex', flexDirection: 'column' }}>
                   
                   <div className="book-card-footer" style={{ marginTop: 'auto', paddingTop: '16px', gap: '8px', display: 'flex', flexWrap: 'wrap', alignItems: 'center', justifyContent: 'space-between' }}>
                     <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
