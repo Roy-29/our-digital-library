@@ -24,7 +24,7 @@ export default function AuthorsPage() {
 
   useEffect(() => { fetchPersons(); }, []);
 
-  const fetchPersons = async () => {
+  async function fetchPersons() {
     setLoading(true);
     const { data } = await supabase.from('authors').select('*').order('name');
     setAllPersons(data || []);

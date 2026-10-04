@@ -59,89 +59,154 @@ export default async function DashboardPage() {
       </div>
 
       <div className="page-body">
-        {/* Collection Stats */}
-        <h3 style={{ marginBottom: '16px', fontFamily: 'var(--font-serif)' }}>📊 সংগ্রহের পরিসংখ্যান</h3>
-        <div className="stats-grid">
-          <div className="stat-card">
-            <span className="stat-icon">📚</span>
-            <span className="stat-value">{s.total_books}</span>
-            <span className="stat-label">মোট বই</span>
+        
+        {/* === Collection Overview === */}
+        <section className="dashboard-section">
+          <h3 className="dashboard-section-title">📊 লাইব্রেরি একনজরে</h3>
+          <div className="dashboard-grid">
+            <Link href="/dashboard/books" style={{ textDecoration: 'none', color: 'inherit' }}>
+              <div className="dashboard-card card-primary" style={{ cursor: 'pointer' }}>
+                <div className="dash-header">
+                  <span className="dash-title">মোট বই</span>
+                  <div className="dash-icon">📚</div>
+                </div>
+                <div className="dash-value">{s.total_books}</div>
+              </div>
+            </Link>
+            <Link href="/dashboard/books?status=পড়া শেষ" style={{ textDecoration: 'none', color: 'inherit' }}>
+              <div className="dashboard-card card-success" style={{ cursor: 'pointer' }}>
+                <div className="dash-header">
+                  <span className="dash-title">পড়া শেষ</span>
+                  <div className="dash-icon">✅</div>
+                </div>
+                <div className="dash-value">{s.read_books}</div>
+              </div>
+            </Link>
+            <Link href="/dashboard/reading" style={{ textDecoration: 'none', color: 'inherit' }}>
+              <div className="dashboard-card card-warning" style={{ cursor: 'pointer' }}>
+                <div className="dash-header">
+                  <span className="dash-title">পড়ছি / বাকি</span>
+                  <div className="dash-icon">📖</div>
+                </div>
+                <div className="dash-value">{s.reading_books + s.unread_books}</div>
+              </div>
+            </Link>
+            <Link href="/dashboard/wishlist" style={{ textDecoration: 'none', color: 'inherit' }}>
+              <div className="dashboard-card card-info" style={{ cursor: 'pointer' }}>
+                <div className="dash-header">
+                  <span className="dash-title">কিনতে হবে</span>
+                  <div className="dash-icon">🛒</div>
+                </div>
+                <div className="dash-value">{s.wishlist_count}</div>
+              </div>
+            </Link>
           </div>
-          <div className="stat-card">
-            <span className="stat-icon">👤</span>
-            <span className="stat-value">{s.swapnil_books}</span>
-            <span className="stat-label">স্বপ্নীল-এর বই</span>
-          </div>
-          <div className="stat-card">
-            <span className="stat-icon">👤</span>
-            <span className="stat-value">{s.bipro_books}</span>
-            <span className="stat-label">বিপ্রতীব-এর বই</span>
-          </div>
-          <div className="stat-card">
-            <span className="stat-icon">👤</span>
-            <span className="stat-value">{s.srrijan_books}</span>
-            <span className="stat-label">সৃজন-এর বই</span>
-          </div>
-          <div className="stat-card">
-            <span className="stat-icon">✅</span>
-            <span className="stat-value">{s.read_books}</span>
-            <span className="stat-label">পড়া শেষ</span>
-          </div>
-          <div className="stat-card">
-            <span className="stat-icon">📕</span>
-            <span className="stat-value">{s.unread_books}</span>
-            <span className="stat-label">পড়া বাকি</span>
-          </div>
-          <div className="stat-card">
-            <span className="stat-icon">📖</span>
-            <span className="stat-value">{s.reading_books}</span>
-            <span className="stat-label">পড়ছি</span>
-          </div>
-          <div className="stat-card">
-            <span className="stat-icon">📤</span>
-            <span className="stat-value">{s.lent_books}</span>
-            <span className="stat-label">ধার দেওয়া</span>
-          </div>
-          <div className="stat-card">
-            <span className="stat-icon">⏰</span>
-            <span className="stat-value" style={{ color: s.overdue_lendings ? 'var(--danger)' : undefined }}>
-              {s.overdue_lendings}
-            </span>
-            <span className="stat-label">সময় পেরিয়ে গেছে</span>
-          </div>
-          <Link href="/dashboard/wishlist" style={{ textDecoration: 'none', color: 'inherit' }}>
-            <div className="stat-card" style={{ cursor: 'pointer' }}>
-              <span className="stat-icon">🛒</span>
-              <span className="stat-value">{s.wishlist_count}</span>
-              <span className="stat-label">কিনতে হবে</span>
-            </div>
-          </Link>
-        </div>
+        </section>
 
-        {/* Financial Stats */}
-        <h3 style={{ marginBottom: '16px', marginTop: '32px', fontFamily: 'var(--font-serif)' }}>💰 আর্থিক তথ্য</h3>
-        <div className="stats-grid">
-          <div className="stat-card">
-            <span className="stat-icon">💎</span>
-            <span className="stat-value">৳{s.total_value.toLocaleString()}</span>
-            <span className="stat-label">মোট সংগ্রহের মূল্য</span>
+        {/* === Lending & Borrowing === */}
+        <section className="dashboard-section">
+          <h3 className="dashboard-section-title">📤 ধার ও আদান-প্রদান</h3>
+          <div className="dashboard-grid">
+            <Link href="/dashboard/lending" style={{ textDecoration: 'none', color: 'inherit' }}>
+              <div className="dashboard-card card-info" style={{ cursor: 'pointer' }}>
+                <div className="dash-header">
+                  <span className="dash-title">ধার দেওয়া</span>
+                  <div className="dash-icon">📤</div>
+                </div>
+                <div className="dash-value">{s.lent_books}</div>
+              </div>
+            </Link>
+            <Link href="/dashboard/lending" style={{ textDecoration: 'none', color: 'inherit' }}>
+              <div className="dashboard-card card-danger" style={{ cursor: 'pointer' }}>
+                <div className="dash-header">
+                  <span className="dash-title">সময় পেরিয়ে গেছে</span>
+                  <div className="dash-icon">⏰</div>
+                </div>
+                <div className="dash-value" style={{ color: s.overdue_lendings ? 'var(--danger)' : undefined }}>
+                  {s.overdue_lendings}
+                </div>
+              </div>
+            </Link>
+            <Link href="/dashboard/books?status=হারিয়ে গেছে" style={{ textDecoration: 'none', color: 'inherit' }}>
+              <div className="dashboard-card card-warning" style={{ cursor: 'pointer' }}>
+                <div className="dash-header">
+                  <span className="dash-title">হারিয়ে গেছে</span>
+                  <div className="dash-icon">⚠️</div>
+                </div>
+                <div className="dash-value">{s.lost_books}</div>
+              </div>
+            </Link>
           </div>
-          <div className="stat-card">
-            <span className="stat-icon">💸</span>
-            <span className="stat-value">৳{s.total_spent.toLocaleString()}</span>
-            <span className="stat-label">মোট খরচ</span>
+        </section>
+
+        {/* === Ownership Stats === */}
+        <section className="dashboard-section">
+          <h3 className="dashboard-section-title">👤 মালিকানা পরিসংখ্যান</h3>
+          <div className="dashboard-grid">
+            <Link href="/dashboard/books?owner=swapnil" style={{ textDecoration: 'none', color: 'inherit' }}>
+              <div className="dashboard-card" style={{ cursor: 'pointer' }}>
+                <div className="dash-header">
+                  <span className="dash-title">স্বপ্নীল-এর বই</span>
+                  <div className="dash-icon" style={{ background: 'rgba(79, 161, 115, 0.2)', color: 'var(--accent)' }}>S</div>
+                </div>
+                <div className="dash-value">{s.swapnil_books}</div>
+              </div>
+            </Link>
+            <Link href="/dashboard/books?owner=bipro" style={{ textDecoration: 'none', color: 'inherit' }}>
+              <div className="dashboard-card" style={{ cursor: 'pointer' }}>
+                <div className="dash-header">
+                  <span className="dash-title">বিপ্রতীব-এর বই</span>
+                  <div className="dash-icon" style={{ background: 'rgba(61, 187, 185, 0.2)', color: 'var(--success)' }}>B</div>
+                </div>
+                <div className="dash-value">{s.bipro_books}</div>
+              </div>
+            </Link>
+            <Link href="/dashboard/books?owner=srrijan" style={{ textDecoration: 'none', color: 'inherit' }}>
+              <div className="dashboard-card" style={{ cursor: 'pointer' }}>
+                <div className="dash-header">
+                  <span className="dash-title">সৃজন-এর বই</span>
+                  <div className="dash-icon" style={{ background: 'rgba(227, 116, 82, 0.2)', color: 'var(--danger)' }}>S</div>
+                </div>
+                <div className="dash-value">{s.srrijan_books}</div>
+              </div>
+            </Link>
           </div>
-          <div className="stat-card">
-            <span className="stat-icon">📅</span>
-            <span className="stat-value">{s.books_this_month}</span>
-            <span className="stat-label">এই মাসে যোগ</span>
+        </section>
+
+        {/* === Financial Stats === */}
+        <section className="dashboard-section">
+          <h3 className="dashboard-section-title">💰 আর্থিক তথ্য</h3>
+          <div className="dashboard-grid">
+            <div className="dashboard-card card-success">
+              <div className="dash-header">
+                <span className="dash-title">মোট সংগ্রহের মূল্য</span>
+                <div className="dash-icon">💎</div>
+              </div>
+              <div className="dash-value">৳{s.total_value.toLocaleString()}</div>
+            </div>
+            <div className="dashboard-card card-danger">
+              <div className="dash-header">
+                <span className="dash-title">মোট খরচ</span>
+                <div className="dash-icon">💸</div>
+              </div>
+              <div className="dash-value">৳{s.total_spent.toLocaleString()}</div>
+            </div>
+            <div className="dashboard-card card-primary">
+              <div className="dash-header">
+                <span className="dash-title">এই মাসে যোগ</span>
+                <div className="dash-icon">📅</div>
+              </div>
+              <div className="dash-value">{s.books_this_month}</div>
+            </div>
+            <div className="dashboard-card card-info">
+              <div className="dash-header">
+                <span className="dash-title">এই বছরে কেনা</span>
+                <div className="dash-icon">📆</div>
+              </div>
+              <div className="dash-value">{s.books_this_year}</div>
+            </div>
           </div>
-          <div className="stat-card">
-            <span className="stat-icon">📆</span>
-            <span className="stat-value">{s.books_this_year}</span>
-            <span className="stat-label">এই বছরে কেনা</span>
-          </div>
-        </div>
+        </section>
 
         {/* Recent Books */}
         <h3 style={{ marginBottom: '16px', marginTop: '32px', fontFamily: 'var(--font-serif)' }}>🕐 সম্প্রতি যোগ করা বই</h3>

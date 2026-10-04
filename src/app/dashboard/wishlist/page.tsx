@@ -55,7 +55,7 @@ export default function WishlistPage() {
     fetchData();
   }, []);
 
-  const fetchData = async () => {
+  async function fetchData() {
     setLoading(true);
     try {
       const [wishlistRes, authorsRes, publishersRes] = await Promise.all([
@@ -179,6 +179,11 @@ export default function WishlistPage() {
   };
 
   const handlePurchased = async (item: WishlistItem) => {
+    if (user && item.requested_by !== user.id) {
+      toast.error('আপনি শুধুমাত্র নিজের উইশলিস্টের বই কেনা হয়েছে মার্ক করতে পারবেন!');
+      return;
+    }
+    
     setPurchasingId(item.id);
     const targetOwner = (item.requested_by as BookOwner) || (user?.id as BookOwner) || 'swapnil';
     const buyerName = user?.name || getOwnerLabel(user?.id);
@@ -634,16 +639,18 @@ export default function WishlistPage() {
 
                           <td>
                             <div className="actions" style={{ justifyContent: 'flex-end', gap: '6px' }}>
-                              {/* Purchase button is open to all users (anyone can purchase/gift) */}
-                              <button
-                                className="btn btn-sm btn-gold"
-                                onClick={() => handlePurchased(item)}
-                                disabled={purchasingId === item.id}
-                                title={`বইটি কেনা হয়েছে হিসেবে মার্ক করুন এবং ${getOwnerLabel(item.requested_by)}-এর লাইব্রেরিতে যুক্ত করুন`}
-                                style={{ whiteSpace: 'nowrap' }}
-                              >
-                                {purchasingId === item.id ? '...' : '🛒 কেনা হয়েছে'}
-                              </button>
+                              {/* Purchase button only allowed for the user who added it */}
+                              {isMyItem && (
+                                <button
+                                  className="btn btn-sm btn-gold"
+                                  onClick={() => handlePurchased(item)}
+                                  disabled={purchasingId === item.id}
+                                  title="বইটি কেনা হয়েছে হিসেবে মার্ক করুন এবং আপনার লাইব্রেরিতে যুক্ত করুন"
+                                  style={{ whiteSpace: 'nowrap' }}
+                                >
+                                  {purchasingId === item.id ? '...' : '🛒 কেনা হয়েছে'}
+                                </button>
+                              )}
 
                               {/* Edit only allowed for the user who added it */}
                               {isMyItem ? (

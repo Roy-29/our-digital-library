@@ -23,6 +23,9 @@ export default function LendingPage() {
   const [dateLent, setDateLent] = useState(new Date().toISOString().split('T')[0]);
   const [expectedReturn, setExpectedReturn] = useState('');
   const [lendNotes, setLendNotes] = useState('');
+  const [editingLendId, setEditingLendId] = useState<string | null>(null);
+  const [deleteLendId, setDeleteLendId] = useState<string | null>(null);
+  const [isReturned, setIsReturned] = useState(false);
 
   // Borrower Modal State (Add/Edit)
   const [showBorrowerModal, setShowBorrowerModal] = useState(false);
@@ -91,47 +94,116 @@ export default function LendingPage() {
 
     const targetBook = books.find(b => b.id === bookId);
     if (user && targetBook && targetBook.owner !== user.id) {
-      toast.error('আপনি শুধুমাত্র নিজের বই ধার দিতে পারবেন!');
+      toast.error('আপনি শুধুমাত্র নিজের বই ধার দিতে/সম্পাদনা করতে পারবেন!');
       return;
     }
 
     const currentLentBy = user?.id || lentBy || 'swapnil';
 
-    const { error } = await supabase.from('lending_records').insert({
-      book_id: bookId,
-      borrower_id: borrowerId,
-      lent_by: currentLentBy,
-      date_lent: dateLent,
-      expected_return_date: expectedReturn || null,
-      notes: lendNotes || null,
-    });
+    if (editingLendId) {
+      // Editing existing record
+      const oldRecord = records.find(r => r.id === editingLendId);
+      
+      const { error } = await supabase.from('lending_records').update({
+        book_id: bookId,
+        borrower_id: borrowerId,
+        date_lent: dateLent,
+        expected_return_date: expectedReturn || null,
+        notes: lendNotes || null,
+        is_returned: isReturned,
+        ...(isReturned && !oldRecord?.is_returned ? { date_returned: new Date().toISOString().split('T')[0] } : {}),
+        ...(!isReturned ? { date_returned: null } : {})
+      }).eq('id', editingLendId);
 
-    if (error) {
-      toast.error('ব্যর্থ: ' + error.message);
-      return;
+      if (error) {
+        toast.error('আপডেট ব্যর্থ: ' + error.message);
+        return;
+      }
+
+      // If book changed, revert old book status
+      if (oldRecord && oldRecord.book_id !== bookId && !oldRecord.is_returned) {
+        await supabase.from('books').update({ status: 'আছে' }).eq('id', oldRecord.book_id);
+      }
+      const newBookStatus = isReturned ? 'আছে' : 'ধার দেওয়া';
+      await supabase.from('books').update({ status: newBookStatus }).eq('id', bookId);
+
+      toast.success('ধারের তথ্য আপডেট হয়েছে ✅');
+    } else {
+      // Creating new record
+      const { error } = await supabase.from('lending_records').insert({
+        book_id: bookId,
+        borrower_id: borrowerId,
+        lent_by: currentLentBy,
+        date_lent: dateLent,
+        expected_return_date: expectedReturn || null,
+        notes: lendNotes || null,
+      });
+
+      if (error) {
+        toast.error('ব্যর্থ: ' + error.message);
+        return;
+      }
+
+      await supabase.from('books').update({ status: 'ধার দেওয়া' }).eq('id', bookId);
+
+      const bTitle = targetBook?.title || books.find(b => b.id === bookId)?.title;
+      const brName = borrowers.find(b => b.id === borrowerId)?.name;
+
+      await supabase.from('activity_log').insert({
+        user_id: user?.id,
+        action: 'book_lent',
+        entity_type: 'lending',
+        entity_name: bTitle,
+        details: { borrower: brName },
+      });
+
+      toast.success('বই ধার দেওয়া হয়েছে 📤');
     }
 
-    // Update book status
-    await supabase.from('books').update({ status: 'ধার দেওয়া' }).eq('id', bookId);
-
-    const bTitle = targetBook?.title || books.find(b => b.id === bookId)?.title;
-    const brName = borrowers.find(b => b.id === borrowerId)?.name;
-
-    await supabase.from('activity_log').insert({
-      user_id: user?.id,
-      action: 'book_lent',
-      entity_type: 'lending',
-      entity_name: bTitle,
-      details: { borrower: brName },
-    });
-
-    toast.success('বই ধার দেওয়া হয়েছে 📤');
     setShowLendModal(false);
     setBookId('');
     setBorrowerId('');
     setLendNotes('');
     setExpectedReturn('');
+    setEditingLendId(null);
     fetchData();
+  };
+
+  const openEditLending = (record: LendingRecord) => {
+    setEditingLendId(record.id);
+    setBookId(record.book_id || (record as any).bookId || '');
+    setBorrowerId(record.borrower_id || (record as any).borrowerId || '');
+    setDateLent(record.date_lent || new Date().toISOString().split('T')[0]);
+    setExpectedReturn(record.expected_return_date || '');
+    setLendNotes(record.notes || '');
+    setIsReturned(record.is_returned || false);
+    setShowLendModal(true);
+  };
+
+  const handleDeleteLending = async () => {
+    if (!deleteLendId) return;
+    const record = records.find(r => r.id === deleteLendId);
+    
+    if (record) {
+      const bookOwner = record.book?.owner || books.find(b => b.id === (record.book_id || (record as any).bookId))?.owner;
+      if (user && record.lent_by !== user.id && bookOwner !== user.id) {
+        toast.error('আপনি শুধুমাত্র নিজের এন্ট্রি মুছতে পারবেন!');
+        setDeleteLendId(null);
+        return;
+      }
+      
+      const { error } = await supabase.from('lending_records').delete().eq('id', deleteLendId);
+      if (error) {
+        toast.error('মুছতে ব্যর্থ: ' + error.message);
+      } else {
+        if (!record.is_returned) {
+           await supabase.from('books').update({ status: 'আছে' }).eq('id', record.book_id || (record as any).bookId);
+        }
+        toast.success('রেকর্ড মুছে ফেলা হয়েছে 🗑️');
+        fetchData();
+      }
+    }
+    setDeleteLendId(null);
   };
 
   const handleReturn = async (record: LendingRecord) => {
@@ -184,6 +256,8 @@ export default function LendingPage() {
     setExpectedReturn('');
     setDateLent(new Date().toISOString().split('T')[0]);
     setLentBy(user?.id || 'swapnil');
+    setEditingLendId(null);
+    setIsReturned(false);
     setShowLendModal(true);
   };
 
@@ -296,8 +370,10 @@ export default function LendingPage() {
   // Only the logged in user's books can be lent!
   const myAvailableBooks = books.filter(b => 
     (user ? b.owner === user.id : true) && 
-    b.status !== 'ধার দেওয়া' && 
-    b.status !== 'হারিয়ে গেছে'
+    (
+      (b.status !== 'ধার দেওয়া' && b.status !== 'হারিয়ে গেছে') || 
+      (editingLendId && b.id === bookId)
+    )
   );
 
   const filteredBorrowers = borrowers.filter(b => {
@@ -495,21 +571,37 @@ export default function LendingPage() {
                           )}
                         </td>
                         <td>
-                          <div className="actions">
-                            {!r.is_returned && (
-                              (() => {
-                                const bookOwner = r.book?.owner || books.find(b => b.id === (r.book_id || (r as any).bookId))?.owner;
-                                const canManage = !user || r.lent_by === user.id || bookOwner === user.id;
-                                if (canManage) {
-                                  return (
-                                    <button className="btn btn-sm btn-primary" onClick={() => handleReturn(r)}>
-                                      ✅ ফেরত পেয়েছি
+                          <div className="actions" style={{ gap: '6px', justifyContent: 'flex-end' }}>
+                            {(() => {
+                              const bookOwner = r.book?.owner || books.find(b => b.id === (r.book_id || (r as any).bookId))?.owner;
+                              const canManage = !user || r.lent_by === user.id || bookOwner === user.id;
+                              if (canManage) {
+                                return (
+                                  <>
+                                    {!r.is_returned && (
+                                      <button className="btn btn-sm btn-primary" onClick={() => handleReturn(r)} style={{ marginRight: '4px' }}>
+                                        ✅ ফেরত পেয়েছি
+                                      </button>
+                                    )}
+                                    <button
+                                      className="btn btn-ghost btn-icon btn-sm"
+                                      onClick={() => openEditLending(r)}
+                                      title="সম্পাদনা করুন"
+                                    >
+                                      ✏️
                                     </button>
-                                  );
-                                }
-                                return <span className="text-xs text-muted">চলতি ধার</span>;
-                              })()
-                            )}
+                                    <button
+                                      className="btn btn-ghost btn-icon btn-sm"
+                                      onClick={() => setDeleteLendId(r.id)}
+                                      title="মুছে ফেলুন"
+                                    >
+                                      🗑️
+                                    </button>
+                                  </>
+                                );
+                              }
+                              return !r.is_returned ? <span className="text-xs text-muted">চলতি ধার</span> : null;
+                            })()}
                           </div>
                         </td>
                       </tr>
@@ -528,8 +620,8 @@ export default function LendingPage() {
         <div className="modal-overlay" onClick={() => setShowLendModal(false)}>
           <div className="modal" onClick={e => e.stopPropagation()}>
             <div className="modal-header">
-              <h3>📤 বই ধার দিন</h3>
-              <button className="btn btn-ghost btn-icon" onClick={() => setShowLendModal(false)}>✕</button>
+              <h3>{editingLendId ? '✏️ ধার সম্পাদনা করুন' : '📤 বই ধার দিন'}</h3>
+              <button type="button" className="btn btn-ghost btn-icon" onClick={() => setShowLendModal(false)}>✕</button>
             </div>
             <form onSubmit={handleLend}>
               <div className="modal-body">
@@ -596,11 +688,21 @@ export default function LendingPage() {
                   <label className="form-label">নোট</label>
                   <textarea className="form-textarea" placeholder="প্রয়োজনে অতিরিক্ত তথ্য লিখুন..." value={lendNotes} onChange={e => setLendNotes(e.target.value)} />
                 </div>
+                
+                {editingLendId && (
+                  <div className="form-group">
+                    <label className="form-label">অবস্থা</label>
+                    <select className="form-select" value={isReturned ? 'true' : 'false'} onChange={e => setIsReturned(e.target.value === 'true')}>
+                      <option value="false">📤 ধার দেওয়া</option>
+                      <option value="true">✅ ফেরত পাওয়া</option>
+                    </select>
+                  </div>
+                )}
               </div>
 
               <div className="modal-footer">
                 <button type="button" className="btn btn-secondary" onClick={() => setShowLendModal(false)}>বাতিল</button>
-                <button type="submit" className="btn btn-primary">📤 ধার দিন</button>
+                <button type="submit" className="btn btn-primary">{editingLendId ? '✅ আপডেট করুন' : '📤 ধার দিন'}</button>
               </div>
             </form>
           </div>
@@ -726,6 +828,21 @@ export default function LendingPage() {
             <div className="confirm-actions">
               <button className="btn btn-secondary" onClick={() => setDeleteBorrowerId(null)}>বাতিল</button>
               <button className="btn btn-danger" onClick={handleDeleteBorrower}>🗑️ মুছুন</button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ===== DELETE LENDING RECORD DIALOG ===== */}
+      {deleteLendId && (
+        <div className="confirm-overlay" onClick={() => setDeleteLendId(null)}>
+          <div className="confirm-dialog" onClick={e => e.stopPropagation()}>
+            <div className="confirm-icon">⚠️</div>
+            <h3>রেকর্ডটি মুছে ফেলবেন?</h3>
+            <p>এই ধারের তথ্যটি মুছে যাবে।</p>
+            <div className="confirm-actions">
+              <button className="btn btn-secondary" onClick={() => setDeleteLendId(null)}>বাতিল</button>
+              <button className="btn btn-danger" onClick={handleDeleteLending}>🗑️ মুছুন</button>
             </div>
           </div>
         </div>

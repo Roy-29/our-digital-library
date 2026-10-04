@@ -21,13 +21,17 @@ export default function BooksClient({
   categories, 
   genres, 
   authors,
-  publishers = []
+  publishers = [],
+  initialStatus = '',
+  initialOwner = ''
 }: { 
   initialBooks: any[], 
   categories: any[], 
   genres: any[], 
   authors: any[],
-  publishers?: any[]
+  publishers?: any[],
+  initialStatus?: string,
+  initialOwner?: string
 }) {
   const router = useRouter();
   const { user } = useAuth();
@@ -35,8 +39,8 @@ export default function BooksClient({
   const [books, setBooks] = useState(initialBooks);
   const [viewMode, setViewMode] = useState<ViewMode>('list');
   const [search, setSearch] = useState('');
-  const [filterOwner, setFilterOwner] = useState('');
-  const [filterStatus, setFilterStatus] = useState('');
+  const [filterOwner, setFilterOwner] = useState(initialOwner || '');
+  const [filterStatus, setFilterStatus] = useState(initialStatus || '');
   const [filterCategory, setFilterCategory] = useState('');
   const [filterGenre, setFilterGenre] = useState('');
   const [filterAuthor, setFilterAuthor] = useState('');

@@ -22,7 +22,7 @@ export default function PublishersPage() {
 
   useEffect(() => { fetchData(); }, []);
 
-  const fetchData = async () => { setLoading(true); const { data } = await supabase.from('publishers').select('*').order('name'); setPublishers(data || []); setLoading(false); };
+  async function fetchData() { setLoading(true); const { data } = await supabase.from('publishers').select('*').order('name'); setPublishers(data || []); setLoading(false); }
 
   const resetForm = () => { setName(''); setAddress(''); setWebsite(''); setPhone(''); setEmail(''); setEditingId(null); };
 

@@ -5,7 +5,11 @@ import BooksClient from './BooksClient';
 
 export const dynamic = 'force-dynamic'; // Prevent caching
 
-export default async function BooksPage() {
+export default async function BooksPage({
+  searchParams,
+}: {
+  searchParams: { [key: string]: string | string[] | undefined };
+}) {
   const allBooks = await db.select({
     id: books.id,
     title: books.title,
@@ -42,6 +46,8 @@ export default async function BooksPage() {
       genres={allGenres} 
       authors={allAuthors} 
       publishers={allPublishers}
+      initialStatus={typeof searchParams.status === 'string' ? searchParams.status : undefined}
+      initialOwner={typeof searchParams.owner === 'string' ? searchParams.owner : undefined}
     />
   );
 }
