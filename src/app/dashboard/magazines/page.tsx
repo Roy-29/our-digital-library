@@ -96,7 +96,7 @@ export default function MagazinesPage() {
             <button 
               type="button"
               className={`owner-pill ${filterOwner === user.id ? 'active' : ''}`}
-              onClick={() => setFilterOwner(user.id)}
+              onClick={() => setFilterOwner(filterOwner === user.id ? '' : user.id)}
             >
               <span>⭐ আমার ম্যাগাজিন</span>
               <span className="pill-badge">{magazines.filter(m => m.owner === user.id).length}</span>
@@ -105,13 +105,12 @@ export default function MagazinesPage() {
           {OWNERS.map(owner => {
             if (user?.id === owner.value) return null;
             const count = magazines.filter(m => m.owner === owner.value).length;
-            if (count === 0) return null;
             return (
               <button 
                 key={owner.value}
                 type="button"
                 className={`owner-pill ${filterOwner === owner.value ? 'active' : ''}`}
-                onClick={() => setFilterOwner(owner.value)}
+                onClick={() => setFilterOwner(filterOwner === owner.value ? '' : owner.value)}
               >
                 <span>👤 {owner.label}</span>
                 <span className="pill-badge">{count}</span>
