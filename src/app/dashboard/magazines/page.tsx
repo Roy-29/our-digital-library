@@ -120,8 +120,8 @@ export default function MagazinesPage() {
         </div>
 
         {/* Search */}
-        <div className="filters-section" style={{ marginBottom: '24px' }}>
-          <div className="search-box">
+        <div className="books-controls-bar">
+          <div className="books-search-box">
             <span className="search-icon">🔍</span>
             <input 
               type="text" 
@@ -144,11 +144,11 @@ export default function MagazinesPage() {
             <p>আপনার সংগ্রহে এখনও কোনো ম্যাগাজিন যোগ করা হয়নি। নতুন ম্যাগাজিন যোগ করতে উপরের বাটনে ক্লিক করুন।</p>
           </div>
         ) : (
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))', gap: '20px' }}>
+          <div className="books-grid">
             {filteredMagazines.map((mag: any) => (
-              <div key={mag.id} className="card" style={{ display: 'flex', flexDirection: 'column' }}>
-                <div style={{ padding: '20px' }}>
-                  <h3 style={{ fontSize: '1.25rem', fontWeight: 600, marginBottom: '12px', color: '#111827' }}>{mag.title}</h3>
+              <div key={mag.id} className="book-card" style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
+                <div className="book-card-info" style={{ padding: '16px', flexGrow: 1, display: 'flex', flexDirection: 'column' }}>
+                  <h3 className="book-title" style={{ fontSize: '1.25rem', fontWeight: 600, marginBottom: '12px' }}>{mag.title}</h3>
                   
                   {mag.issue_month && (
                     <div className="book-meta">
@@ -171,7 +171,7 @@ export default function MagazinesPage() {
                     </div>
                   )}
                   
-                  <div className="book-card-footer" style={{ marginTop: '16px', gap: '8px', display: 'flex', flexWrap: 'wrap', alignItems: 'center', justifyContent: 'space-between' }}>
+                  <div className="book-card-footer" style={{ marginTop: 'auto', paddingTop: '16px', gap: '8px', display: 'flex', flexWrap: 'wrap', alignItems: 'center', justifyContent: 'space-between' }}>
                     <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
                       <span className={`status-badge status-${mag.status === 'আছে' ? 'owned' : 'missing'}`}>
                         {mag.status}
