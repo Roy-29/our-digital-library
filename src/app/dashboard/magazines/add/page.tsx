@@ -129,7 +129,6 @@ export default function AddMagazinePage() {
                     placeholder="যেমন: ১৪" 
                   />
                 </div>
-              </div>
             </div>
           </div>
 
