@@ -4,7 +4,7 @@ import { db, client } from '@/db';
 import { eq, desc, asc } from 'drizzle-orm';
 import { 
   profiles, authors, publishers, categories, genres, borrowers, 
-  rooms, shelves, racks, wishlist, activityLog, books, lendingRecords
+  rooms, shelves, racks, wishlist, activityLog, books, lendingRecords, magazines
 } from '@/db/schema';
 import { revalidatePath } from 'next/cache';
 import { BACKUP_TABLES } from '@/lib/types';
@@ -25,6 +25,7 @@ const getTable = (tableName: string) => {
     case 'activity_log': return activityLog;
     case 'books': return books;
     case 'lending_records': return lendingRecords;
+    case 'magazines': return magazines;
     default: throw new Error(`Unknown table: ${tableName}`);
   }
 };
