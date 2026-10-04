@@ -3,11 +3,15 @@
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { createClient } from '@/lib/supabase';
-import { enToBnNumber } from '@/lib/types';
+import { enToBnNumber, getOwnerLabel } from '@/lib/types';
+import { useAuth } from '@/contexts/AuthContext';
+import { toast } from 'react-hot-toast';
+import { Trash2, Edit2 } from 'lucide-react';
 
 export default function MagazinesPage() {
   const [magazines, setMagazines] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const { user } = useAuth();
   const supabase = createClient();
   
   useEffect(() => {
@@ -23,8 +27,36 @@ export default function MagazinesPage() {
         setLoading(false);
       }
     }
+    }
     fetchMagazines();
   }, []);
+
+  const handleDelete = async (id: string, title: string) => {
+    if (!confirm(`আপনি কি নিশ্চিত যে আপনি "${title}" ম্যাগাজিনটি মুছে ফেলতে চান?`)) {
+      return;
+    }
+
+    try {
+      const { error } = await supabase.from('magazines').delete().eq('id', id);
+      if (error) throw error;
+      
+      toast.success('ম্যাগাজিন মুছে ফেলা হয়েছে');
+      setMagazines(magazines.filter(m => m.id !== id));
+      
+      if (user?.id) {
+        await supabase.from('activity_log').insert({
+          user_id: user.id,
+          action: 'magazine_deleted',
+          entity_type: 'magazine',
+          entity_id: id,
+          entity_name: title,
+          details: { owner: user.id },
+        });
+      }
+    } catch (err: any) {
+      toast.error('ম্যাগাজিন মুছতে সমস্যা: ' + err.message);
+    }
+  };
   
   return (
     <>
@@ -77,10 +109,34 @@ export default function MagazinesPage() {
                     </div>
                   )}
                   
-                  <div className="book-card-footer" style={{ marginTop: '16px', gap: '8px', display: 'flex', flexWrap: 'wrap' }}>
-                    <span className={`status-badge status-${mag.status === 'আছে' ? 'owned' : 'missing'}`}>
-                      {mag.status}
-                    </span>
+                  <div className="book-card-footer" style={{ marginTop: '16px', gap: '8px', display: 'flex', flexWrap: 'wrap', alignItems: 'center', justifyContent: 'space-between' }}>
+                    <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+                      <span className={`status-badge status-${mag.status === 'আছে' ? 'owned' : 'missing'}`}>
+                        {mag.status}
+                      </span>
+                      <span className="badge badge-gray" style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+                        👤 {getOwnerLabel(mag.owner)}
+                        {user?.id === mag.owner && (
+                          <span style={{ color: '#10b981', fontSize: '0.8rem' }}> (✅ আপনি)</span>
+                        )}
+                      </span>
+                    </div>
+                    
+                    {user?.id === mag.owner && (
+                      <div style={{ display: 'flex', gap: '8px' }}>
+                        <Link href={`/dashboard/magazines/${mag.id}/edit`} className="btn btn-ghost btn-icon" title="এডিট করুন" style={{ padding: '4px' }}>
+                          <Edit2 size={16} />
+                        </Link>
+                        <button 
+                          onClick={() => handleDelete(mag.id, mag.title)}
+                          className="btn btn-ghost btn-icon" 
+                          title="ডিলিট করুন"
+                          style={{ padding: '4px', color: '#ef4444' }}
+                        >
+                          <Trash2 size={16} />
+                        </button>
+                      </div>
+                    )}
                   </div>
                 </div>
               </div>
