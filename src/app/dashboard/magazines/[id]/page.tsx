@@ -447,7 +447,7 @@ export default function ViewMagazinePage({ params }: { params: Promise<{ id: str
                         }}
                         style={{ fontFamily: 'var(--font-serif)', height: '42px', flex: 1, minWidth: '95px' }}
                       >
-                        <option value="1">১ কপি (ডিফল্ট)</option>
+                        <option value="1">১ কপি</option>
                         <option value="2">২ কপি</option>
                         <option value="3">৩ কপি</option>
                         <option value="4">৪ কপি</option>

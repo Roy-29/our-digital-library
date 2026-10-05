@@ -655,7 +655,7 @@ export default function EditBookPage() {
                         }}
                         style={{ fontFamily: 'var(--font-serif)', flex: 1 }}
                       >
-                        <option value={1} style={{ fontFamily: 'var(--font-serif)' }}>১ কপি (ডিফল্ট)</option>
+                        <option value={1} style={{ fontFamily: 'var(--font-serif)' }}>১ কপি</option>
                         <option value={2} style={{ fontFamily: 'var(--font-serif)' }}>২ কপি</option>
                         <option value={3} style={{ fontFamily: 'var(--font-serif)' }}>৩ কপি</option>
                         <option value={4} style={{ fontFamily: 'var(--font-serif)' }}>৪ কপি</option>
@@ -810,7 +810,7 @@ export default function EditBookPage() {
                         }}
                         style={{ height: '42px', width: '100%' }}
                       >
-                        <option value="বাংলা">বাংলা (ডিফল্ট)</option>
+                        <option value="বাংলা">বাংলা</option>
                         <option value="English">English</option>
                         <option value="custom">✏️ অন্যান্য (নিজে লিখুন)...</option>
                       </select>
