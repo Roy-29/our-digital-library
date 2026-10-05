@@ -115,6 +115,7 @@ export default function AddBookPage() {
   const [subtitle, setSubtitle] = useState('');
   const [isbn, setIsbn] = useState('');
   const [language, setLanguage] = useState('বাংলা');
+  const [isCustomLanguage, setIsCustomLanguage] = useState(false);
   const [edition, setEdition] = useState('');
   const [pubYear, setPubYear] = useState('');
   const [pageCount, setPageCount] = useState('');
@@ -675,7 +676,39 @@ export default function AddBookPage() {
                 <div className="form-row">
                   <div className="form-group">
                     <label className="form-label">ভাষা</label>
-                    <input className="form-input" value={language} onChange={e => setLanguage(e.target.value)} />
+                    <div style={{ display: 'flex', flexDirection: isCustomLanguage ? 'column' : 'row', gap: '8px' }}>
+                      <select 
+                        className="form-select" 
+                        value={isCustomLanguage ? 'custom' : (['বাংলা', 'English'].includes(language) ? language : 'custom')} 
+                        onChange={e => {
+                          if (e.target.value === 'custom') {
+                            setIsCustomLanguage(true);
+                            if (language === 'বাংলা' || language === 'English') {
+                              setLanguage('');
+                            }
+                          } else {
+                            setIsCustomLanguage(false);
+                            setLanguage(e.target.value);
+                          }
+                        }}
+                        style={{ height: '42px', width: '100%' }}
+                      >
+                        <option value="বাংলা">বাংলা (ডিফল্ট)</option>
+                        <option value="English">English</option>
+                        <option value="custom">✏️ অন্যান্য (নিজে লিখুন)...</option>
+                      </select>
+                      {isCustomLanguage && (
+                        <input 
+                          className="form-input" 
+                          type="text"
+                          value={language} 
+                          onChange={e => setLanguage(e.target.value)} 
+                          placeholder="ভাষার নাম লিখুন (যেমন: আরবি, ফারসি)" 
+                          style={{ height: '42px', width: '100%' }}
+                          autoFocus
+                        />
+                      )}
+                    </div>
                   </div>
                   <div className="form-group">
                     <label className="form-label">সংস্করণ</label>
