@@ -21,12 +21,20 @@ export default function AddMagazinePage() {
   const [volume, setVolume] = useState('');
   const [publisher, setPublisher] = useState('');
   const [status, setStatus] = useState('আছে');
+  const [copies, setCopies] = useState('1');
+  const [isCustomCopies, setIsCustomCopies] = useState(false);
 
   const handleYearInput = (inputVal: string, setter: (val: string) => void) => {
     const englishVal = bnToEnNumber(inputVal);
     const cleanVal = englishVal.replace(/\D/g, '');
     const truncated = cleanVal.slice(0, 4);
     setter(truncated);
+  };
+
+  const handleCopiesInput = (inputVal: string, setter: (val: string) => void) => {
+    const englishVal = bnToEnNumber(inputVal);
+    const cleanVal = englishVal.replace(/\D/g, '');
+    setter(cleanVal);
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -85,7 +93,7 @@ export default function AddMagazinePage() {
           issue_year: issueYear ? parseInt(bnToEnNumber(issueYear)) : null,
           volume: volume.trim() || null,
           status: status,
-          copies: 1,
+          copies: copies ? parseInt(bnToEnNumber(copies)) : 1,
           created_at: new Date().toISOString(),
           updated_at: new Date().toISOString(),
         };
@@ -182,17 +190,18 @@ export default function AddMagazinePage() {
                 <div className="form-group">
                   <label className="form-label">সাল (Year)</label>
                   <input 
-                    className="form-input" 
+                    className="form-input font-serif" 
                     type="text"
                     inputMode="numeric"
                     value={enToBnNumber(issueYear)} 
                     onChange={e => handleYearInput(e.target.value, setIssueYear)} 
                     placeholder="যেমন: ২০২৪" 
+                    style={{ fontFamily: 'var(--font-serif)' }}
                   />
                 </div>
               </div>
 
-              <div className="form-row">
+              <div className="form-row" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '16px' }}>
                 <div className="form-group">
                   <label className="form-label">সংখ্যা (Volume/Issue)</label>
                   <input 
@@ -201,6 +210,43 @@ export default function AddMagazinePage() {
                     onChange={e => setVolume(e.target.value)} 
                     placeholder="যেমন: ১৪" 
                   />
+                </div>
+                <div className="form-group">
+                  <label className="form-label">কপি</label>
+                  <div style={{ display: 'flex', gap: '6px' }}>
+                    <select 
+                      className="form-select font-serif" 
+                      value={isCustomCopies ? 'custom' : (['1', '2', '3', '4', '5'].includes(copies) ? copies : 'custom')} 
+                      onChange={e => {
+                        if (e.target.value === 'custom') {
+                          setIsCustomCopies(true);
+                        } else {
+                          setIsCustomCopies(false);
+                          setCopies(e.target.value);
+                        }
+                      }}
+                      style={{ fontFamily: 'var(--font-serif)', height: '42px', flex: 1 }}
+                    >
+                      <option value="1">১ কপি (ডিফল্ট)</option>
+                      <option value="2">২ কপি</option>
+                      <option value="3">৩ কপি</option>
+                      <option value="4">৪ কপি</option>
+                      <option value="5">৫ কপি</option>
+                      <option value="custom">✏️ অন্যান্য...</option>
+                    </select>
+                    {isCustomCopies && (
+                      <input 
+                        className="form-input font-serif" 
+                        type="text"
+                        inputMode="numeric"
+                        value={copies === '0' ? '' : enToBnNumber(copies)} 
+                        onChange={e => handleCopiesInput(e.target.value, setCopies)} 
+                        placeholder="সংখ্যা" 
+                        style={{ fontFamily: 'var(--font-serif)', height: '42px', width: '70px', padding: '6px 8px' }}
+                        autoFocus
+                      />
+                    )}
+                  </div>
                 </div>
                 <div className="form-group">
                   <label className="form-label">অবস্থা</label>

@@ -35,7 +35,12 @@ export default function EditMagazinePage({ params }: { params: Promise<{ id: str
           }
           
           setTitle(data.title || '');
-          setPublisher(data.publisher?.name || '');
+          if (data.publisher?.name) {
+            setPublisher(data.publisher.name);
+          } else if (data.publisher_id) {
+            const { data: pubData } = await supabase.from('publishers').select('name').eq('id', data.publisher_id).single();
+            if (pubData) setPublisher(pubData.name || '');
+          }
         }
       } catch (err: any) {
         toast.error('তথ্য লোড করতে সমস্যা: ' + err.message);

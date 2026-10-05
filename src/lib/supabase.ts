@@ -15,8 +15,12 @@ export const createClient = () => {
         action: 'select',
         _select: '*',
         _order: null as any,
-        _eq: [] as any[],
+        _eq: [] as { col: string; val: any }[],
+        _neq: [] as { col: string; val: any }[],
+        _ilike: [] as { col: string; val: any; caseSensitive?: boolean }[],
+        _in: [] as { col: string; vals: any[] }[],
         _limit: null as number | null,
+        _single: false,
       };
 
       const chain = {
@@ -33,12 +37,52 @@ export const createClient = () => {
           currentQuery._eq.push({ col, val });
           return chain;
         },
+        neq: (col: string, val: any) => {
+          currentQuery._neq.push({ col, val });
+          return chain;
+        },
+        ilike: (col: string, val: any) => {
+          currentQuery._ilike.push({ col, val, caseSensitive: false });
+          return chain;
+        },
+        like: (col: string, val: any) => {
+          currentQuery._ilike.push({ col, val, caseSensitive: true });
+          return chain;
+        },
+        in: (col: string, vals: any[]) => {
+          currentQuery._in.push({ col, vals });
+          return chain;
+        },
+        is: (col: string, val: any) => {
+          currentQuery._eq.push({ col, val });
+          return chain;
+        },
+        filter: (col: string, operator: string, val: any) => {
+          if (operator === 'eq') currentQuery._eq.push({ col, val });
+          else if (operator === 'neq') currentQuery._neq.push({ col, val });
+          else if (operator === 'ilike') currentQuery._ilike.push({ col, val, caseSensitive: false });
+          else if (operator === 'like') currentQuery._ilike.push({ col, val, caseSensitive: true });
+          else if (operator === 'in') currentQuery._in.push({ col, vals: val });
+          return chain;
+        },
+        not: (col: string, operator: string, val: any) => {
+          if (operator === 'eq') currentQuery._neq.push({ col, val });
+          return chain;
+        },
+        range: (from: number, to: number) => {
+          currentQuery._limit = to - from + 1;
+          return chain;
+        },
         limit: (n: number) => {
           currentQuery._limit = n;
           return chain;
         },
         single: () => {
-          (currentQuery as any)._single = true;
+          currentQuery._single = true;
+          return chain;
+        },
+        maybeSingle: () => {
+          currentQuery._single = true;
           return chain;
         },
         upsert: (data: any, _opts?: any) => {
@@ -168,14 +212,67 @@ export const createClient = () => {
               orderCol, 
               currentQuery._order?.ascending
             ).then(data => {
-              let filtered = data;
+              let filtered = Array.isArray(data) ? [...data] : [];
+
+              const getRowVal = (row: any, col: string) => {
+                if (!row) return undefined;
+                if (row[col] !== undefined) return row[col];
+                const camel = col.replace(/_([a-z])/g, (_: string, g: string) => g.toUpperCase());
+                return row[camel];
+              };
+
               if (currentQuery._eq.length > 0) {
                 filtered = filtered.filter((row: any) => {
                   return currentQuery._eq.every(cond => {
-                    return row[cond.col] === cond.val || row[cond.col.replace(/_([a-z])/g, (g: string) => g[1].toUpperCase())] === cond.val;
+                    const rowVal = getRowVal(row, cond.col);
+                    return rowVal === cond.val || (typeof rowVal === 'boolean' && rowVal === Boolean(cond.val));
                   });
                 });
               }
+
+              if (currentQuery._neq.length > 0) {
+                filtered = filtered.filter((row: any) => {
+                  return currentQuery._neq.every(cond => {
+                    const rowVal = getRowVal(row, cond.col);
+                    return rowVal !== cond.val;
+                  });
+                });
+              }
+
+              if (currentQuery._in.length > 0) {
+                filtered = filtered.filter((row: any) => {
+                  return currentQuery._in.every(cond => {
+                    const rowVal = getRowVal(row, cond.col);
+                    return Array.isArray(cond.vals) && cond.vals.includes(rowVal);
+                  });
+                });
+              }
+
+              if (currentQuery._ilike.length > 0) {
+                filtered = filtered.filter((row: any) => {
+                  return currentQuery._ilike.every(cond => {
+                    const rowVal = getRowVal(row, cond.col);
+                    if (rowVal === null || rowVal === undefined) return false;
+                    const targetStr = String(cond.val);
+                    const rowStr = String(rowVal);
+
+                    if (targetStr.includes('%') || targetStr.includes('_')) {
+                      const regexStr = '^' + targetStr
+                        .replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
+                        .replace(/%/g, '.*')
+                        .replace(/_/g, '.') + '$';
+                      const regex = new RegExp(regexStr, cond.caseSensitive ? '' : 'i');
+                      return regex.test(rowStr);
+                    }
+
+                    if (cond.caseSensitive) {
+                      return rowStr === targetStr;
+                    }
+                    return rowStr.toLowerCase() === targetStr.toLowerCase();
+                  });
+                });
+              }
+
               if (currentQuery._limit) {
                 filtered = filtered.slice(0, currentQuery._limit);
               }
@@ -187,7 +284,7 @@ export const createClient = () => {
                  }
                  return newRow;
               });
-              const result = (currentQuery as any)._single ? { data: mapped[0] || null, error: null } : { data: mapped, error: null };
+              const result = currentQuery._single ? { data: mapped[0] || null, error: null } : { data: mapped, error: null };
               
               if (onfulfilled) {
                 resolve(onfulfilled(result));
@@ -204,6 +301,9 @@ export const createClient = () => {
               }
             });
           });
+        },
+        catch: (onrejected?: any) => {
+          return (chain as any).then(null, onrejected);
         }
       };
       

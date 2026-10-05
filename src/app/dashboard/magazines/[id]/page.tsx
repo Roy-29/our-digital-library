@@ -24,10 +24,12 @@ export default function ViewMagazinePage({ params }: { params: Promise<{ id: str
   const [newVolume, setNewVolume] = useState('');
   const [newStatus, setNewStatus] = useState('আছে');
   const [newCopies, setNewCopies] = useState('1');
+  const [isCustomNewCopies, setIsCustomNewCopies] = useState(false);
   const [addingIssue, setAddingIssue] = useState(false);
   
   const [editingIssueId, setEditingIssueId] = useState<string | null>(null);
   const [editIssueForm, setEditIssueForm] = useState({ month: '', year: '', volume: '', status: 'আছে', copies: '1' });
+  const [isCustomEditCopies, setIsCustomEditCopies] = useState(false);
 
   const handleYearInput = (inputVal: string, setter: (val: string) => void) => {
     const englishVal = bnToEnNumber(inputVal);
@@ -92,6 +94,7 @@ export default function ViewMagazinePage({ params }: { params: Promise<{ id: str
         setNewYear('');
         setNewVolume('');
         setNewCopies('1');
+        setIsCustomNewCopies(false);
         toast.success('নতুন ইস্যু যোগ করা হয়েছে! 📰');
       }
     } catch (err: any) {
@@ -103,13 +106,15 @@ export default function ViewMagazinePage({ params }: { params: Promise<{ id: str
 
   const startEditingIssue = (issue: any) => {
     setEditingIssueId(issue.id);
+    const cp = issue.copies ? issue.copies.toString() : '1';
     setEditIssueForm({
       month: issue.issue_month || '',
       year: issue.issue_year ? issue.issue_year.toString() : '',
       volume: issue.volume || '',
       status: issue.status || 'আছে',
-      copies: issue.copies ? issue.copies.toString() : '1'
+      copies: cp
     });
+    setIsCustomEditCopies(!['1', '2', '3', '4', '5'].includes(cp));
   };
 
   const handleSaveIssueEdit = async (issueId: string) => {
@@ -300,7 +305,40 @@ export default function ViewMagazinePage({ params }: { params: Promise<{ id: str
                               <input className="form-input" style={{ width: '120px', padding: '4px 8px' }} placeholder="সংখ্যা" value={editIssueForm.volume} onChange={e => setEditIssueForm({...editIssueForm, volume: e.target.value})} />
                             </td>
                             <td style={{ padding: '8px 16px' }}>
-                              <input className="form-input font-serif" style={{ width: '60px', padding: '4px 8px', fontFamily: 'var(--font-serif)' }} type="text" inputMode="numeric" value={enToBnNumber(editIssueForm.copies)} onChange={e => handleCopiesInput(e.target.value, val => setEditIssueForm({...editIssueForm, copies: val}))} list="copies-datalist" />
+                              <div style={{ display: 'flex', gap: '4px', alignItems: 'center' }}>
+                                <select
+                                  className="form-select font-serif"
+                                  value={isCustomEditCopies ? 'custom' : (['1', '2', '3', '4', '5'].includes(editIssueForm.copies) ? editIssueForm.copies : 'custom')}
+                                  onChange={e => {
+                                    if (e.target.value === 'custom') {
+                                      setIsCustomEditCopies(true);
+                                    } else {
+                                      setIsCustomEditCopies(false);
+                                      setEditIssueForm({ ...editIssueForm, copies: e.target.value });
+                                    }
+                                  }}
+                                  style={{ fontFamily: 'var(--font-serif)', height: '34px', padding: '4px 26px 4px 6px', fontSize: '0.85rem', minWidth: '85px' }}
+                                >
+                                  <option value="1">১ কপি</option>
+                                  <option value="2">২ কপি</option>
+                                  <option value="3">৩ কপি</option>
+                                  <option value="4">৪ কপি</option>
+                                  <option value="5">৫ কপি</option>
+                                  <option value="custom">✏️ অন্য...</option>
+                                </select>
+                                {isCustomEditCopies && (
+                                  <input
+                                    className="form-input font-serif"
+                                    style={{ width: '55px', padding: '4px 6px', height: '34px', fontFamily: 'var(--font-serif)', fontSize: '0.85rem' }}
+                                    type="text"
+                                    inputMode="numeric"
+                                    value={enToBnNumber(editIssueForm.copies)}
+                                    onChange={e => handleCopiesInput(e.target.value, val => setEditIssueForm({ ...editIssueForm, copies: val }))}
+                                    placeholder="কপি"
+                                    autoFocus
+                                  />
+                                )}
+                              </div>
                             </td>
                             <td style={{ padding: '8px 16px' }}>
                               <select className="form-input" style={{ padding: '4px 8px' }} value={editIssueForm.status} onChange={e => setEditIssueForm({...editIssueForm, status: e.target.value})}>
@@ -322,8 +360,8 @@ export default function ViewMagazinePage({ params }: { params: Promise<{ id: str
                               <div style={{ fontSize: '0.85rem', color: 'var(--text-secondary)' }}>{issue.issue_month || '-'}</div>
                             </td>
                             <td style={{ padding: '12px 16px', color: 'var(--text-secondary)' }}>{issue.volume || '-'}</td>
-                            <td style={{ padding: '12px 16px', color: 'var(--text-primary)', fontWeight: 600, fontFamily: 'var(--font-serif)', fontSize: '1.1rem' }}>
-                              {enToBnNumber(issue.copies?.toString() || '1')} টি
+                            <td style={{ padding: '12px 16px', color: 'var(--text-secondary)', fontFamily: 'var(--font-serif)', fontSize: '0.95rem' }}>
+                              <span style={{ fontWeight: 600, color: 'var(--text-primary)' }}>{enToBnNumber(issue.copies?.toString() || '1')}</span> কপি
                             </td>
                             <td style={{ padding: '12px 16px' }}>
                               <span className={`status-badge status-${issue.status === 'আছে' ? 'owned' : 'missing'}`}>
@@ -395,16 +433,40 @@ export default function ViewMagazinePage({ params }: { params: Promise<{ id: str
                   </div>
                   <div className="form-group" style={{ marginBottom: 0 }}>
                     <label className="form-label" style={{ fontSize: '0.8rem' }}>কপি</label>
-                    <input 
-                      className="form-input font-serif" 
-                      type="text"
-                      inputMode="numeric"
-                      value={enToBnNumber(newCopies)} 
-                      onChange={e => handleCopiesInput(e.target.value, setNewCopies)} 
-                      placeholder="যেমন: ১" 
-                      list="copies-datalist"
-                      style={{ fontFamily: 'var(--font-serif)' }}
-                    />
+                    <div style={{ display: 'flex', gap: '6px' }}>
+                      <select 
+                        className="form-select font-serif" 
+                        value={isCustomNewCopies ? 'custom' : (['1', '2', '3', '4', '5'].includes(newCopies) ? newCopies : 'custom')} 
+                        onChange={e => {
+                          if (e.target.value === 'custom') {
+                            setIsCustomNewCopies(true);
+                          } else {
+                            setIsCustomNewCopies(false);
+                            setNewCopies(e.target.value);
+                          }
+                        }}
+                        style={{ fontFamily: 'var(--font-serif)', height: '42px', flex: 1, minWidth: '95px' }}
+                      >
+                        <option value="1">১ কপি (ডিফল্ট)</option>
+                        <option value="2">২ কপি</option>
+                        <option value="3">৩ কপি</option>
+                        <option value="4">৪ কপি</option>
+                        <option value="5">৫ কপি</option>
+                        <option value="custom">✏️ অন্যান্য...</option>
+                      </select>
+                      {isCustomNewCopies && (
+                        <input 
+                          className="form-input font-serif" 
+                          type="text"
+                          inputMode="numeric"
+                          value={newCopies === '0' ? '' : enToBnNumber(newCopies)} 
+                          onChange={e => handleCopiesInput(e.target.value, setNewCopies)} 
+                          placeholder="সংখ্যা" 
+                          style={{ fontFamily: 'var(--font-serif)', height: '42px', width: '70px', padding: '6px 8px' }}
+                          autoFocus
+                        />
+                      )}
+                    </div>
                   </div>
                   <div className="form-group" style={{ marginBottom: 0 }}>
                     <label className="form-label" style={{ fontSize: '0.8rem' }}>অবস্থা</label>
