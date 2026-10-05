@@ -26,7 +26,7 @@ const TABLE_LABELS: Record<string, string> = {
 
 const CSV_OPTIONS = [
   { table: 'books', label: 'বইয়ের তালিকা', icon: '📚' },
-  { table: 'authors', label: 'লেখক তালিকা', icon: '✍️' },
+  { table: 'authors', label: 'লেখক তালিকা', icon: '✍🏻' },
   { table: 'publishers', label: 'প্রকাশক তালিকা', icon: '🏢' },
   { table: 'wishlist', label: 'উইশলিস্ট', icon: '🛒' },
   { table: 'borrowers', label: 'ধারগ্রহীতা', icon: '👥' },

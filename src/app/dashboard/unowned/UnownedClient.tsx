@@ -7,6 +7,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { createClient } from '@/lib/supabase';
 import toast from 'react-hot-toast';
 import Link from 'next/link';
+import { BanglaDateInput } from '@/components/BanglaDateInput';
 
 type ViewMode = 'grid' | 'list';
 
@@ -826,20 +827,16 @@ export default function UnownedClient({
                 <div className="form-row">
                   <div className="form-group">
                     <label className="form-label">পড়া শুরু</label>
-                    <input
-                      type="date"
-                      className="form-input"
+                    <BanglaDateInput
                       value={newReadingStartDate}
-                      onChange={(e) => setNewReadingStartDate(e.target.value)}
+                      onChange={setNewReadingStartDate}
                     />
                   </div>
                   <div className="form-group">
                     <label className="form-label">পড়া শেষ</label>
-                    <input
-                      type="date"
-                      className="form-input"
+                    <BanglaDateInput
                       value={newReadingFinishDate}
-                      onChange={(e) => setNewReadingFinishDate(e.target.value)}
+                      onChange={setNewReadingFinishDate}
                     />
                   </div>
                 </div>

@@ -476,7 +476,7 @@ export default function SortClient({
                 <div className="sort-filters-grid-3">
                   <div className="form-group" style={{ margin: 0 }}>
                     <label className="form-label" style={{ fontSize: '0.84rem', fontWeight: 600, color: 'var(--text-secondary)' }}>
-                      ✍️ লেখক
+                      ✍🏻 লেখক
                     </label>
                     <select
                       className="filter-select"
@@ -899,7 +899,7 @@ export default function SortClient({
                   <div className="book-info" style={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
                     <h4 className="book-title">{book.title}</h4>
                     <p className="book-author">
-                      ✍️ {book.authorNameBn || book.authorName || 'অজানা লেখক'}
+                      ✍🏻 {book.authorNameBn || book.authorName || 'অজানা লেখক'}
                     </p>
                     {book.translatorName && (
                       <p className="text-xs text-muted" style={{ margin: '2px 0' }}>
@@ -976,7 +976,7 @@ export default function SortClient({
                               <div className="text-xs text-muted" style={{ fontStyle: 'italic' }}>{book.titleOriginal}</div>
                             )}
                             <div style={{ fontSize: '0.82rem', color: 'var(--text-secondary)', marginTop: '2px' }}>
-                              ✍️ {book.authorNameBn || book.authorName || '—'}
+                              ✍🏻 {book.authorNameBn || book.authorName || '—'}
                               {book.translatorName && (
                                 <span className="text-xs text-muted" style={{ marginLeft: '6px' }}>
                                   (🔄 {book.translatorNameBn || book.translatorName})

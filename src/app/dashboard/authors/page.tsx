@@ -161,7 +161,7 @@ export default function AuthorsPage() {
     <>
       <div className="page-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '16px' }}>
         <div>
-          <h2>{viewMode === 'authors' ? `✍️ লেখক তালিকা (${filtered.length})` : viewMode === 'translators' ? `🔄 অনুবাদক তালিকা (${filtered.length})` : `🎨 আঁকিয়ে তালিকা (${filtered.length})`}</h2>
+          <h2>{viewMode === 'authors' ? `✍🏻 লেখক তালিকা (${filtered.length})` : viewMode === 'translators' ? `🔄 অনুবাদক তালিকা (${filtered.length})` : `🎨 আঁকিয়ে তালিকা (${filtered.length})`}</h2>
           <p style={{ margin: '4px 0 0 0', fontSize: '0.85rem', color: 'var(--text-secondary)' }}>
             {viewMode === 'authors' ? 'বইয়ের মূল লেখকদের তালিকা ও তথ্য পরিচালনা' : viewMode === 'translators' ? 'অনূদিত বইয়ের অনুবাদকদের তালিকা ও তথ্য পরিচালনা' : 'বইয়ের প্রচ্ছদ ও অলংকরণ শিল্পীদের তালিকা পরিচালনা'}
           </p>
@@ -181,7 +181,7 @@ export default function AuthorsPage() {
             className={`tab ${viewMode === 'authors' ? 'active' : ''}`}
             onClick={() => { setViewMode('authors'); setSearch(''); }}
           >
-            ✍️ লেখক তালিকা ({authorsList.length})
+            ✍🏻 লেখক তালিকা ({authorsList.length})
           </button>
           <button 
             type="button"
@@ -212,7 +212,7 @@ export default function AuthorsPage() {
           <div className="loading-inline"><div className="spinner" /></div>
         ) : filtered.length === 0 ? (
           <div className="empty-state">
-            <div className="empty-icon">{viewMode === 'authors' ? '✍️' : viewMode === 'translators' ? '🔄' : '🎨'}</div>
+            <div className="empty-icon">{viewMode === 'authors' ? '✍🏻' : viewMode === 'translators' ? '🔄' : '🎨'}</div>
             <h3>{viewMode === 'authors' ? 'কোনো লেখক নেই' : viewMode === 'translators' ? 'কোনো অনুবাদক নেই' : 'কোনো আঁকিয়ে নেই'}</h3>
             <p>{viewMode === 'authors' ? 'নতুন লেখক যোগ করুন' : viewMode === 'translators' ? 'নতুন অনুবাদক যোগ করুন' : 'নতুন আঁকিয়ে যোগ করুন'}</p>
             <button type="button" className="btn btn-primary" style={{ marginTop: '12px' }} onClick={openAdd}>
@@ -235,7 +235,7 @@ export default function AuthorsPage() {
                 {filtered.map(a => (
                   <tr key={a.id}>
                     <td style={{ fontWeight: 500 }}>
-                      <span style={{ marginRight: '6px' }}>{viewMode === 'authors' ? '✍️' : viewMode === 'translators' ? '🔄' : '🎨'}</span>
+                      <span style={{ marginRight: '6px' }}>{viewMode === 'authors' ? '✍🏻' : viewMode === 'translators' ? '🔄' : '🎨'}</span>
                       {a.name_bn || a.name}
                     </td>
                     <td>{a.nationality || '—'}</td>

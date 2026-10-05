@@ -13,7 +13,7 @@ const MENU_ITEMS = [
   { href: '/dashboard/lending', icon: '📤', label: 'ধার দেওয়া', desc: 'ধার দেওয়া বই পরিচালনা' },
   { href: '/dashboard/wishlist', icon: '🛒', label: 'উইশলিস্ট', desc: 'কিনতে চাওয়া বইয়ের তালিকা' },
   { href: '/dashboard/unowned', icon: '🔖', label: 'আমার কাছে নেই', desc: 'পড়া বা কিনতে চাওয়া বই যা সংগ্রহে নেই' },
-  { href: '/dashboard/authors', icon: '✍️', label: 'লেখক', desc: 'লেখক যোগ/সম্পাদনা' },
+  { href: '/dashboard/authors', icon: '✍🏻', label: 'লেখক', desc: 'লেখক যোগ/সম্পাদনা' },
   { href: '/dashboard/publishers', icon: '🏢', label: 'প্রকাশক', desc: 'প্রকাশক পরিচালনা' },
   { href: '/dashboard/categories', icon: '🏷️', label: 'Category / Genre', desc: 'ক্যাটাগরি ও ধরন' },
   { href: '/dashboard/activity', icon: '📋', label: 'কার্যকলাপ', desc: 'সব কার্যকলাপের ইতিহাস' },

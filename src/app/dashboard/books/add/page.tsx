@@ -6,6 +6,9 @@ import { createClient } from '@/lib/supabase';
 import { Author, Publisher, Category, Genre, Room, Shelf, Rack, BOOK_STATUSES, READING_STATUSES, OWNERS, BookStatus, ReadingStatus, BookOwner, BookCondition, getOwnerLabel, enToBnNumber, bnToEnNumber } from '@/lib/types';
 import { useAuth } from '@/contexts/AuthContext';
 import toast from 'react-hot-toast';
+// @ts-ignore
+import * as ISBN from 'isbn3';
+import { BanglaDateInput } from '@/components/BanglaDateInput';
 
 export default function AddBookPage() {
   const router = useRouter();
@@ -124,6 +127,7 @@ export default function AddBookPage() {
   const [categoryId, setCategoryId] = useState('');
   const [genreId, setGenreId] = useState('');
   const [copies, setCopies] = useState(1);
+  const [isCustomCopies, setIsCustomCopies] = useState(false);
   const [owner, setOwner] = useState<BookOwner>('swapnil');
   const [status, setStatus] = useState<BookStatus>('আছে');
   const [isPurchased, setIsPurchased] = useState(true);
@@ -142,6 +146,57 @@ export default function AddBookPage() {
   const [notes, setNotes] = useState('');
   const [favoriteQuote, setFavoriteQuote] = useState('');
   const [isFavorite, setIsFavorite] = useState(false);
+
+  const handleNumericInput = (inputVal: string, setter: (val: string) => void, maxLength?: number) => {
+    const englishVal = bnToEnNumber(inputVal);
+    let cleanVal = englishVal.replace(/\D/g, '');
+    if (maxLength) {
+      cleanVal = cleanVal.slice(0, maxLength);
+    }
+    setter(cleanVal);
+  };
+
+  const handleIsbnChange = (inputVal: string, setter: (val: string) => void) => {
+    let cleanVal = inputVal.replace(/[^0-9Xx-]/g, '');
+    let numOnly = cleanVal.replace(/-/g, '');
+    
+    if (numOnly.length > 13) {
+      numOnly = numOnly.slice(0, 13);
+      cleanVal = numOnly;
+    }
+
+    if (numOnly.length === 10 || numOnly.length === 13) {
+      const parsed = ISBN.parse(numOnly);
+      if (parsed) {
+        cleanVal = (parsed.isIsbn13 ? parsed.isbn13h : parsed.isbn10h) || cleanVal;
+      } else {
+        const audited = ISBN.audit(numOnly);
+        if (audited && audited.clues && audited.clues.length > 0) {
+          const clue = audited.clues.find((c: any) => c.candidate);
+          if (clue && clue.candidate) {
+            const is13 = numOnly.length === 13;
+            const candidateStr = is13 ? (clue.candidate as any).isbn13h : (clue.candidate as any).isbn10h;
+            if (candidateStr) {
+              cleanVal = candidateStr.slice(0, -1) + numOnly.slice(-1).toUpperCase();
+            }
+          } else {
+            if (numOnly.length === 13) {
+              cleanVal = numOnly.replace(/^(\d{3})(\d)(\d{4})(\d{4})(\d)$/, '$1-$2-$3-$4-$5');
+            } else {
+              cleanVal = numOnly.replace(/^(\d)(\d{4})(\d{4})([\dXx])$/, '$1-$2-$3-$4').toUpperCase();
+            }
+          }
+        } else {
+          if (numOnly.length === 13) {
+            cleanVal = numOnly.replace(/^(\d{3})(\d)(\d{4})(\d{4})(\d)$/, '$1-$2-$3-$4-$5');
+          } else {
+            cleanVal = numOnly.replace(/^(\d)(\d{4})(\d{4})([\dXx])$/, '$1-$2-$3-$4').toUpperCase();
+          }
+        }
+      }
+    }
+    setter(cleanVal);
+  };
 
   useEffect(() => {
     if (user?.id) {
@@ -468,13 +523,43 @@ export default function AddBookPage() {
                 <div className="form-row">
                   <div className="form-group">
                     <label className="form-label">কপির সংখ্যা</label>
-                    <select className="form-select" value={copies} onChange={e => setCopies(parseInt(e.target.value))}>
-                      <option value={1}>১ কপি (ডিফল্ট)</option>
-                      <option value={2}>২ কপি</option>
-                      <option value={3}>৩ কপি</option>
-                      <option value={4}>৪ কপি</option>
-                      <option value={5}>৫ কপি</option>
-                    </select>
+                    <div style={{ display: 'flex', gap: '8px' }}>
+                      <select 
+                        className="form-select font-serif" 
+                        value={isCustomCopies ? 'custom' : copies} 
+                        onChange={e => {
+                          if (e.target.value === 'custom') {
+                            setIsCustomCopies(true);
+                          } else {
+                            setIsCustomCopies(false);
+                            setCopies(parseInt(e.target.value));
+                          }
+                        }}
+                        style={{ fontFamily: 'var(--font-serif)', flex: 1 }}
+                      >
+                        <option value={1} style={{ fontFamily: 'var(--font-serif)' }}>১ কপি (ডিফল্ট)</option>
+                        <option value={2} style={{ fontFamily: 'var(--font-serif)' }}>২ কপি</option>
+                        <option value={3} style={{ fontFamily: 'var(--font-serif)' }}>৩ কপি</option>
+                        <option value={4} style={{ fontFamily: 'var(--font-serif)' }}>৪ কপি</option>
+                        <option value={5} style={{ fontFamily: 'var(--font-serif)' }}>৫ কপি</option>
+                        <option value="custom" style={{ fontFamily: 'var(--font-serif)' }}>✏️ নিজের সংখ্যা লিখুন...</option>
+                      </select>
+                      {isCustomCopies && (
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+                          <input
+                            className="form-input font-serif"
+                            type="text"
+                            inputMode="numeric"
+                            value={copies === 0 ? '' : enToBnNumber(copies.toString())}
+                            onChange={e => handleNumericInput(e.target.value, val => setCopies(val ? parseInt(val) : 0))}
+                            placeholder="সংখ্যা"
+                            style={{ fontFamily: 'var(--font-serif)', width: '90px' }}
+                            autoFocus
+                          />
+                          <span style={{ fontSize: '0.9rem', color: 'var(--text-secondary)', fontFamily: 'var(--font-serif)' }}>কপি</span>
+                        </div>
+                      )}
+                    </div>
                   </div>
                   <div className="form-group">
                     <label className="form-label">Original Title</label>
@@ -487,7 +572,7 @@ export default function AddBookPage() {
                 </div>
                 <div className="form-row">
                   <div className="form-group">
-                    <label className="form-label">✍️ লেখক</label>
+                    <label className="form-label">✍🏻 লেখক</label>
                     <input 
                       className="form-input" 
                       value={authorId} 
@@ -552,7 +637,7 @@ export default function AddBookPage() {
                 <div className="form-row">
                   <div className="form-group">
                     <label className="form-label">ISBN</label>
-                    <input className="form-input" value={isbn} onChange={e => setIsbn(e.target.value)} placeholder="978-..." />
+                    <input className="form-input" value={isbn} onChange={e => handleIsbnChange(e.target.value, setIsbn)} placeholder="978-..." maxLength={17} />
                   </div>
                 </div>
                 <div className="form-row">
@@ -598,11 +683,11 @@ export default function AddBookPage() {
                   </div>
                   <div className="form-group">
                     <label className="form-label">প্রকাশের বছর</label>
-                    <input className="form-input" type="text" value={pubYear} onChange={e => setPubYear(enToBnNumber(e.target.value.replace(/[^0-9০-৯]/g, '')))} placeholder="২০২৪" />
+                    <input className="form-input" type="text" inputMode="numeric" value={enToBnNumber(pubYear)} onChange={e => handleNumericInput(e.target.value, setPubYear, 4)} placeholder="যেমন: ২০২৪" style={{ fontFamily: 'var(--font-serif)' }} />
                   </div>
                   <div className="form-group">
                     <label className="form-label">পৃষ্ঠা সংখ্যা</label>
-                    <input className="form-input" type="text" value={pageCount} onChange={e => setPageCount(enToBnNumber(e.target.value.replace(/[^0-9০-৯]/g, '')))} />
+                    <input className="form-input" type="text" inputMode="numeric" value={enToBnNumber(pageCount)} onChange={e => handleNumericInput(e.target.value, setPageCount)} style={{ fontFamily: 'var(--font-serif)' }} />
                   </div>
                 </div>
                 <div className="form-group">
@@ -687,7 +772,7 @@ export default function AddBookPage() {
                     <div className="form-row">
                       <div className="form-group">
                         <label className="form-label">কেনার তারিখ</label>
-                        <input className="form-input" type="date" value={purchaseDate} onChange={e => setPurchaseDate(e.target.value)} />
+                        <BanglaDateInput value={purchaseDate} onChange={setPurchaseDate} />
                       </div>
                       <div className="form-group">
                         <label className="form-label">কোথা থেকে কেনা</label>
@@ -706,15 +791,15 @@ export default function AddBookPage() {
                     <div className="form-row">
                       <div className="form-group">
                         <label className="form-label">দাম (৳)</label>
-                        <input className="form-input" type="text" value={purchasePrice} onChange={e => setPurchasePrice(enToBnNumber(e.target.value.replace(/[^0-9০-৯.]/g, '')))} />
+                        <input className="form-input" type="text" inputMode="numeric" value={purchasePrice} onChange={e => setPurchasePrice(enToBnNumber(e.target.value.replace(/[^0-9০-৯.]/g, '')))} style={{ fontFamily: 'var(--font-serif)' }} />
                       </div>
                       <div className="form-group">
                         <label className="form-label">ছাড় (৳)</label>
-                        <input className="form-input" type="text" value={purchaseDiscount} onChange={e => setPurchaseDiscount(enToBnNumber(e.target.value.replace(/[^0-9০-৯.]/g, '')))} />
+                        <input className="form-input" type="text" inputMode="numeric" value={purchaseDiscount} onChange={e => setPurchaseDiscount(enToBnNumber(e.target.value.replace(/[^0-9০-৯.]/g, '')))} style={{ fontFamily: 'var(--font-serif)' }} />
                       </div>
                       <div className="form-group">
                         <label className="form-label">চূড়ান্ত দাম (৳)</label>
-                        <input className="form-input" type="text" value={purchaseFinalPrice} onChange={e => setPurchaseFinalPrice(enToBnNumber(e.target.value.replace(/[^0-9০-৯.]/g, '')))} />
+                        <input className="form-input" type="text" inputMode="numeric" value={purchaseFinalPrice} onChange={e => setPurchaseFinalPrice(enToBnNumber(e.target.value.replace(/[^0-9০-৯.]/g, '')))} style={{ fontFamily: 'var(--font-serif)' }} />
                       </div>
                     </div>
                   </>
@@ -751,15 +836,15 @@ export default function AddBookPage() {
                 <div className="form-row">
                   <div className="form-group">
                     <label className="form-label">পড়া শুরু</label>
-                    <input className="form-input" type="date" value={readingStartDate} onChange={e => setReadingStartDate(e.target.value)} />
+                    <BanglaDateInput value={readingStartDate} onChange={setReadingStartDate} />
                   </div>
                   <div className="form-group">
                     <label className="form-label">পড়া শেষ</label>
-                    <input className="form-input" type="date" value={readingFinishDate} onChange={e => setReadingFinishDate(e.target.value)} />
+                    <BanglaDateInput value={readingFinishDate} onChange={setReadingFinishDate} />
                   </div>
                 </div>
                 <div className="form-group">
-                  <label className="form-label">পড়ার অগ্রগতি ({enToBnNumber(readingProgress)}%)</label>
+                  <label className="form-label">পড়ার অগ্রগতি (<span style={{ fontFamily: 'var(--font-serif)' }}>{enToBnNumber(readingProgress.toString())}</span>%)</label>
                   <input type="range" min="0" max="100" value={readingProgress} onChange={e => setReadingProgress(parseInt(e.target.value))} style={{ width: '100%' }} />
                   <div className="progress-bar mt-2">
                     <div className="progress-bar-fill" style={{ width: `${readingProgress}%` }} />

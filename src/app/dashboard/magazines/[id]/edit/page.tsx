@@ -19,17 +19,13 @@ export default function EditMagazinePage({ params }: { params: Promise<{ id: str
   const [saving, setSaving] = useState(false);
   
   const [title, setTitle] = useState('');
-  const [issueMonth, setIssueMonth] = useState('');
-  const [issueYear, setIssueYear] = useState('');
-  const [volume, setVolume] = useState('');
   const [publisher, setPublisher] = useState('');
-  const [status, setStatus] = useState('আছে');
 
   useEffect(() => {
     async function fetchMagazine() {
       if (!user) return;
       try {
-        const { data, error } = await supabase.from('magazines').select('*').eq('id', resolvedParams.id).single();
+        const { data, error } = await supabase.from('magazines').select('*, publisher:publishers(name)').eq('id', resolvedParams.id).single();
         if (error) throw error;
         if (data) {
           if (data.owner !== user.id) {
@@ -39,11 +35,7 @@ export default function EditMagazinePage({ params }: { params: Promise<{ id: str
           }
           
           setTitle(data.title || '');
-          setIssueMonth(data.issue_month || '');
-          setIssueYear(data.issue_year ? data.issue_year.toString() : '');
-          setVolume(data.volume || '');
-          setPublisher(data.publisher_id || '');
-          setStatus(data.status || 'আছে');
+          setPublisher(data.publisher?.name || '');
         }
       } catch (err: any) {
         toast.error('তথ্য লোড করতে সমস্যা: ' + err.message);
@@ -63,13 +55,20 @@ export default function EditMagazinePage({ params }: { params: Promise<{ id: str
     setSaving(true);
     
     try {
+      let pubId = null;
+      if (publisher.trim()) {
+        const { data: existingPub } = await supabase.from('publishers').select('id').ilike('name', publisher.trim()).single();
+        if (existingPub) {
+          pubId = existingPub.id;
+        } else {
+          const { data: newPub } = await supabase.from('publishers').insert({ name: publisher.trim() }).select('id').single();
+          if (newPub) pubId = newPub.id;
+        }
+      }
+
       const magazineData = {
         title: title.trim(),
-        issue_month: issueMonth.trim() || null,
-        issue_year: issueYear ? parseInt(bnToEnNumber(issueYear)) : null,
-        volume: volume.trim() || null,
-        publisher_id: publisher || null,
-        status,
+        publisher_id: pubId,
         updated_at: new Date().toISOString(),
       };
 
@@ -84,7 +83,7 @@ export default function EditMagazinePage({ params }: { params: Promise<{ id: str
           entity_type: 'magazine',
           entity_id: resolvedParams.id,
           entity_name: title.trim(),
-          details: { owner: user.id, status },
+          details: { owner: user.id },
         });
 
         toast.success('ম্যাগাজিন সফলভাবে আপডেট হয়েছে! 📰');
@@ -139,59 +138,14 @@ export default function EditMagazinePage({ params }: { params: Promise<{ id: str
                 />
               </div>
               
-              <div className="form-row">
-                <div className="form-group">
-                  <label className="form-label">মাস</label>
-                  <input 
-                    className="form-input" 
-                    value={issueMonth} 
-                    onChange={e => setIssueMonth(e.target.value)} 
-                    placeholder="যেমন: জানুয়ারি, বৈশাখ" 
-                  />
-                </div>
-                
-                <div className="form-group">
-                  <label className="form-label">সাল</label>
-                  <input 
-                    className="form-input" 
-                    value={enToBnNumber(issueYear)} 
-                    onChange={e => setIssueYear(e.target.value)} 
-                    placeholder="যেমন: ২০২৪" 
-                  />
-                </div>
-              </div>
-              
-                <div className="form-group" style={{ gridColumn: '1 / -1' }}>
-                  <label className="form-label">সংখ্যা (Volume)</label>
-                  <input 
-                    className="form-input" 
-                    value={volume} 
-                    onChange={e => setVolume(e.target.value)} 
-                    placeholder="যেমন: ২য় বর্ষ, ৫ম সংখ্যা" 
-                  />
-                </div>
-            </div>
-          </div>
-          
-          <div className="card">
-            <div className="card-header">
-              <h3>📌 সংগ্রহ ও স্ট্যাটাস</h3>
-            </div>
-            <div className="card-body">
               <div className="form-group">
-                <label className="form-label">বর্তমান অবস্থা *</label>
-                <select 
-                  className="form-input"
-                  value={status}
-                  onChange={e => setStatus(e.target.value)}
-                >
-                  <option value="আছে">আছে</option>
-                  <option value="পড়া হচ্ছে">পড়া হচ্ছে</option>
-                  <option value="ধার দেওয়া হয়েছে">ধার দেওয়া হয়েছে</option>
-                  <option value="নাই">নাই</option>
-                  <option value="হারিয়ে গেছে">হারিয়ে গেছে</option>
-                  <option value="উইশলিস্ট">উইশলিস্ট</option>
-                </select>
+                <label className="form-label">প্রকাশক</label>
+                <input 
+                  className="form-input" 
+                  value={publisher} 
+                  onChange={e => setPublisher(e.target.value)} 
+                  placeholder="যেমন: প্রথমা প্রকাশন" 
+                />
               </div>
             </div>
           </div>

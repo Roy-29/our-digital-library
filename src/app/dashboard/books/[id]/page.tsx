@@ -3,10 +3,12 @@
 import { useEffect, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { createClient } from '@/lib/supabase';
-import { Book, BOOK_STATUSES, READING_STATUSES, getOwnerLabel, parseDbDate, formatDateBn } from '@/lib/types';
+import { Book, BOOK_STATUSES, READING_STATUSES, getOwnerLabel, parseDbDate, formatDateBn, enToBnNumber } from '@/lib/types';
 import { useAuth } from '@/contexts/AuthContext';
 import Link from 'next/link';
 import toast from 'react-hot-toast';
+// @ts-ignore
+import * as ISBN from 'isbn3';
 
 export default function BookDetailPage() {
   const params = useParams();
@@ -21,6 +23,17 @@ export default function BookDetailPage() {
     fetchBook();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [params.id]);
+
+  const formatDateToDdMmYyyyBn = (dateStr: string | null | undefined) => {
+    if (!dateStr) return null;
+    const parts = dateStr.split('-');
+    if (parts.length === 3) {
+      const [yyyy, mm, dd] = parts;
+      const formatted = `${dd}-${mm}-${yyyy}`;
+      return <span style={{ fontFamily: 'var(--font-serif)' }}>{enToBnNumber(formatted)}</span>;
+    }
+    return <span style={{ fontFamily: 'var(--font-serif)' }}>{enToBnNumber(dateStr)}</span>;
+  };
 
   const fetchBook = async () => {
     const { data, error } = await supabase
@@ -102,7 +115,7 @@ export default function BookDetailPage() {
           </button>
           <h2 style={{ margin: 0, display: 'flex', alignItems: 'center', gap: '8px' }}>
             📖 {book.title}
-            {(book.copies || 1) > 1 && <span className="badge" style={{ fontSize: '0.8rem', padding: '4px 8px' }}>{(book.copies || 1)} কপি</span>}
+            {(book.copies || 1) > 1 && <span className="badge" style={{ fontSize: '0.8rem', padding: '4px 8px', fontFamily: 'var(--font-serif)' }}>{enToBnNumber((book.copies || 1).toString())} কপি</span>}
           </h2>
         </div>
         {isOwner && (
@@ -159,12 +172,31 @@ export default function BookDetailPage() {
                 <DetailRow label="অনুবাদক" value={book.translator?.name_bn || book.translator?.name} />
                 <DetailRow label="আঁকিয়ে" value={book.illustrator?.name_bn || book.illustrator?.name} />
                 <DetailRow label="প্রকাশক" value={book.publisher?.name_bn || book.publisher?.name} />
-                <DetailRow label="ISBN" value={book.isbn} />
+                <DetailRow label="ISBN" value={
+                  book.isbn ? (() => {
+                    const numOnly = book.isbn.replace(/-/g, '');
+                    if (numOnly.length === 10 || numOnly.length === 13) {
+                      const parsed = ISBN.parse(numOnly);
+                      if (parsed) return parsed.isIsbn13 ? parsed.isbn13h : parsed.isbn10h;
+                      const audited = ISBN.audit(numOnly);
+                      if (audited && audited.clues && audited.clues.length > 0) {
+                        const clue = audited.clues.find((c: any) => c.candidate);
+                        if (clue && clue.candidate) {
+                          const candidateStr = numOnly.length === 13 ? (clue.candidate as any).isbn13h : (clue.candidate as any).isbn10h;
+                          if (candidateStr) return candidateStr.slice(0, -1) + numOnly.slice(-1).toUpperCase();
+                        }
+                      }
+                      if (numOnly.length === 13) return numOnly.replace(/^(\d{3})(\d)(\d{4})(\d{4})(\d)$/, '$1-$2-$3-$4-$5');
+                      if (numOnly.length === 10) return numOnly.replace(/^(\d)(\d{4})(\d{4})([\dXx])$/, '$1-$2-$3-$4').toUpperCase();
+                    }
+                    return book.isbn;
+                  })() : null
+                } />
                 <DetailRow label="ভাষা" value={book.language} />
                 <DetailRow label="সংস্করণ" value={book.edition} />
-                <DetailRow label="কপি" value={book.copies && book.copies > 1 ? `${book.copies} কপি` : null} />
-                <DetailRow label="প্রকাশের বছর" value={book.publication_year?.toString()} />
-                <DetailRow label="পৃষ্ঠা" value={book.page_count?.toString()} />
+                <DetailRow label="কপি" value={book.copies ? <span style={{ fontFamily: 'var(--font-serif)' }}>{enToBnNumber(book.copies.toString())} কপি</span> : null} />
+                <DetailRow label="প্রকাশের বছর" value={book.publication_year ? <span style={{ fontFamily: 'var(--font-serif)' }}>{enToBnNumber(book.publication_year.toString())}</span> : null} />
+                <DetailRow label="পৃষ্ঠা" value={book.page_count ? <span style={{ fontFamily: 'var(--font-serif)' }}>{enToBnNumber(book.page_count.toString())}</span> : null} />
                 <DetailRow label="ক্যাটাগরি" value={book.category ? `${book.category.icon} ${book.category.name_bn || book.category.name}` : null} />
                 <DetailRow label="ধরন" value={book.genre ? `${book.genre.icon} ${book.genre.name_bn || book.genre.name}` : null} />
                 {book.description && <DetailRow label="বিবরণ" value={book.description} />}
@@ -183,11 +215,11 @@ export default function BookDetailPage() {
                 <div className="card-header"><h3>💰 সংগ্রহ ও উৎস</h3></div>
                 <div className="card-body">
                   <DetailRow label="সংগ্রহের ধরণ" value={book.is_purchased ? 'কেনা হয়েছে (সংগ্রহে আছে)' : 'পড়ার উৎস'} />
-                  <DetailRow label={book.is_purchased ? 'কেনার তারিখ' : 'সংগ্রহের তারিখ'} value={book.purchase_date} />
+                  <DetailRow label={book.is_purchased ? 'কেনার তারিখ' : 'সংগ্রহের তারিখ'} value={formatDateToDdMmYyyyBn(book.purchase_date)} />
                   <DetailRow label="উৎস" value={book.purchase_source} />
-                  <DetailRow label="দাম" value={book.purchase_price ? `৳${book.purchase_price}` : null} />
-                  <DetailRow label="ছাড়" value={book.purchase_discount ? `৳${book.purchase_discount}` : null} />
-                  <DetailRow label="চূড়ান্ত দাম" value={book.purchase_final_price ? `৳${book.purchase_final_price}` : null} />
+                  <DetailRow label="দাম" value={book.purchase_price ? <span style={{ fontFamily: 'var(--font-serif)' }}>৳{enToBnNumber(book.purchase_price.toString())}</span> : null} />
+                  <DetailRow label="ছাড়" value={book.purchase_discount ? <span style={{ fontFamily: 'var(--font-serif)' }}>৳{enToBnNumber(book.purchase_discount.toString())}</span> : null} />
+                  <DetailRow label="চূড়ান্ত দাম" value={book.purchase_final_price ? <span style={{ fontFamily: 'var(--font-serif)' }}>৳{enToBnNumber(book.purchase_final_price.toString())}</span> : null} />
                   {book.book_condition !== 'unknown' && (
                     <DetailRow label="অবস্থা" value={book.book_condition === 'new' ? 'নতুন' : book.book_condition === 'used' ? 'পুরনো' : book.book_condition === 'gift' ? 'উপহার' : book.book_condition} />
                   )}
@@ -210,18 +242,22 @@ export default function BookDetailPage() {
                     } 
                   />
                 )}
-                <DetailRow label="পড়া শুরু" value={book.reading_start_date} />
-                <DetailRow label="পড়া শেষ" value={book.reading_finish_date} />
+                <DetailRow label="পড়া শুরু" value={formatDateToDdMmYyyyBn(book.reading_start_date)} />
+                <DetailRow label="পড়া শেষ" value={formatDateToDdMmYyyyBn(book.reading_finish_date)} />
                 {book.reading_progress > 0 && (
                   <div style={{ marginBottom: '12px' }}>
-                    <span className="text-sm text-muted">অগ্রগতি: {book.reading_progress}%</span>
+                    <span className="text-sm text-muted">অগ্রগতি: <span style={{ fontFamily: 'var(--font-serif)' }}>{enToBnNumber(book.reading_progress.toString())}</span>%</span>
                     <div className="progress-bar mt-2">
                       <div className="progress-bar-fill" style={{ width: `${book.reading_progress}%` }} />
                     </div>
                   </div>
                 )}
                 {book.rating && (
-                  <DetailRow label="রেটিং" value={`${'⭐'.repeat(Math.floor(book.rating))} (${book.rating}/5)`} />
+                  <DetailRow label="রেটিং" value={
+                    <span style={{ fontFamily: 'var(--font-serif)' }}>
+                      {'⭐'.repeat(Math.floor(book.rating))} ({enToBnNumber(book.rating.toString())}/৫)
+                    </span>
+                  } />
                 )}
                 {book.review && <DetailRow label="পর্যালোচনা" value={book.review} />}
                 {book.notes && <DetailRow label="নোট" value={book.notes} />}
@@ -277,7 +313,7 @@ export default function BookDetailPage() {
   );
 }
 
-function DetailRow({ label, value }: { label: string; value: string | null | undefined }) {
+function DetailRow({ label, value }: { label: string; value: React.ReactNode }) {
   if (!value) return null;
   return (
     <div style={{ display: 'flex', gap: '16px', padding: '8px 0', borderBottom: '1px solid var(--border-light)' }}>

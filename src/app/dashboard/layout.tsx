@@ -21,7 +21,7 @@ const NAV_ITEMS = [
   { href: '/dashboard/wishlist', icon: '🛒', label: 'উইশলিস্ট' },
   { href: '/dashboard/unowned', icon: '🔖', label: 'আমার কাছে নেই' },
   { section: 'পরিচালনা' },
-  { href: '/dashboard/authors', icon: '✍️', label: 'লেখক' },
+  { href: '/dashboard/authors', icon: '✍🏻', label: 'লেখক' },
   { href: '/dashboard/publishers', icon: '🏢', label: 'প্রকাশক' },
   { href: '/dashboard/categories', icon: '🏷️', label: 'Category / Genre' },
   { section: 'অন্যান্য' },

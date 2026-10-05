@@ -20,7 +20,19 @@ export default function MagazinesPage() {
       try {
         const { data, error } = await supabase.from('magazines').select('*').order('created_at', { ascending: false });
         if (!error && data) {
-          setMagazines(data);
+          const { data: issues } = await supabase.from('magazine_issues').select('magazine_id');
+          
+          const issuesCount = (issues || []).reduce((acc: any, curr: any) => {
+            acc[curr.magazine_id] = (acc[curr.magazine_id] || 0) + 1;
+            return acc;
+          }, {});
+
+          const mapped = data.map((mag: any) => ({
+            ...mag,
+            issues_count: issuesCount[mag.id] || 0
+          }));
+          
+          setMagazines(mapped);
         }
       } catch (err) {
         console.error(err);
@@ -36,11 +48,7 @@ export default function MagazinesPage() {
     
     if (!search) return true;
     const q = search.toLowerCase();
-    return (
-      mag.title?.toLowerCase().includes(q) ||
-      mag.issue_month?.toLowerCase().includes(q) ||
-      mag.volume?.toLowerCase().includes(q)
-    );
+    return mag.title?.toLowerCase().includes(q);
   });
   
   return (
@@ -122,38 +130,21 @@ export default function MagazinesPage() {
                 <Link href={`/dashboard/magazines/${mag.id}`} style={{ textDecoration: 'none', color: 'inherit', flexGrow: 1, display: 'flex', flexDirection: 'column', padding: '16px' }}>
                   <h3 className="book-title" style={{ fontSize: '1.25rem', fontWeight: 600, marginBottom: '12px' }}>{mag.title}</h3>
                   
-                  {mag.issue_month && (
-                    <div className="book-meta">
-                      <span className="icon">🗓️</span>
-                      <span>মাস: {mag.issue_month}</span>
-                    </div>
-                  )}
-                  
-                  {mag.issue_year && (
-                    <div className="book-meta">
-                      <span className="icon">📅</span>
-                      <span>সাল: {enToBnNumber(mag.issue_year.toString())}</span>
-                    </div>
-                  )}
-                  
-                  {mag.volume && (
-                    <div className="book-meta">
-                      <span className="icon">🔢</span>
-                      <span>সংখ্যা: {mag.volume}</span>
-                    </div>
-                  )}
+                  <div className="book-meta" style={{ marginTop: '8px' }}>
+                    <span className="icon">📚</span>
+                    <span style={{ fontSize: '1.1rem', color: 'var(--accent)' }}>
+                      সর্বমোট সংগ্রহ: <strong style={{ fontFamily: 'var(--font-serif)', fontSize: '1.2rem', fontWeight: 600 }}>{enToBnNumber(mag.issues_count?.toString() || '0')}</strong> টি ইস্যু
+                    </span>
+                  </div>
                 </Link>
                 
                 <div className="book-card-info" style={{ padding: '16px', paddingTop: 0, display: 'flex', flexDirection: 'column' }}>
                   
                   <div className="book-card-footer" style={{ marginTop: 'auto', paddingTop: '16px', gap: '8px', display: 'flex', flexWrap: 'wrap', alignItems: 'center', justifyContent: 'space-between' }}>
                     <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
-                      <span className={`status-badge status-${mag.status === 'আছে' ? 'owned' : 'missing'}`}>
-                        {mag.status}
-                      </span>
-                      <div style={{ fontSize: '0.85rem', color: '#6b7280', display: 'flex', alignItems: 'center', gap: '4px', fontWeight: 500 }}>
+                      <div style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', display: 'flex', alignItems: 'center', gap: '4px', fontWeight: 500 }}>
                         {user?.id === mag.owner ? (
-                          <span style={{ color: '#059669' }}>✅ আপনার</span>
+                          <span style={{ color: 'var(--success)' }}>✅ আপনার</span>
                         ) : (
                           <span>👤 {getOwnerLabel(mag.owner)}</span>
                         )}

@@ -263,7 +263,7 @@ export default async function DashboardPage() {
             { href: '/dashboard/wishlist', icon: '🛒', label: 'উইশলিস্ট' },
             { href: '/dashboard/unowned', icon: '🔖', label: 'আমার কাছে নেই' },
             { href: '/dashboard/reading', icon: '📖', label: 'পড়ছি' },
-            { href: '/dashboard/authors', icon: '✍️', label: 'লেখক পরিচালনা' },
+            { href: '/dashboard/authors', icon: '✍🏻', label: 'লেখক পরিচালনা' },
             { href: '/dashboard/publishers', icon: '🏢', label: 'প্রকাশক পরিচালনা' },
           ].map((link) => (
             <Link key={link.href} href={link.href} className="card" style={{ padding: '16px', textDecoration: 'none', display: 'flex', alignItems: 'center', gap: '12px' }}>

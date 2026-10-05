@@ -207,24 +207,30 @@ export const activityLog = sqliteTable('activity_log', {
   createdAt: text('created_at').default(sql`CURRENT_TIMESTAMP`),
 });
 
-// MAGAZINES
+// MAGAZINE SERIES
 export const magazines = sqliteTable('magazines', {
   id: text('id').primaryKey().$defaultFn(() => crypto.randomUUID()),
   title: text('title').notNull(),
+  publisherId: text('publisher_id').references(() => publishers.id, { onDelete: 'set null' }),
+  coverUrl: text('cover_url'),
+  
+  owner: text('owner').notNull().default('swapnil'),
+  addedBy: text('added_by').references(() => profiles.id, { onDelete: 'set null' }),
+  createdAt: text('created_at').default(sql`CURRENT_TIMESTAMP`),
+  updatedAt: text('updated_at').default(sql`CURRENT_TIMESTAMP`),
+});
+
+// MAGAZINE ISSUES
+export const magazineIssues = sqliteTable('magazine_issues', {
+  id: text('id').primaryKey().$defaultFn(() => crypto.randomUUID()),
+  magazineId: text('magazine_id').notNull().references(() => magazines.id, { onDelete: 'cascade' }),
   issueMonth: text('issue_month'),
   issueYear: integer('issue_year'),
   volume: text('volume'),
-  publisherId: text('publisher_id').references(() => publishers.id, { onDelete: 'set null' }),
-  coverUrl: text('cover_url'),
-  pageCount: integer('page_count'),
   
-  owner: text('owner').notNull().default('swapnil'),
+  copies: integer('copies').default(1),
   status: text('status').notNull().default('আছে'),
   
-  readingStatus: text('reading_status'),
-  readingProgress: integer('reading_progress').default(0),
-  
-  addedBy: text('added_by').references(() => profiles.id, { onDelete: 'set null' }),
   createdAt: text('created_at').default(sql`CURRENT_TIMESTAMP`),
   updatedAt: text('updated_at').default(sql`CURRENT_TIMESTAMP`),
 });

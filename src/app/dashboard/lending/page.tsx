@@ -6,6 +6,7 @@ import { LendingRecord, Borrower, getOwnerLabel } from '@/lib/types';
 import { useAuth } from '@/contexts/AuthContext';
 import toast from 'react-hot-toast';
 import Link from 'next/link';
+import { BanglaDateInput } from '@/components/BanglaDateInput';
 
 export default function LendingPage() {
   const [records, setRecords] = useState<LendingRecord[]>([]);
@@ -681,11 +682,11 @@ export default function LendingPage() {
                   </div>
                   <div className="form-group">
                     <label className="form-label">তারিখ</label>
-                    <input className="form-input" type="date" value={dateLent} onChange={e => setDateLent(e.target.value)} />
+                    <BanglaDateInput value={dateLent} onChange={setDateLent} />
                   </div>
                   <div className="form-group">
                     <label className="form-label">সম্ভাব্য ফেরত তারিখ</label>
-                    <input className="form-input" type="date" value={expectedReturn} onChange={e => setExpectedReturn(e.target.value)} />
+                    <BanglaDateInput value={expectedReturn} onChange={setExpectedReturn} />
                   </div>
                 </div>
 
