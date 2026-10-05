@@ -218,7 +218,15 @@ export default function BookDetailPage() {
                   <DetailRow label={book.is_purchased ? 'কেনার তারিখ' : 'সংগ্রহের তারিখ'} value={formatDateToDdMmYyyyBn(book.purchase_date)} />
                   <DetailRow label="উৎস" value={book.purchase_source} />
                   <DetailRow label="দাম" value={book.purchase_price ? <span style={{ fontFamily: 'var(--font-serif)' }}>৳{enToBnNumber(book.purchase_price.toString())}</span> : null} />
-                  <DetailRow label="ছাড়" value={book.purchase_discount ? <span style={{ fontFamily: 'var(--font-serif)' }}>৳{enToBnNumber(book.purchase_discount.toString())}</span> : null} />
+                  <DetailRow 
+                    label="ছাড়" 
+                    value={book.purchase_discount ? (
+                      <span style={{ fontFamily: 'var(--font-serif)' }}>
+                        ৳{enToBnNumber(book.purchase_discount.toString())}
+                        {book.purchase_price ? ` (${enToBnNumber(Number(((book.purchase_discount / book.purchase_price) * 100).toFixed(1)).toString().replace(/\.0$/, ''))}%)` : ''}
+                      </span>
+                    ) : null} 
+                  />
                   <DetailRow label="চূড়ান্ত দাম" value={book.purchase_final_price ? <span style={{ fontFamily: 'var(--font-serif)' }}>৳{enToBnNumber(book.purchase_final_price.toString())}</span> : null} />
                   {book.book_condition !== 'unknown' && (
                     <DetailRow label="অবস্থা" value={book.book_condition === 'new' ? 'নতুন' : book.book_condition === 'used' ? 'পুরনো' : book.book_condition === 'gift' ? 'উপহার' : book.book_condition} />

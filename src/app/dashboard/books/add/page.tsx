@@ -135,6 +135,7 @@ export default function AddBookPage() {
   const [purchaseDate, setPurchaseDate] = useState('');
   const [purchaseSource, setPurchaseSource] = useState('');
   const [purchasePrice, setPurchasePrice] = useState('');
+  const [purchaseDiscountPercent, setPurchaseDiscountPercent] = useState('');
   const [purchaseDiscount, setPurchaseDiscount] = useState('');
   const [purchaseFinalPrice, setPurchaseFinalPrice] = useState('');
   const [bookCondition, setBookCondition] = useState<BookCondition>('new');
@@ -147,6 +148,99 @@ export default function AddBookPage() {
   const [notes, setNotes] = useState('');
   const [favoriteQuote, setFavoriteQuote] = useState('');
   const [isFavorite, setIsFavorite] = useState(false);
+
+  const formatPriceNum = (num: number): string => {
+    if (isNaN(num) || !isFinite(num)) return '';
+    return Number.isInteger(num) ? num.toString() : num.toFixed(2).replace(/\.?0+$/, '');
+  };
+
+  const handlePriceChange = (val: string) => {
+    const cleanVal = enToBnNumber(val.replace(/[^0-9০-৯.]/g, ''));
+    setPurchasePrice(cleanVal);
+    const p = parseFloat(bnToEnNumber(cleanVal));
+
+    if (!isNaN(p) && p > 0) {
+      const pct = parseFloat(bnToEnNumber(purchaseDiscountPercent));
+      const d = parseFloat(bnToEnNumber(purchaseDiscount));
+      
+      if (!isNaN(pct) && pct > 0) {
+        const newD = (p * pct) / 100;
+        const newF = Math.max(0, p - newD);
+        setPurchaseDiscount(enToBnNumber(formatPriceNum(newD)));
+        setPurchaseFinalPrice(enToBnNumber(formatPriceNum(newF)));
+      } else if (!isNaN(d) && d > 0) {
+        const newF = Math.max(0, p - d);
+        const newPct = (d / p) * 100;
+        setPurchaseFinalPrice(enToBnNumber(formatPriceNum(newF)));
+        setPurchaseDiscountPercent(enToBnNumber(formatPriceNum(newPct)));
+      } else {
+        if (!purchaseFinalPrice || purchaseFinalPrice === purchasePrice) {
+          setPurchaseFinalPrice(cleanVal);
+        }
+      }
+    } else if (!cleanVal) {
+      if (purchaseDiscountPercent) {
+        setPurchaseDiscount('');
+        setPurchaseFinalPrice('');
+      }
+    }
+  };
+
+  const handleDiscountPercentChange = (val: string) => {
+    const cleanVal = enToBnNumber(val.replace(/[^0-9০-৯.]/g, ''));
+    setPurchaseDiscountPercent(cleanVal);
+    const pct = parseFloat(bnToEnNumber(cleanVal));
+    const p = parseFloat(bnToEnNumber(purchasePrice));
+
+    if (!isNaN(pct) && pct >= 0) {
+      if (!isNaN(p) && p > 0) {
+        const d = (p * pct) / 100;
+        const f = Math.max(0, p - d);
+        setPurchaseDiscount(enToBnNumber(formatPriceNum(d)));
+        setPurchaseFinalPrice(enToBnNumber(formatPriceNum(f)));
+      }
+    } else {
+      setPurchaseDiscount('');
+      if (!isNaN(p) && p > 0) {
+        setPurchaseFinalPrice(enToBnNumber(formatPriceNum(p)));
+      }
+    }
+  };
+
+  const handleDiscountAmountChange = (val: string) => {
+    const cleanVal = enToBnNumber(val.replace(/[^0-9০-৯.]/g, ''));
+    setPurchaseDiscount(cleanVal);
+    const d = parseFloat(bnToEnNumber(cleanVal));
+    const p = parseFloat(bnToEnNumber(purchasePrice));
+
+    if (!isNaN(d) && d >= 0) {
+      if (!isNaN(p) && p > 0) {
+        const f = Math.max(0, p - d);
+        const pct = (d / p) * 100;
+        setPurchaseFinalPrice(enToBnNumber(formatPriceNum(f)));
+        setPurchaseDiscountPercent(enToBnNumber(formatPriceNum(pct)));
+      }
+    } else {
+      setPurchaseDiscountPercent('');
+      if (!isNaN(p) && p > 0) {
+        setPurchaseFinalPrice(enToBnNumber(formatPriceNum(p)));
+      }
+    }
+  };
+
+  const handleFinalPriceChange = (val: string) => {
+    const cleanVal = enToBnNumber(val.replace(/[^0-9০-৯.]/g, ''));
+    setPurchaseFinalPrice(cleanVal);
+    const f = parseFloat(bnToEnNumber(cleanVal));
+    const p = parseFloat(bnToEnNumber(purchasePrice));
+
+    if (!isNaN(f) && !isNaN(p) && p > 0) {
+      const d = Math.max(0, p - f);
+      const pct = (d / p) * 100;
+      setPurchaseDiscount(enToBnNumber(formatPriceNum(d)));
+      setPurchaseDiscountPercent(enToBnNumber(formatPriceNum(pct)));
+    }
+  };
 
   const handleNumericInput = (inputVal: string, setter: (val: string) => void, maxLength?: number) => {
     const englishVal = bnToEnNumber(inputVal);
@@ -821,18 +915,22 @@ export default function AddBookPage() {
                         </select>
                       </div>
                     </div>
-                    <div className="form-row">
+                    <div className="form-row" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(160px, 1fr))', gap: '16px' }}>
                       <div className="form-group">
                         <label className="form-label">দাম (৳)</label>
-                        <input className="form-input" type="text" inputMode="numeric" value={purchasePrice} onChange={e => setPurchasePrice(enToBnNumber(e.target.value.replace(/[^0-9০-৯.]/g, '')))} style={{ fontFamily: 'var(--font-serif)' }} />
+                        <input className="form-input font-serif" type="text" inputMode="decimal" value={purchasePrice} onChange={e => handlePriceChange(e.target.value)} placeholder="যেমন: ৫০০" style={{ fontFamily: 'var(--font-serif)' }} />
+                      </div>
+                      <div className="form-group">
+                        <label className="form-label">ছাড় (%)</label>
+                        <input className="form-input font-serif" type="text" inputMode="decimal" value={purchaseDiscountPercent} onChange={e => handleDiscountPercentChange(e.target.value)} placeholder="যেমন: ২৫" style={{ fontFamily: 'var(--font-serif)' }} />
                       </div>
                       <div className="form-group">
                         <label className="form-label">ছাড় (৳)</label>
-                        <input className="form-input" type="text" inputMode="numeric" value={purchaseDiscount} onChange={e => setPurchaseDiscount(enToBnNumber(e.target.value.replace(/[^0-9০-৯.]/g, '')))} style={{ fontFamily: 'var(--font-serif)' }} />
+                        <input className="form-input font-serif" type="text" inputMode="decimal" value={purchaseDiscount} onChange={e => handleDiscountAmountChange(e.target.value)} placeholder="যেমন: ১২৫" style={{ fontFamily: 'var(--font-serif)' }} />
                       </div>
                       <div className="form-group">
                         <label className="form-label">চূড়ান্ত দাম (৳)</label>
-                        <input className="form-input" type="text" inputMode="numeric" value={purchaseFinalPrice} onChange={e => setPurchaseFinalPrice(enToBnNumber(e.target.value.replace(/[^0-9০-৯.]/g, '')))} style={{ fontFamily: 'var(--font-serif)' }} />
+                        <input className="form-input font-serif" type="text" inputMode="decimal" value={purchaseFinalPrice} onChange={e => handleFinalPriceChange(e.target.value)} placeholder="যেমন: ৩৭৫" style={{ fontFamily: 'var(--font-serif)' }} />
                       </div>
                     </div>
                   </>
