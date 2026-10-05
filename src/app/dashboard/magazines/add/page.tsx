@@ -4,9 +4,7 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { createClient } from '@/lib/supabase';
 import { useAuth } from '@/contexts/AuthContext';
-import Link from 'next/link';
 import { toast } from 'react-hot-toast';
-import { bnToEnNumber, enToBnNumber } from '@/lib/types';
 
 export default function AddMagazinePage() {
   const router = useRouter();
@@ -14,28 +12,8 @@ export default function AddMagazinePage() {
   const supabase = createClient();
   
   const [saving, setSaving] = useState(false);
-  
   const [title, setTitle] = useState('');
-  const [issueMonth, setIssueMonth] = useState('');
-  const [issueYear, setIssueYear] = useState('');
-  const [volume, setVolume] = useState('');
   const [publisher, setPublisher] = useState('');
-  const [status, setStatus] = useState('আছে');
-  const [copies, setCopies] = useState('1');
-  const [isCustomCopies, setIsCustomCopies] = useState(false);
-
-  const handleYearInput = (inputVal: string, setter: (val: string) => void) => {
-    const englishVal = bnToEnNumber(inputVal);
-    const cleanVal = englishVal.replace(/\D/g, '');
-    const truncated = cleanVal.slice(0, 4);
-    setter(truncated);
-  };
-
-  const handleCopiesInput = (inputVal: string, setter: (val: string) => void) => {
-    const englishVal = bnToEnNumber(inputVal);
-    const cleanVal = englishVal.replace(/\D/g, '');
-    setter(cleanVal);
-  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -84,23 +62,6 @@ export default function AddMagazinePage() {
       if (magErr) {
         throw magErr;
       }
-      
-      // 3. Create the first issue
-      if (magData) {
-        const issueData = {
-          magazine_id: magData.id,
-          issue_month: issueMonth.trim() || null,
-          issue_year: issueYear ? parseInt(bnToEnNumber(issueYear)) : null,
-          volume: volume.trim() || null,
-          status: status,
-          copies: copies ? parseInt(bnToEnNumber(copies)) : 1,
-          created_at: new Date().toISOString(),
-          updated_at: new Date().toISOString(),
-        };
-        
-        const { error: issueErr } = await supabase.from('magazine_issues').insert(issueData);
-        if (issueErr) throw issueErr;
-      }
 
       // Log activity
       await supabase.from('activity_log').insert({
@@ -113,7 +74,11 @@ export default function AddMagazinePage() {
       });
 
       toast.success('ম্যাগাজিন সফলভাবে যোগ হয়েছে! 📰');
-      router.push('/dashboard/magazines');
+      if (magData?.id) {
+        router.push(`/dashboard/magazines/${magData.id}`);
+      } else {
+        router.push('/dashboard/magazines');
+      }
     } catch (err: any) {
       toast.error('দুঃখিত, একটি সমস্যা হয়েছে: ' + err.message);
     } finally {
@@ -149,6 +114,7 @@ export default function AddMagazinePage() {
                   onChange={e => setTitle(e.target.value)} 
                   required 
                   placeholder="যেমন: মাসিক আলকাউসার" 
+                  autoFocus
                 />
               </div>
 
@@ -160,107 +126,6 @@ export default function AddMagazinePage() {
                   onChange={e => setPublisher(e.target.value)} 
                   placeholder="যেমন: প্রথমা প্রকাশন" 
                 />
-              </div>
-
-              <div className="form-row">
-                <div className="form-group">
-                  <label className="form-label">মাস</label>
-                  <input 
-                    className="form-input" 
-                    value={issueMonth} 
-                    onChange={e => setIssueMonth(e.target.value)} 
-                    placeholder="যেমন: জানুয়ারি" 
-                    list="months-datalist"
-                  />
-                  <datalist id="months-datalist">
-                    <option value="জানুয়ারি" />
-                    <option value="ফেব্রুয়ারি" />
-                    <option value="মার্চ" />
-                    <option value="এপ্রিল" />
-                    <option value="মে" />
-                    <option value="জুন" />
-                    <option value="জুলাই" />
-                    <option value="আগস্ট" />
-                    <option value="সেপ্টেম্বর" />
-                    <option value="অক্টোবর" />
-                    <option value="নভেম্বর" />
-                    <option value="ডিসেম্বর" />
-                  </datalist>
-                </div>
-                <div className="form-group">
-                  <label className="form-label">সাল (Year)</label>
-                  <input 
-                    className="form-input font-serif" 
-                    type="text"
-                    inputMode="numeric"
-                    value={enToBnNumber(issueYear)} 
-                    onChange={e => handleYearInput(e.target.value, setIssueYear)} 
-                    placeholder="যেমন: ২০২৪" 
-                    style={{ fontFamily: 'var(--font-serif)' }}
-                  />
-                </div>
-              </div>
-
-              <div className="form-row" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '16px' }}>
-                <div className="form-group">
-                  <label className="form-label">সংখ্যা (Volume/Issue)</label>
-                  <input 
-                    className="form-input" 
-                    value={volume} 
-                    onChange={e => setVolume(e.target.value)} 
-                    placeholder="যেমন: ১৪" 
-                  />
-                </div>
-                <div className="form-group">
-                  <label className="form-label">কপি</label>
-                  <div style={{ display: 'flex', gap: '6px' }}>
-                    <select 
-                      className="form-select font-serif" 
-                      value={isCustomCopies ? 'custom' : (['1', '2', '3', '4', '5'].includes(copies) ? copies : 'custom')} 
-                      onChange={e => {
-                        if (e.target.value === 'custom') {
-                          setIsCustomCopies(true);
-                        } else {
-                          setIsCustomCopies(false);
-                          setCopies(e.target.value);
-                        }
-                      }}
-                      style={{ fontFamily: 'var(--font-serif)', height: '42px', flex: 1 }}
-                    >
-                      <option value="1">১ কপি (ডিফল্ট)</option>
-                      <option value="2">২ কপি</option>
-                      <option value="3">৩ কপি</option>
-                      <option value="4">৪ কপি</option>
-                      <option value="5">৫ কপি</option>
-                      <option value="custom">✏️ অন্যান্য...</option>
-                    </select>
-                    {isCustomCopies && (
-                      <input 
-                        className="form-input font-serif" 
-                        type="text"
-                        inputMode="numeric"
-                        value={copies === '0' ? '' : enToBnNumber(copies)} 
-                        onChange={e => handleCopiesInput(e.target.value, setCopies)} 
-                        placeholder="সংখ্যা" 
-                        style={{ fontFamily: 'var(--font-serif)', height: '42px', width: '70px', padding: '6px 8px' }}
-                        autoFocus
-                      />
-                    )}
-                  </div>
-                </div>
-                <div className="form-group">
-                  <label className="form-label">অবস্থা</label>
-                  <select 
-                    className="form-input"
-                    value={status}
-                    onChange={e => setStatus(e.target.value)}
-                  >
-                    <option value="আছে">আছে</option>
-                    <option value="নাই">নাই</option>
-                    <option value="ধার দেওয়া হয়েছে">ধার দেওয়া</option>
-                    <option value="হারিয়ে গেছে">হারিয়ে গেছে</option>
-                  </select>
-                </div>
               </div>
             </div>
           </div>
