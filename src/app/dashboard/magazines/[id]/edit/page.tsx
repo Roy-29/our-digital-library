@@ -92,7 +92,7 @@ export default function EditMagazinePage({ params }: { params: Promise<{ id: str
         });
 
         toast.success('ম্যাগাজিন সফলভাবে আপডেট হয়েছে! 📰');
-        router.push('/dashboard/magazines');
+        router.push(`/dashboard/magazines/${resolvedParams.id}`);
       }
     } catch (err: any) {
       toast.error('দুঃখিত, একটি সমস্যা হয়েছে: ' + err.message);
@@ -156,7 +156,7 @@ export default function EditMagazinePage({ params }: { params: Promise<{ id: str
           </div>
           
           <div className="form-actions" style={{ display: 'flex', justifyContent: 'flex-end', gap: '12px', marginTop: '24px' }}>
-            <Link href="/dashboard/magazines" className="btn btn-secondary">
+            <Link href={`/dashboard/magazines/${resolvedParams.id}`} className="btn btn-secondary">
               বাতিল
             </Link>
             <button type="submit" className="btn btn-primary" disabled={saving}>
