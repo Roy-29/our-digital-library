@@ -52,38 +52,115 @@ export function BanglaDateInput({
     }
   };
 
+  const formatDigits = (raw: string) => {
+    const en = bnToEnNumber(raw);
+    
+    // Check if user pasted YYYY-MM-DD
+    const ymdMatch = en.match(/^(\d{4})[-/.](\d{1,2})[-/.](\d{1,2})$/);
+    let digits = '';
+    if (ymdMatch) {
+      const y = ymdMatch[1];
+      const m = ymdMatch[2].padStart(2, '0');
+      const d = ymdMatch[3].padStart(2, '0');
+      digits = `${d}${m}${y}`;
+    } else {
+      digits = en.replace(/\D/g, '').slice(0, 8);
+    }
+
+    let formatted = '';
+    if (digits.length > 0) {
+      formatted += digits.slice(0, 2);
+    }
+    if (digits.length >= 2) {
+      formatted += '-';
+    }
+    if (digits.length > 2) {
+      formatted += digits.slice(2, 4);
+    }
+    if (digits.length >= 4) {
+      formatted += '-';
+    }
+    if (digits.length > 4) {
+      formatted += digits.slice(4, 8);
+    }
+
+    return {
+      digits,
+      formattedBn: enToBnNumber(formatted),
+    };
+  };
+
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const rawVal = e.target.value;
-    setText(rawVal);
-
     if (!rawVal.trim()) {
+      setText('');
       onChange('');
       return;
     }
 
-    // Try to parse dd-mm-yyyy or yyyy-mm-dd
-    const enDigits = bnToEnNumber(rawVal).replace(/[^0-9-/.]/g, '');
-    const parts = enDigits.split(/[-/.]/);
-    if (parts.length === 3) {
-      // If user typed dd-mm-yyyy
-      if (parts[0].length <= 2 && parts[1].length <= 2 && parts[2].length === 4) {
-        const d = parts[0].padStart(2, '0');
-        const m = parts[1].padStart(2, '0');
-        const y = parts[2];
+    const { digits, formattedBn } = formatDigits(rawVal);
+    setText(formattedBn);
+
+    if (digits.length === 8) {
+      const d = digits.slice(0, 2);
+      const m = digits.slice(2, 4);
+      const y = digits.slice(4, 8);
+      const dayNum = parseInt(d, 10);
+      const monthNum = parseInt(m, 10);
+      const yearNum = parseInt(y, 10);
+      if (monthNum >= 1 && monthNum <= 12 && dayNum >= 1 && dayNum <= 31 && yearNum >= 1000) {
         onChange(`${y}-${m}-${d}`);
       }
-      // If user typed yyyy-mm-dd
-      else if (parts[0].length === 4 && parts[1].length <= 2 && parts[2].length <= 2) {
-        const y = parts[0];
-        const m = parts[1].padStart(2, '0');
-        const d = parts[2].padStart(2, '0');
-        onChange(`${y}-${m}-${d}`);
+    } else if (digits.length === 0) {
+      onChange('');
+    }
+  };
+
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === 'Backspace') {
+      const input = e.currentTarget;
+      const selStart = input.selectionStart;
+      const selEnd = input.selectionEnd;
+
+      if (selStart !== null && selStart === selEnd && selStart > 0) {
+        const charBefore = text[selStart - 1];
+        if (charBefore === '-') {
+          e.preventDefault();
+          // Remove the hyphen AND the character preceding it
+          const newText = text.slice(0, selStart - 2) + text.slice(selStart);
+          const { digits, formattedBn } = formatDigits(newText);
+          setText(formattedBn);
+
+          if (digits.length === 8) {
+            const d = digits.slice(0, 2);
+            const m = digits.slice(2, 4);
+            const y = digits.slice(4, 8);
+            onChange(`${y}-${m}-${d}`);
+          } else {
+            onChange('');
+          }
+        }
       }
     }
   };
 
   const handleBlur = () => {
     // Re-format cleanly on blur
+    const { digits } = formatDigits(text);
+    if (digits.length === 8) {
+      const d = digits.slice(0, 2);
+      const m = digits.slice(2, 4);
+      const y = digits.slice(4, 8);
+      const dayNum = parseInt(d, 10);
+      const monthNum = parseInt(m, 10);
+      const yearNum = parseInt(y, 10);
+      if (monthNum >= 1 && monthNum <= 12 && dayNum >= 1 && dayNum <= 31 && yearNum >= 1000) {
+        onChange(`${y}-${m}-${d}`);
+        setText(enToBnNumber(`${d}-${m}-${y}`));
+        return;
+      }
+    }
+    // If incomplete or invalid, revert to last valid value
     setText(toDisplay(value));
   };
 
@@ -91,9 +168,12 @@ export function BanglaDateInput({
     <div style={{ position: 'relative', width: '100%', display: 'flex', alignItems: 'center' }}>
       <input
         type="text"
+        inputMode="numeric"
+        maxLength={10}
         className={`${className} font-serif`}
         value={text}
         onChange={handleInputChange}
+        onKeyDown={handleKeyDown}
         onBlur={handleBlur}
         placeholder={placeholder}
         style={{
@@ -163,7 +243,9 @@ export function BanglaDateInput({
         type="date"
         value={value || ''}
         onChange={(e) => {
-          onChange(e.target.value);
+          const newVal = e.target.value;
+          onChange(newVal);
+          setText(toDisplay(newVal));
         }}
         style={{
           position: 'absolute',
