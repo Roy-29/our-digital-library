@@ -89,7 +89,7 @@ export default function UsersPage() {
                             {user.avatar_url ? (
                               <img src={user.avatar_url} alt={user.display_name} style={{ width: '100%', height: '100%', borderRadius: '50%', objectFit: 'cover' }} />
                             ) : (
-                              user.display_name.charAt(0).toUpperCase()
+                              (user.display_name.match(/^.[\u09BE-\u09D7\u09E2\u09E3]*/)?.[0] || user.display_name.charAt(0)).toUpperCase()
                             )}
                           </div>
                           <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
@@ -104,21 +104,17 @@ export default function UsersPage() {
                       </td>
                       <td style={{ padding: '16px', color: 'var(--text-muted)' }}>@{user.id}</td>
                       <td style={{ padding: '16px', textAlign: 'center', fontWeight: 500 }}>
-                        {enToBnNumber((bookCounts[user.id] || 0).toString())} টি
+                        <span style={{ fontFamily: 'system-ui, -apple-system, sans-serif', fontSize: '1.1rem' }}>
+                          {enToBnNumber((bookCounts[user.id] || 0).toString())}
+                        </span> টি
                       </td>
                       <td style={{ padding: '16px' }}>
                         <span className="badge badge-gray">{user.role}</span>
                       </td>
                       <td style={{ padding: '16px', textAlign: 'right' }}>
-                        {currentUser?.id === user.id ? (
-                          <Link href={`/dashboard/users/${user.id}`} className="btn btn-secondary btn-sm">
-                            বিস্তারিত ➡️
-                          </Link>
-                        ) : (
-                          <span className="btn btn-secondary btn-sm" style={{ opacity: 0.4, cursor: 'not-allowed' }} title="শুধুমাত্র নিজের বিস্তারিত দেখা যাবে">
-                            বিস্তারিত 🚫
-                          </span>
-                        )}
+                        <Link href={`/dashboard/users/${user.id}`} className="btn btn-secondary btn-sm">
+                          বিস্তারিত ➡️
+                        </Link>
                       </td>
                     </tr>
                   ))}
