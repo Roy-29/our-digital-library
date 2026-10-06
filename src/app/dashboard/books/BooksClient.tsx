@@ -159,13 +159,13 @@ export default function BooksClient({
         <div className="flex gap-3 items-center">
           <div className="view-toggle">
             <button className={viewMode === 'grid' ? 'active' : ''} onClick={() => setViewMode('grid')}>
-              🔲 Grid
+              🔲 গ্রিড
             </button>
             <button className={viewMode === 'list' ? 'active' : ''} onClick={() => setViewMode('list')}>
-              📋 List
+              📋 লিস্ট
             </button>
             <button className={viewMode === 'shelf' ? 'active' : ''} onClick={() => setViewMode('shelf')}>
-              📚 Shelf
+              📚 শেলফ
             </button>
           </div>
           <Link href="/dashboard/backup" className="btn btn-secondary" title="Excel / CSV থেকে বই ইম্পোর্ট করুন">
