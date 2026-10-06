@@ -1,8 +1,8 @@
 'use client';
 
-import { useState, useRef } from 'react';
-import { dbExportBackup, dbRestoreBackup, dbExportTableCsv, dbImportBooks } from '@/app/actions';
-import { BACKUP_TABLES, getOwnerLabel } from '@/lib/types';
+import { useState, useRef, useEffect } from 'react';
+import { dbExportBackup, dbRestoreBackup, dbExportTableCsv, dbImportBooks, dbGetTables } from '@/app/actions';
+import { getOwnerLabel } from '@/lib/types';
 import { useAuth } from '@/contexts/AuthContext';
 import * as XLSX from 'xlsx';
 import toast from 'react-hot-toast';
@@ -40,6 +40,11 @@ export default function BackupPage() {
 
   const [exportingJSON, setExportingJSON] = useState(false);
   const [exportingCsvTable, setExportingCsvTable] = useState<string | null>(null);
+  const [databaseTables, setDatabaseTables] = useState<string[]>([]);
+
+  useEffect(() => {
+    dbGetTables().then(setDatabaseTables).catch(console.error);
+  }, []);
 
   // Restore states
   const [importing, setImporting] = useState(false);
@@ -118,7 +123,7 @@ export default function BackupPage() {
         }
 
         const stats: Record<string, number> = {};
-        for (const t of BACKUP_TABLES) {
+        for (const t of Object.keys(data)) {
           if (Array.isArray(data[t])) {
             stats[t] = data[t].length;
           }
@@ -226,7 +231,7 @@ export default function BackupPage() {
             </div>
             <div className="card-body" style={{ padding: '24px' }}>
               <p className="text-sm text-muted" style={{ marginBottom: '16px', lineHeight: 1.6 }}>
-                একটি ক্লিকে সম্পূর্ণ লাইব্রেরির সব ডেটা (১৫টি টেবিল) ডাউনলোড করে রাখুন। এই ফাইলটি ব্যবহার করে পরবর্তীতে যেকোনো সময় সম্পূর্ণ লাইব্রেরি পুনরুদ্ধার করা যাবে।
+                একটি ক্লিকে ডাটাবেসের সম্পূর্ণ ডেটা (সকল টেবিল) ডাউনলোড করে রাখুন। এই ফাইলটি ব্যবহার করে পরবর্তীতে যেকোনো সময় সম্পূর্ণ লাইব্রেরি পুনরুদ্ধার করা যাবে।
               </p>
               <button
                 className="btn btn-primary w-full"
@@ -354,24 +359,28 @@ export default function BackupPage() {
                 gap: '10px',
               }}
             >
-              {BACKUP_TABLES.map((t) => (
-                <div
-                  key={t}
-                  style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: '8px',
-                    padding: '8px 12px',
-                    background: 'var(--bg-secondary)',
-                    borderRadius: 'var(--radius-md)',
-                    border: '1px solid var(--border-light)',
-                    fontSize: '0.85rem',
-                  }}
-                >
-                  <span style={{ color: 'var(--accent)', fontWeight: 'bold' }}>✓</span>
-                  <span>{TABLE_LABELS[t] || t}</span>
-                </div>
-              ))}
+              {databaseTables.length === 0 ? (
+                <div style={{ color: 'var(--text-muted)', fontSize: '0.9rem' }}>টেবিলের তালিকা লোড হচ্ছে...</div>
+              ) : (
+                databaseTables.map((t) => (
+                  <div
+                    key={t}
+                    style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '8px',
+                      padding: '8px 12px',
+                      background: 'var(--bg-secondary)',
+                      borderRadius: 'var(--radius-md)',
+                      border: '1px solid var(--border-light)',
+                      fontSize: '0.85rem',
+                    }}
+                  >
+                    <span style={{ color: 'var(--accent)', fontWeight: 'bold' }}>✓</span>
+                    <span>{TABLE_LABELS[t] || t}</span>
+                  </div>
+                ))
+              )}
             </div>
             <p className="text-sm text-muted" style={{ marginTop: '16px', marginBlockEnd: 0 }}>
               💡 <strong>টিপস:</strong> পুনরুদ্ধার করার সময় কোনো ডেটা ক্ষতিগ্রস্ত হয় না; ব্যাকআপ ফাইলের আইডি অনুযায়ী রেকর্ডগুলো হালনাগাদ (Update/Insert) হয়।

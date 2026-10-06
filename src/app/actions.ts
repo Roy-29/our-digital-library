@@ -7,7 +7,6 @@ import {
   rooms, shelves, racks, wishlist, activityLog, books, lendingRecords, magazines, magazineIssues
 } from '@/db/schema';
 import { revalidatePath } from 'next/cache';
-import { BACKUP_TABLES } from '@/lib/types';
 
 // Helper to get table
 const getTable = (tableName: string) => {
@@ -111,11 +110,26 @@ export async function dbUpsert(table: string, data: any | any[]) {
 /**
  * Server-side complete database export
  */
+export async function dbGetTables() {
+  try {
+    const res = await client.execute(`SELECT name FROM sqlite_master WHERE type='table' AND name NOT LIKE 'sqlite_%' AND name != '__drizzle_migrations'`);
+    return res.rows.map((row: any) => row.name as string);
+  } catch (error: any) {
+    console.error('[dbGetTables ERROR]:', error);
+    return [];
+  }
+}
+
+/**
+ * Server-side complete database export
+ */
 export async function dbExportBackup() {
   const backupData: Record<string, any[]> = {};
   const counts: Record<string, number> = {};
 
-  for (const table of BACKUP_TABLES) {
+  const tables = await dbGetTables();
+
+  for (const table of tables) {
     const res = await client.execute(`SELECT * FROM "${table}"`);
     backupData[table] = res.rows;
     counts[table] = res.rows.length;
@@ -145,7 +159,8 @@ export async function dbRestoreBackup(backupPayload: any) {
     // Disable foreign keys temporarily during bulk restore to handle interdependent rows
     await client.execute('PRAGMA foreign_keys = OFF;');
 
-    for (const table of BACKUP_TABLES) {
+    const tables = Object.keys(tablesData);
+    for (const table of tables) {
       const rows = tablesData[table];
       if (!Array.isArray(rows) || rows.length === 0) continue;
 
