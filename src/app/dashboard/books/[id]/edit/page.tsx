@@ -960,6 +960,7 @@ export default function EditBookPage() {
                     <datalist id="unpurchased-source-options">
                       <option value="উপহার (Gift)" />
                       <option value="পুরস্কার (Prize)" />
+                      <option value="আমি মেরে দিসি 🥷" />
                       <option value="চুরি করা (Stolen 🥷)" />
                       <option value="ধার করে আর ফেরত দেইনি" />
                       <option value="অনলাইন / পিডিএফ" />
