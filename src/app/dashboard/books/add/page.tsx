@@ -131,9 +131,10 @@ export default function AddBookPage() {
   const [isCustomCopies, setIsCustomCopies] = useState(false);
   const [owner, setOwner] = useState<BookOwner>('swapnil');
   const [status, setStatus] = useState<BookStatus>('আছে');
-  const [isPurchased, setIsPurchased] = useState(true);
+  const [isPurchased, setIsPurchased] = useState(false);
   const [purchaseDate, setPurchaseDate] = useState('');
   const [purchaseSource, setPurchaseSource] = useState('');
+  const [sourceDescription, setSourceDescription] = useState('');
   const [purchasePrice, setPurchasePrice] = useState('');
   const [purchaseDiscountPercent, setPurchaseDiscountPercent] = useState('');
   const [purchaseDiscount, setPurchaseDiscount] = useState('');
@@ -606,6 +607,7 @@ export default function AddBookPage() {
       is_purchased: isPurchased,
       purchase_date: purchaseDate || null,
       purchase_source: purchaseSource || null,
+      source_description: sourceDescription || null,
       purchase_price: purchasePrice ? parseFloat(bnToEnNumber(purchasePrice)) : null,
       purchase_discount: purchaseDiscount ? parseFloat(bnToEnNumber(purchaseDiscount)) : null,
       purchase_final_price: purchaseFinalPrice ? parseFloat(bnToEnNumber(purchaseFinalPrice)) : null,
@@ -1032,6 +1034,17 @@ export default function AddBookPage() {
                       <option value="অনলাইন / পিডিএফ" />
                       <option value="বিশ্বসাহিত্য কেন্দ্র লাইব্রেরি" />
                     </datalist>
+                  </div>
+                )}
+                {!isPurchased && purchaseSource && (
+                  <div className="form-group" style={{ marginTop: '12px' }}>
+                    <label className="form-label">সংক্ষিপ্ত বিবরণ</label>
+                    <input 
+                      className="form-input" 
+                      value={sourceDescription} 
+                      onChange={e => setSourceDescription(e.target.value)} 
+                      placeholder="যেমন: কার কাছ থেকে ধার নিয়েছিলেন, বা কোথায় পুরষ্কার পেয়েছিলেন..." 
+                    />
                   </div>
                 )}
                 {isPurchased && (

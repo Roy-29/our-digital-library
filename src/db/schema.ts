@@ -131,6 +131,7 @@ export const books = sqliteTable('books', {
   isPurchased: integer('is_purchased', { mode: 'boolean' }).default(true),
   purchaseDate: text('purchase_date'),
   purchaseSource: text('purchase_source'),
+  sourceDescription: text('source_description'),
   purchasePrice: real('purchase_price'),
   purchaseDiscount: real('purchase_discount').default(0),
   purchaseFinalPrice: real('purchase_final_price'),

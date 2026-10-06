@@ -147,6 +147,7 @@ export interface Book {
   is_purchased: boolean;
   purchase_date: string | null;
   purchase_source: string | null;
+  source_description: string | null;
   purchase_price: number | null;
   purchase_discount: number | null;
   purchase_final_price: number | null;

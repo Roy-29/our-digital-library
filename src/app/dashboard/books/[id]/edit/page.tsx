@@ -137,6 +137,7 @@ export default function EditBookPage() {
   const [isPurchased, setIsPurchased] = useState(true);
   const [purchaseDate, setPurchaseDate] = useState('');
   const [purchaseSource, setPurchaseSource] = useState('');
+  const [sourceDescription, setSourceDescription] = useState('');
   const [purchasePrice, setPurchasePrice] = useState('');
   const [purchaseDiscountPercent, setPurchaseDiscountPercent] = useState('');
   const [purchaseDiscount, setPurchaseDiscount] = useState('');
@@ -359,6 +360,7 @@ export default function EditBookPage() {
     setIsPurchased(b.is_purchased);
     setPurchaseDate(b.purchase_date || '');
     setPurchaseSource(b.purchase_source || '');
+    setSourceDescription(b.source_description || '');
     const price = b.purchase_price ? Number(b.purchase_price) : null;
     const discount = b.purchase_discount !== null && b.purchase_discount !== undefined ? Number(b.purchase_discount) : null;
     const finalPrice = b.purchase_final_price ? Number(b.purchase_final_price) : null;
@@ -592,7 +594,8 @@ export default function EditBookPage() {
       illustrator_id: finalIllustratorId || null,
       publisher_id: finalPublisherId || null, category_id: finalCategoryId || null, genre_id: finalGenreId || null,
       owner, status,
-      is_purchased: isPurchased, purchase_date: purchaseDate || null, purchase_source: purchaseSource || null,
+      is_purchased: isPurchased, purchase_date: purchaseDate || null, 
+      purchase_source: purchaseSource || null, source_description: sourceDescription || null,
       purchase_price: purchasePrice ? parseFloat(bnToEnNumber(purchasePrice)) : null,
       purchase_discount: purchaseDiscount ? parseFloat(bnToEnNumber(purchaseDiscount)) : null,
       purchase_final_price: purchaseFinalPrice ? parseFloat(bnToEnNumber(purchaseFinalPrice)) : null,
@@ -966,6 +969,17 @@ export default function EditBookPage() {
                       <option value="অনলাইন / পিডিএফ" />
                       <option value="বিশ্বসাহিত্য কেন্দ্র লাইব্রেরি" />
                     </datalist>
+                  </div>
+                )}
+                {!isPurchased && purchaseSource && (
+                  <div className="form-group" style={{ marginTop: '12px' }}>
+                    <label className="form-label">সংক্ষিপ্ত বিবরণ</label>
+                    <input 
+                      className="form-input" 
+                      value={sourceDescription} 
+                      onChange={e => setSourceDescription(e.target.value)} 
+                      placeholder="যেমন: কার কাছ থেকে ধার নিয়েছিলেন, বা কোথায় পুরষ্কার পেয়েছিলেন..." 
+                    />
                   </div>
                 )}
                 {isPurchased && (
