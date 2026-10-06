@@ -22,6 +22,8 @@ const TABLE_LABELS: Record<string, string> = {
   lending_records: 'ধার দেওয়ার রেকর্ড (Lendings)',
   wishlist: 'উইশলিস্ট (Wishlist)',
   activity_log: 'কার্যকলাপ (Activity Log)',
+  magazines: 'ম্যাগাজিন (Magazines)',
+  magazine_issues: 'ম্যাগাজিন ইস্যু (Magazine Issues)',
 };
 
 const CSV_OPTIONS = [
@@ -224,7 +226,7 @@ export default function BackupPage() {
             </div>
             <div className="card-body" style={{ padding: '24px' }}>
               <p className="text-sm text-muted" style={{ marginBottom: '16px', lineHeight: 1.6 }}>
-                একটি ক্লিকে সম্পূর্ণ লাইব্রেরির সব ডেটা (১৩টি টেবিল) ডাউনলোড করে রাখুন। এই ফাইলটি ব্যবহার করে পরবর্তীতে যেকোনো সময় সম্পূর্ণ লাইব্রেরি পুনরুদ্ধার করা যাবে।
+                একটি ক্লিকে সম্পূর্ণ লাইব্রেরির সব ডেটা (১৫টি টেবিল) ডাউনলোড করে রাখুন। এই ফাইলটি ব্যবহার করে পরবর্তীতে যেকোনো সময় সম্পূর্ণ লাইব্রেরি পুনরুদ্ধার করা যাবে।
               </p>
               <button
                 className="btn btn-primary w-full"

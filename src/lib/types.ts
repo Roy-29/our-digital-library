@@ -393,6 +393,8 @@ export const BACKUP_TABLES = [
   'lending_records',
   'wishlist',
   'activity_log',
+  'magazines',
+  'magazine_issues',
 ] as const;
 
 export type BackupTable = (typeof BACKUP_TABLES)[number];
