@@ -124,18 +124,6 @@ export default function BookDetailPage() {
                 </div>
               )}
             </div>
-            {/* Status badge */}
-            <div style={{
-              marginTop: '16px', textAlign: 'center',
-              padding: '10px', borderRadius: 'var(--radius-md)',
-              background: `${statusConfig?.color}15`, color: statusConfig?.color,
-              fontWeight: 600, fontSize: '1rem',
-            }}>
-              {statusConfig?.icon} {book.status}
-            </div>
-            {book.is_favorite && (
-              <div style={{ textAlign: 'center', marginTop: '8px', fontSize: '1.2rem' }}>⭐ প্রিয় বই</div>
-            )}
           </div>
 
           {/* Details */}
@@ -195,9 +183,15 @@ export default function BookDetailPage() {
             </div>
 
             <div className="card" style={{ marginBottom: '16px' }}>
-              <div className="card-header"><h3>👤 মালিকানা</h3></div>
+              <div className="card-header"><h3>👤 মালিকানা ও স্ট্যাটাস</h3></div>
               <div className="card-body">
                 <DetailRow label="মালিক" value={getOwnerLabel(book.owner)} />
+                <DetailRow label="বর্তমান স্ট্যাটাস" value={
+                  <span style={{ color: statusConfig?.color, fontWeight: 600, padding: '2px 8px', borderRadius: '12px', background: `${statusConfig?.color}15` }}>
+                    {statusConfig?.icon} {book.status}
+                  </span>
+                } />
+                {book.is_favorite && <DetailRow label="প্রিয় বই" value="⭐ হ্যাঁ" />}
               </div>
             </div>
 
