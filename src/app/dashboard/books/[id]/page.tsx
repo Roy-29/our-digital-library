@@ -81,8 +81,6 @@ export default function BookDetailPage() {
 
   if (!book) return null;
 
-  const isOwner = user?.id === book.owner;
-
   return (
     <>
       <div className="page-header">
@@ -102,9 +100,7 @@ export default function BookDetailPage() {
             <span>⬅️</span>
             <span style={{ fontSize: '0.9rem', fontWeight: 500 }}>ফিরে যান</span>
           </button>
-          {isOwner && (
-            <Link href={`/dashboard/books/${book.id}/edit`} className="btn btn-primary">✏️ সম্পাদনা</Link>
-          )}
+          <Link href={`/dashboard/books/${book.id}/edit`} className="btn btn-primary">✏️ সম্পাদনা</Link>
         </div>
       </div>
 

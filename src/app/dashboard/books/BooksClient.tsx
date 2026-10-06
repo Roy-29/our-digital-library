@@ -165,7 +165,7 @@ export default function BooksClient({
               📋 লিস্ট
             </button>
             <button className={viewMode === 'shelf' ? 'active' : ''} onClick={() => setViewMode('shelf')}>
-              📚 শেলফ
+              📚 শেল্ফ
             </button>
           </div>
           <Link href="/dashboard/backup" className="btn btn-secondary" title="Excel / CSV থেকে বই ইম্পোর্ট করুন">
