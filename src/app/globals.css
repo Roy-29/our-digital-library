@@ -899,6 +899,19 @@ select.font-serif option {
   color: white;
 }
 
+.book-card-status-inline {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 0.7rem;
+  padding: 3px 8px;
+  border-radius: 20px;
+  background: var(--bg-secondary);
+  color: var(--text-secondary);
+  font-weight: 500;
+  border: 1px solid var(--border-light);
+}
+
 .book-card-body {
   padding: 12px 14px;
 }

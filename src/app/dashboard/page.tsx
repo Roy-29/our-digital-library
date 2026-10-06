@@ -224,9 +224,6 @@ export default async function DashboardPage() {
                         <span className="book-title-placeholder">{book.title}</span>
                       </div>
                     )}
-                    <span className="book-card-status">
-                      {book.status}
-                    </span>
                   </div>
                   <div className="book-card-body">
                     <div className="book-card-title">{book.title}</div>
@@ -235,7 +232,12 @@ export default async function DashboardPage() {
                     </div>
                     <div className="book-card-meta">
                       <span className="book-card-owner">{getOwnerLabel(book.owner)}</span>
-                      {book.rating && <span style={{ fontSize: '0.8rem' }}>⭐ {book.rating}</span>}
+                      {book.rating && <span style={{ fontSize: '0.8rem' }}>⭐ {enToBnNumber(book.rating.toString())}</span>}
+                    </div>
+                    <div style={{ marginTop: '8px', display: 'flex', alignItems: 'center' }}>
+                      <span className="book-card-status-inline">
+                        {book.status}
+                      </span>
                     </div>
                   </div>
                 </div>

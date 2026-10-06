@@ -469,15 +469,6 @@ export default function UnownedClient({
                           <span className="book-title-placeholder">{book.title}</span>
                         </div>
                       )}
-                      <span
-                        className="book-card-status"
-                        style={{
-                          background: statusConfig ? `${statusConfig.color}25` : undefined,
-                          color: statusConfig ? statusConfig.color : undefined,
-                        }}
-                      >
-                        {statusConfig?.icon || '🔖'} {book.status}
-                      </span>
                     </div>
                   </Link>
 
@@ -534,6 +525,17 @@ export default function UnownedClient({
                             ⭐ {book.rating}
                           </span>
                         )}
+                      </div>
+                      <div style={{ marginTop: '8px', display: 'flex', alignItems: 'center' }}>
+                        <span 
+                          className="book-card-status-inline"
+                          style={{
+                            color: statusConfig ? statusConfig.color : undefined,
+                            borderColor: statusConfig ? `${statusConfig.color}40` : undefined,
+                          }}
+                        >
+                          {statusConfig?.icon || '🔖'} {book.status}
+                        </span>
                       </div>
 
                       {/* Action buttons on card */}

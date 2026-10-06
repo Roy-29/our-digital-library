@@ -327,9 +327,6 @@ export default function BooksClient({
                         <span className="book-title-placeholder">{book.title}</span>
                       </div>
                     )}
-                    <span className="book-card-status">
-                      {BOOK_STATUSES.find(s => s.value === book.status)?.icon} {book.status}
-                    </span>
                   </div>
                   <div className="book-card-body">
                     <div className="book-card-title font-serif" style={{ display: 'flex', alignItems: 'center', gap: '6px', fontFamily: 'var(--font-serif)' }}>
@@ -389,6 +386,11 @@ export default function BooksClient({
                           </button>
                         )}
                       </div>
+                    </div>
+                    <div style={{ marginTop: '8px', display: 'flex', alignItems: 'center' }}>
+                      <span className="book-card-status-inline">
+                        {BOOK_STATUSES.find(s => s.value === book.status)?.icon} {book.status}
+                      </span>
                     </div>
                   </div>
                 </div>
