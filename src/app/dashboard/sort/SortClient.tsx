@@ -968,7 +968,7 @@ export default function SortClient({
                             )}
                           </div>
                           <div style={{ minWidth: 0 }}>
-                            <Link href={`/dashboard/books/${book.id}`} style={{ fontWeight: 600, color: 'var(--text-primary)', textDecoration: 'none', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                            <Link href={`/dashboard/books/${book.id}`} className="font-serif" style={{ fontWeight: 600, color: 'var(--text-primary)', textDecoration: 'none', display: 'flex', alignItems: 'center', gap: '4px', fontFamily: 'var(--font-serif)' }}>
                               <span>{book.title}</span>
                               {book.isFavorite && <span style={{ color: '#F59E0B' }}>⭐</span>}
                             </Link>

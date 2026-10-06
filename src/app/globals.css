@@ -46,7 +46,7 @@
   /* Typography */
   --font-serif: 'Noto Serif Bengali', 'Georgia', serif;
   --font-sans: 'Hind Siliguri', 'Noto Sans Bengali', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-  --font-display: 'Hind Siliguri', 'Noto Serif Bengali', serif;
+  --font-display: 'Noto Serif Bengali', 'Hind Siliguri', serif;
   
   /* Spacing */
   --radius-sm: 6px;
@@ -347,7 +347,7 @@ h3 { font-size: 1.25rem; }
 }
 
 .page-header h2 {
-  font-family: var(--font-serif);
+  font-family: var(--font-serif) !important;
   font-size: 1.4rem;
   color: var(--text-primary);
   display: flex;
@@ -613,6 +613,12 @@ h3 { font-size: 1.25rem; }
 /* Bengali Numerals & Numeric Input Serif Typography */
 .font-serif,
 .font-bn-number,
+.book-title,
+.book-card-title,
+.book-title-placeholder,
+.placeholder-title,
+.shelf-book-spine,
+.table td a[href*="/dashboard/books/"],
 input[inputmode="numeric"],
 .form-input[inputmode="numeric"],
 input[type="date"],
@@ -1906,6 +1912,7 @@ select.font-serif option {
   .page-header h2 {
     font-size: 1.15rem;
     margin: 0;
+    font-family: var(--font-serif) !important;
   }
   
   /* CRITICAL: Keep page-header buttons visible and properly styled on mobile */

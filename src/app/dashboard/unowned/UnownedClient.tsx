@@ -639,10 +639,12 @@ export default function UnownedClient({
                       <td>
                         <Link
                           href={`/dashboard/books/${book.id}`}
+                          className="font-serif"
                           style={{
                             textDecoration: 'none',
                             color: 'var(--text-primary)',
                             fontWeight: 600,
+                            fontFamily: 'var(--font-serif)',
                           }}
                         >
                           {book.title}

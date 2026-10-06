@@ -113,7 +113,7 @@ export default function BookDetailPage() {
             <span>⬅️</span>
             <span style={{ fontSize: '0.9rem', fontWeight: 500 }}>ফিরে যান</span>
           </button>
-          <h2 style={{ margin: 0, display: 'flex', alignItems: 'center', gap: '8px' }}>
+          <h2 style={{ margin: 0, display: 'flex', alignItems: 'center', gap: '8px', fontFamily: 'var(--font-serif)' }} className="font-serif">
             📖 {book.title}
             {(book.copies || 1) > 1 && <span className="badge" style={{ fontSize: '0.8rem', padding: '4px 8px', fontFamily: 'var(--font-serif)' }}>{enToBnNumber((book.copies || 1).toString())} কপি</span>}
           </h2>
@@ -142,7 +142,7 @@ export default function BookDetailPage() {
                   background: `linear-gradient(135deg, #1B4332, #2D6A4F)`,
                 }}>
                   <span className="book-emoji">📖</span>
-                  <span className="book-title-placeholder" style={{ fontSize: '1rem' }}>{book.title}</span>
+                  <span className="book-title-placeholder font-serif" style={{ fontSize: '1rem', fontFamily: 'var(--font-serif)' }}>{book.title}</span>
                 </div>
               )}
             </div>
@@ -165,7 +165,7 @@ export default function BookDetailPage() {
             <div className="card" style={{ marginBottom: '16px' }}>
               <div className="card-header"><h3>📋 মূল তথ্য</h3></div>
               <div className="card-body">
-                <DetailRow label="বইয়ের নাম" value={book.title} />
+                <DetailRow label="বইয়ের নাম" value={<span className="font-serif" style={{ fontFamily: 'var(--font-serif)', fontWeight: 600 }}>{book.title}</span>} />
                 <DetailRow label="Original Title" value={book.title_original} />
                 <DetailRow label="Subtitle" value={book.subtitle} />
                 <DetailRow label="লেখক" value={book.author?.name_bn || book.author?.name} />

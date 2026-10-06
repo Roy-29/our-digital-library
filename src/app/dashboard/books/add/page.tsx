@@ -599,7 +599,7 @@ export default function AddBookPage() {
   return (
     <>
       <div className="page-header">
-        <h2>➕ নতুন বই যোগ করুন</h2>
+        <h2 style={{ fontFamily: 'var(--font-serif)' }} className="font-serif">➕ নতুন বই যোগ করুন</h2>
         <button className="btn btn-secondary" onClick={() => router.back()}>← ফিরে যান</button>
       </div>
 
@@ -613,7 +613,7 @@ export default function AddBookPage() {
               <div className="card-body">
                 <div className="form-group">
                   <label className="form-label">বইয়ের নাম *</label>
-                  <input className="form-input" value={title} onChange={e => setTitle(e.target.value)} placeholder="বইয়ের নাম লিখুন" required />
+                  <input className="form-input font-serif" style={{ fontFamily: 'var(--font-serif)' }} value={title} onChange={e => setTitle(e.target.value)} placeholder="বইয়ের নাম লিখুন" required />
                 </div>
                 <div className="form-row">
                   <div className="form-group">
