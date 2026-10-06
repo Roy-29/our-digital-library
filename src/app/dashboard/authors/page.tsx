@@ -367,13 +367,21 @@ export default function AuthorsPage() {
                   </div>
                   <div className="form-group">
                     <label className="form-label">ছবির লিংক (URL)</label>
-                    <input 
-                      className="form-input" 
-                      type="url"
-                      value={imageUrl} 
-                      onChange={e => setImageUrl(e.target.value)} 
-                      placeholder="https://example.com/image.jpg" 
-                    />
+                    <div style={{ display: 'flex', gap: '12px', alignItems: 'flex-start' }}>
+                      <input 
+                        className="form-input" 
+                        type="url"
+                        value={imageUrl} 
+                        onChange={e => setImageUrl(e.target.value)} 
+                        placeholder="https://example.com/image.jpg"
+                        style={{ flexGrow: 1 }}
+                      />
+                      {imageUrl && (
+                        <div style={{ width: '42px', height: '42px', borderRadius: '8px', overflow: 'hidden', border: '1px solid var(--border)', flexShrink: 0, background: 'var(--bg-secondary)' }}>
+                          <img src={imageUrl} alt="Preview" style={{ width: '100%', height: '100%', objectFit: 'cover' }} onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }} onLoad={(e) => { (e.target as HTMLImageElement).style.display = 'block'; }} />
+                        </div>
+                      )}
+                    </div>
                   </div>
                   <div className="form-row">
                     <div className="form-group">

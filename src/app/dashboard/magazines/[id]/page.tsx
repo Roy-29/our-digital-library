@@ -10,6 +10,53 @@ import { bnToEnNumber, enToBnNumber, getOwnerLabel, formatDateBn } from '@/lib/t
 import { use } from 'react';
 import { Edit2, Trash2 } from 'lucide-react';
 
+const monthOrder: Record<string, number> = {
+  'জানুয়ারি': 1, 'জানুয়ারি': 1,
+  'ফেব্রুয়ারি': 2, 'ফেব্রুয়ারি': 2,
+  'মার্চ': 3,
+  'এপ্রিল': 4,
+  'মে': 5,
+  'জুন': 6,
+  'জুলাই': 7,
+  'আগস্ট': 8, 'অগাস্ট': 8,
+  'সেপ্টেম্বর': 9,
+  'অক্টোবর': 10,
+  'নভেম্বর': 11,
+  'ডিসেম্বর': 12,
+  'বৈশাখ': 1,
+  'জ্যৈষ্ঠ': 2,
+  'আষাঢ়': 3, 'আষাঢ়': 3,
+  'শ্রাবণ': 4,
+  'ভাদ্র': 5,
+  'আশ্বিন': 6,
+  'কার্তিক': 7,
+  'অগ্রহায়ণ': 8, 'অগ্রহায়ণ': 8,
+  'পৌষ': 9,
+  'মাঘ': 10,
+  'ফাল্গুন': 11,
+  'চৈত্র': 12
+};
+
+const sortIssuesList = (issuesList: any[]) => {
+  return [...issuesList].sort((a, b) => {
+    const yearA = a.issue_year || 0;
+    const yearB = b.issue_year || 0;
+    if (yearA !== yearB) {
+      return yearB - yearA; // Descending year
+    }
+    const monthA = a.issue_month ? (monthOrder[a.issue_month.trim()] || 0) : 0;
+    const monthB = b.issue_month ? (monthOrder[b.issue_month.trim()] || 0) : 0;
+    
+    if (monthA !== monthB) {
+      return monthB - monthA; // Descending month
+    }
+    
+    const timeA = new Date(a.created_at || 0).getTime();
+    const timeB = new Date(b.created_at || 0).getTime();
+    return timeB - timeA; // Newer first
+  });
+};
+
 export default function ViewMagazinePage({ params }: { params: Promise<{ id: string }> }) {
   const router = useRouter();
   const { user } = useAuth();
@@ -53,9 +100,9 @@ export default function ViewMagazinePage({ params }: { params: Promise<{ id: str
         
         if (magData) {
           setMagazine(magData);
-          const { data: issuesData, error: issuesErr } = await supabase.from('magazine_issues').select('*').eq('magazine_id', resolvedParams.id).order('issue_year', { ascending: false });
+          const { data: issuesData, error: issuesErr } = await supabase.from('magazine_issues').select('*').eq('magazine_id', resolvedParams.id);
           if (!issuesErr && issuesData) {
-            setIssues(issuesData);
+            setIssues(sortIssuesList(issuesData));
           }
         }
       } catch (err: any) {
@@ -114,7 +161,7 @@ export default function ViewMagazinePage({ params }: { params: Promise<{ id: str
       if (error) throw error;
       
       if (data) {
-        setIssues([data, ...issues].sort((a, b) => (b.issue_year || 0) - (a.issue_year || 0)));
+        setIssues(sortIssuesList([data, ...issues]));
         setNewMonth('');
         setNewYear('');
         setNewVolume('');
@@ -172,7 +219,7 @@ export default function ViewMagazinePage({ params }: { params: Promise<{ id: str
 
       if (error) throw error;
       
-      setIssues(issues.map(issue => 
+      setIssues(sortIssuesList(issues.map(issue => 
         issue.id === issueId ? {
           ...issue,
           issue_month: editIssueForm.month.trim() || null,
@@ -181,7 +228,7 @@ export default function ViewMagazinePage({ params }: { params: Promise<{ id: str
           status: editIssueForm.status,
           copies: parseInt(bnToEnNumber(editIssueForm.copies)) || 1,
         } : issue
-      ));
+      )));
       setEditingIssueId(null);
       toast.success('ইস্যু আপডেট হয়েছে!');
     } catch(err: any) {

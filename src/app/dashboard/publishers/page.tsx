@@ -147,7 +147,17 @@ export default function PublishersPage() {
           ) : (
             <form onSubmit={handleSubmit}><div className="modal-body">
               <div className="form-group"><label className="form-label">নাম *</label><input className="form-input" placeholder="প্রকাশকের নাম লিখুন..." value={name} onChange={e => setName(e.target.value)} required autoFocus /></div>
-              <div className="form-group"><label className="form-label">লোগো / ছবির লিংক (URL)</label><input className="form-input" type="url" placeholder="https://example.com/logo.png" value={imageUrl} onChange={e => setImageUrl(e.target.value)} /></div>
+              <div className="form-group">
+                <label className="form-label">লোগো / ছবির লিংক (URL)</label>
+                <div style={{ display: 'flex', gap: '12px', alignItems: 'flex-start' }}>
+                  <input className="form-input" type="url" placeholder="https://example.com/logo.png" value={imageUrl} onChange={e => setImageUrl(e.target.value)} style={{ flexGrow: 1 }} />
+                  {imageUrl && (
+                    <div style={{ width: '42px', height: '42px', borderRadius: '8px', overflow: 'hidden', border: '1px solid var(--border)', flexShrink: 0, background: 'var(--bg-secondary)' }}>
+                      <img src={imageUrl} alt="Preview" style={{ width: '100%', height: '100%', objectFit: 'cover' }} onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }} onLoad={(e) => { (e.target as HTMLImageElement).style.display = 'block'; }} />
+                    </div>
+                  )}
+                </div>
+              </div>
               <div className="form-group"><label className="form-label">ঠিকানা</label><input className="form-input" value={address} onChange={e => setAddress(e.target.value)} /></div>
               <div className="form-row"><div className="form-group"><label className="form-label">ওয়েবসাইট</label><input className="form-input" value={website} onChange={e => setWebsite(e.target.value)} /></div><div className="form-group"><label className="form-label">ফোন</label><input className="form-input" value={phone} onChange={e => setPhone(e.target.value)} /></div><div className="form-group"><label className="form-label">ইমেইল</label><input className="form-input" value={email} onChange={e => setEmail(e.target.value)} /></div></div>
             </div><div className="modal-footer" style={{ display: 'flex', justifyContent: 'flex-end', width: '100%' }}>
