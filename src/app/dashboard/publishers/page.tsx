@@ -103,7 +103,19 @@ export default function PublishersPage() {
           <div className="empty-state"><div className="empty-icon">🏢</div><h3>কোনো প্রকাশক নেই</h3></div>
         ) : (
           <div className="table-container"><table className="table"><thead><tr><th>নাম</th><th>ঠিকানা</th><th>ফোন</th></tr></thead><tbody>
-            {filtered.map(p => (<tr key={p.id} onClick={() => openView(p)} style={{ cursor: 'pointer' }}><td style={{ fontWeight: 500 }}>{p.name_bn || p.name}</td><td>{p.address || '—'}</td><td>{p.phone || '—'}</td></tr>))}
+            {filtered.map(p => (<tr key={p.id} onClick={() => openView(p)} style={{ cursor: 'pointer' }}>
+              <td style={{ fontWeight: 500 }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                  {p.image_url ? (
+                    <img src={p.image_url} alt={p.name} style={{ width: '32px', height: '32px', borderRadius: '50%', objectFit: 'cover', border: '1px solid var(--border)' }} onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }} />
+                  ) : (
+                    <div style={{ width: '32px', height: '32px', borderRadius: '50%', background: 'var(--bg-secondary)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '16px' }}>🏢</div>
+                  )}
+                  <span>{p.name_bn || p.name}</span>
+                </div>
+              </td>
+              <td>{p.address || '—'}</td><td>{p.phone || '—'}</td>
+            </tr>))}
           </tbody></table></div>
         )}
       </div>

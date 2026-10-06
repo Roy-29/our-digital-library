@@ -260,8 +260,16 @@ export default function AuthorsPage() {
                 {filtered.map(a => (
                   <tr key={a.id} onClick={() => openView(a)} style={{ cursor: 'pointer' }}>
                     <td style={{ fontWeight: 500 }}>
-                      <span style={{ marginRight: '6px' }}>{viewMode === 'authors' ? '✍🏻' : viewMode === 'translators' ? '🔄' : '🎨'}</span>
-                      {a.name_bn || a.name}
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                        {a.image_url ? (
+                          <img src={a.image_url} alt={a.name} style={{ width: '32px', height: '32px', borderRadius: '50%', objectFit: 'cover', border: '1px solid var(--border)' }} onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }} />
+                        ) : (
+                          <div style={{ width: '32px', height: '32px', borderRadius: '50%', background: 'var(--bg-secondary)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '16px' }}>
+                            {viewMode === 'authors' ? '✍🏻' : viewMode === 'translators' ? '🔄' : '🎨'}
+                          </div>
+                        )}
+                        <span>{a.name_bn || a.name}</span>
+                      </div>
                     </td>
                     <td>{a.nationality || '—'}</td>
                     <td>{a.birth_year ? enToBnNumber(a.birth_year.toString()) : '—'}</td>
