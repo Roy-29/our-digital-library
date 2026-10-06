@@ -1146,11 +1146,13 @@ select.font-serif option {
   border-radius: 9999px;
   background: rgba(0, 0, 0, 0.06);
   font-weight: 600;
+  font-family: var(--font-serif);
 }
 
 .owner-pill.active .pill-badge {
   background: rgba(255, 255, 255, 0.25);
   color: #ffffff;
+  font-family: var(--font-serif);
 }
 
 .dark .owner-pill .pill-badge {

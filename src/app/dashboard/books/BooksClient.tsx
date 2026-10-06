@@ -7,6 +7,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { createClient } from '@/lib/supabase';
 import toast from 'react-hot-toast';
 import Link from 'next/link';
+import { enToBnNumber } from '@/lib/types';
 
 type ViewMode = 'grid' | 'list' | 'shelf';
 
@@ -145,7 +146,7 @@ export default function BooksClient({
             onClick={() => setFilterOwner('')}
           >
             <span>📚 সব বই</span>
-            <span className="pill-badge">{books.length}</span>
+            <span className="pill-badge">{enToBnNumber(books.length.toString())}</span>
           </button>
           {user && (
             <button 
@@ -154,7 +155,7 @@ export default function BooksClient({
               onClick={() => setFilterOwner(filterOwner === user.id ? '' : user.id)}
             >
               <span>⭐ আমার বই</span>
-              <span className="pill-badge">{books.filter(b => b.owner === user.id).length}</span>
+              <span className="pill-badge">{enToBnNumber(books.filter(b => b.owner === user.id).length.toString())}</span>
             </button>
           )}
           {OWNERS.filter(o => o.value !== user?.id).map(o => {
@@ -167,7 +168,7 @@ export default function BooksClient({
                 onClick={() => setFilterOwner(filterOwner === o.value ? '' : o.value)}
               >
                 <span>👤 {o.label}</span>
-                <span className="pill-badge">{count}</span>
+                <span className="pill-badge">{enToBnNumber(count.toString())}</span>
               </button>
             );
           })}

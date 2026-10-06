@@ -70,7 +70,7 @@ export default function MagazinesPage() {
             onClick={() => setFilterOwner('')}
           >
             <span>📰 সব ম্যাগাজিন</span>
-            <span className="pill-badge">{magazines.length}</span>
+            <span className="pill-badge">{enToBnNumber(magazines.length.toString())}</span>
           </button>
           {user && (
             <button 
@@ -79,7 +79,7 @@ export default function MagazinesPage() {
               onClick={() => setFilterOwner(filterOwner === user.id ? '' : user.id)}
             >
               <span>⭐ আমার ম্যাগাজিন</span>
-              <span className="pill-badge">{magazines.filter(m => m.owner === user.id).length}</span>
+              <span className="pill-badge">{enToBnNumber(magazines.filter(m => m.owner === user.id).length.toString())}</span>
             </button>
           )}
           {OWNERS.map(owner => {
@@ -93,7 +93,7 @@ export default function MagazinesPage() {
                 onClick={() => setFilterOwner(filterOwner === owner.value ? '' : owner.value)}
               >
                 <span>👤 {owner.label}</span>
-                <span className="pill-badge">{count}</span>
+                <span className="pill-badge">{enToBnNumber(count.toString())}</span>
               </button>
             );
           })}
