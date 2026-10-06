@@ -50,23 +50,9 @@ export default function BooksClient({
   const [filterGenre, setFilterGenre] = useState('');
   const [filterAuthor, setFilterAuthor] = useState(initialAuthor || '');
   const [filterPublisher, setFilterPublisher] = useState(initialPublisher || '');
-  const [sortField, setSortField] = useState<'default' | 'title' | 'author' | 'publisher'>('default');
-  const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('asc');
   const [deleteId, setDeleteId] = useState<string | null>(null);
-
-  const handleHeaderSort = (field: 'title' | 'author' | 'publisher') => {
-    if (sortField === field) {
-      if (sortOrder === 'asc') {
-        setSortOrder('desc');
-      } else {
-        setSortField('default');
-        setSortOrder('asc');
-      }
-    } else {
-      setSortField(field);
-      setSortOrder('asc');
-    }
-  };
+  const [viewingAuthor, setViewingAuthor] = useState<any | null>(null);
+  const [viewingPublisher, setViewingPublisher] = useState<any | null>(null);
 
   const handleDelete = async () => {
     if (!deleteId) return;
@@ -108,34 +94,8 @@ export default function BooksClient({
     );
   });
 
-  // Sorting: Header column sort or default priority sorting (Logged in user's books first)
-  const sortedBooks = [...filteredBooks].sort((a, b) => {
-    if (sortField !== 'default') {
-      let valA = '';
-      let valB = '';
-      if (sortField === 'title') {
-        valA = a.title || '';
-        valB = b.title || '';
-      } else if (sortField === 'author') {
-        valA = a.authorNameBn || a.authorName || '';
-        valB = b.authorNameBn || b.authorName || '';
-      } else if (sortField === 'publisher') {
-        valA = a.publisherNameBn || a.publisherName || '';
-        valB = b.publisherNameBn || b.publisherName || '';
-      }
-      const comp = valA.localeCompare(valB, 'bn');
-      return sortOrder === 'asc' ? comp : -comp;
-    }
-
-    if (user?.id) {
-      const aIsMine = a.owner === user.id ? 1 : 0;
-      const bIsMine = b.owner === user.id ? 1 : 0;
-      if (aIsMine !== bIsMine) {
-        return bIsMine - aIsMine; // Logged-in user's books come first
-      }
-    }
-    return 0; // preserve original order (createdAt desc)
-  });
+  // Sorting: Default priority sorting (latest added books first, preserving order from page.tsx)
+  const sortedBooks = [...filteredBooks];
 
   const clearFilters = () => {
     setSearch('');
@@ -340,22 +300,22 @@ export default function BooksClient({
                           onClick={(e) => {
                             e.preventDefault();
                             e.stopPropagation();
-                            setFilterAuthor(filterAuthor === book.authorId ? '' : (book.authorId || ''));
+                            const authorObj = authors?.find(a => a.id === book.authorId);
+                            if (authorObj) setViewingAuthor(authorObj);
                           }}
                           style={{
                             background: 'none',
                             border: 'none',
                             padding: 0,
                             cursor: 'pointer',
-                            color: filterAuthor === book.authorId ? 'var(--accent)' : 'inherit',
-                            fontWeight: filterAuthor === book.authorId ? 600 : 'inherit',
+                            color: 'inherit',
                             fontSize: 'inherit',
                             fontFamily: 'inherit',
                             textAlign: 'left'
                           }}
                           onMouseOver={(e) => e.currentTarget.style.textDecoration = 'underline'}
                           onMouseOut={(e) => e.currentTarget.style.textDecoration = 'none'}
-                          title={filterAuthor === book.authorId ? 'লেখকের ফিল্টার মুছুন' : `${book.authorNameBn || book.authorName}-এর বই ফিল্টার করুন`}
+                          title="লেখকের বিস্তারিত দেখুন"
                         >
                           ✍🏻 {book.authorNameBn || book.authorName}
                         </button>
@@ -394,19 +354,18 @@ export default function BooksClient({
             <table className="table">
               <thead>
                 <tr>
-                  <th onClick={() => handleHeaderSort('title')} style={{ cursor: 'pointer', userSelect: 'none' }} title="বইয়ের নাম অনুযায়ী সাজান">
-                    বই {sortField === 'title' ? (sortOrder === 'asc' ? '↑' : '↓') : '⇅'}
+                  <th>
+                    বই
                   </th>
-                  <th className="hide-mobile" onClick={() => handleHeaderSort('author')} style={{ cursor: 'pointer', userSelect: 'none' }} title="লেখক অনুযায়ী সাজান">
-                    লেখক {sortField === 'author' ? (sortOrder === 'asc' ? '↑' : '↓') : '⇅'}
+                  <th className="hide-mobile">
+                    লেখক
                   </th>
-                  <th className="hide-mobile" onClick={() => handleHeaderSort('publisher')} style={{ cursor: 'pointer', userSelect: 'none' }} title="প্রকাশক অনুযায়ী সাজান">
-                    প্রকাশক {sortField === 'publisher' ? (sortOrder === 'asc' ? '↑' : '↓') : '⇅'}
+                  <th className="hide-mobile">
+                    প্রকাশক
                   </th>
                   <th>মালিক</th>
                   <th>স্ট্যাটাস</th>
                   <th className="hide-mobile">রেটিং</th>
-                  <th className="table-actions-cell" style={{ textAlign: 'right' }}>অ্যাকশন</th>
                 </tr>
               </thead>
               <tbody>
@@ -425,21 +384,21 @@ export default function BooksClient({
                               onClick={(e) => {
                                 e.preventDefault();
                                 e.stopPropagation();
-                                setFilterAuthor(filterAuthor === book.authorId ? '' : (book.authorId || ''));
+                                const authorObj = authors?.find(a => a.id === book.authorId);
+                                if (authorObj) setViewingAuthor(authorObj);
                               }}
                               style={{
                                 background: 'none',
                                 border: 'none',
                                 padding: 0,
                                 cursor: 'pointer',
-                                color: filterAuthor === book.authorId ? 'var(--accent)' : 'inherit',
-                                fontWeight: filterAuthor === book.authorId ? 600 : 'inherit',
+                                color: 'inherit',
                                 fontSize: 'inherit',
                                 fontFamily: 'inherit',
                               }}
                               onMouseOver={(e) => e.currentTarget.style.textDecoration = 'underline'}
                               onMouseOut={(e) => e.currentTarget.style.textDecoration = 'none'}
-                              title={filterAuthor === book.authorId ? 'লেখকের ফিল্টার মুছুন' : `${book.authorNameBn || book.authorName}-এর বই ফিল্টার করুন`}
+                              title="লেখকের বিস্তারিত দেখুন"
                             >
                               {book.authorNameBn || book.authorName}
                             </button> •
@@ -452,21 +411,26 @@ export default function BooksClient({
                       {book.authorNameBn || book.authorName ? (
                         <button
                           type="button"
-                          onClick={() => setFilterAuthor(filterAuthor === book.authorId ? '' : (book.authorId || ''))}
+                          onClick={(e) => {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            const authorObj = authors?.find(a => a.id === book.authorId);
+                            if (authorObj) setViewingAuthor(authorObj);
+                          }}
                           style={{
                             background: 'none',
                             border: 'none',
                             padding: 0,
                             cursor: 'pointer',
-                            color: filterAuthor === book.authorId ? 'var(--accent)' : 'inherit',
-                            fontWeight: filterAuthor === book.authorId ? 600 : 500,
+                            color: 'inherit',
+                            fontWeight: 500,
                             fontSize: 'inherit',
                             fontFamily: 'inherit',
                             textAlign: 'left'
                           }}
                           onMouseOver={(e) => e.currentTarget.style.textDecoration = 'underline'}
                           onMouseOut={(e) => e.currentTarget.style.textDecoration = 'none'}
-                          title={filterAuthor === book.authorId ? 'লেখকের ফিল্টার মুছুন' : `${book.authorNameBn || book.authorName}-এর বই ফিল্টার করুন`}
+                          title="লেখকের বিস্তারিত দেখুন"
                         >
                           {book.authorNameBn || book.authorName}
                         </button>
@@ -478,21 +442,26 @@ export default function BooksClient({
                       {book.publisherNameBn || book.publisherName ? (
                         <button
                           type="button"
-                          onClick={() => setFilterPublisher(filterPublisher === (book.publisherId || book.publisherName) ? '' : (book.publisherId || book.publisherName || ''))}
+                          onClick={(e) => {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            const pubObj = publishers?.find(p => p.id === book.publisherId);
+                            if (pubObj) setViewingPublisher(pubObj);
+                          }}
                           style={{
                             background: 'none',
                             border: 'none',
                             padding: 0,
                             cursor: 'pointer',
-                            color: (filterPublisher === book.publisherId || filterPublisher === book.publisherName) ? 'var(--accent)' : 'inherit',
-                            fontWeight: (filterPublisher === book.publisherId || filterPublisher === book.publisherName) ? 600 : 500,
+                            color: 'inherit',
+                            fontWeight: 500,
                             fontSize: 'inherit',
                             fontFamily: 'inherit',
                             textAlign: 'left'
                           }}
                           onMouseOver={(e) => e.currentTarget.style.textDecoration = 'underline'}
                           onMouseOut={(e) => e.currentTarget.style.textDecoration = 'none'}
-                          title={(filterPublisher === book.publisherId || filterPublisher === book.publisherName) ? 'প্রকাশকের ফিল্টার মুছুন' : `${book.publisherNameBn || book.publisherName}-এর বই ফিল্টার করুন`}
+                          title="প্রকাশকের বিস্তারিত দেখুন"
                         >
                           {book.publisherNameBn || book.publisherName}
                         </button>
@@ -517,17 +486,6 @@ export default function BooksClient({
                       </span>
                     </td>
                     <td className="hide-mobile font-serif">{book.rating ? `⭐ ${enToBnNumber(book.rating.toString())}` : '—'}</td>
-                    <td className="table-actions-cell">
-                      <div className="actions">
-                        <Link href={`/dashboard/books/${book.id}`} className="btn btn-ghost btn-icon btn-sm" title="দেখুন">👁️</Link>
-                        {user?.id === book.owner && (
-                          <>
-                            <Link href={`/dashboard/books/${book.id}/edit`} className="btn btn-ghost btn-icon btn-sm" title="সম্পাদনা">✏️</Link>
-                            <button className="btn btn-ghost btn-icon btn-sm" onClick={(e) => { e.preventDefault(); setDeleteId(book.id); }} title="মুছুন">🗑️</button>
-                          </>
-                        )}
-                      </div>
-                    </td>
                   </tr>
                 ))}
               </tbody>
@@ -560,6 +518,114 @@ export default function BooksClient({
           </div>
         )}
       </div>
+
+      {/* Author Details Modal */}
+      {viewingAuthor && (
+        <div className="modal-overlay" onClick={() => setViewingAuthor(null)}>
+          <div className="modal" onClick={e => e.stopPropagation()}>
+            <div className="modal-header">
+              <h3>📖 লেখকের বিস্তারিত তথ্য</h3>
+              <button className="btn btn-ghost btn-icon" onClick={() => setViewingAuthor(null)}>✕</button>
+            </div>
+            <div className="modal-body">
+              <div style={{ display: 'flex', gap: '20px', alignItems: 'flex-start', marginBottom: '16px' }}>
+                {viewingAuthor.image_url && (
+                  <div style={{ flexShrink: 0, width: '100px', height: '100px', borderRadius: '50%', overflow: 'hidden', border: '2px solid var(--border)', background: 'var(--bg-secondary)' }}>
+                    <img src={viewingAuthor.image_url} alt={viewingAuthor.name_bn || viewingAuthor.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                  </div>
+                )}
+                <div className="info-group" style={{ flexGrow: 1 }}>
+                  <label className="form-label" style={{ fontSize: '0.85rem', color: 'var(--text-secondary)' }}>নাম</label>
+                  <div style={{ fontSize: '1.2rem', fontWeight: 600, color: 'var(--text-primary)' }}>{viewingAuthor.name_bn || viewingAuthor.name}</div>
+                </div>
+              </div>
+              {viewingAuthor.bio && (
+                <div className="info-group" style={{ marginBottom: '16px' }}>
+                  <label className="form-label" style={{ fontSize: '0.85rem', color: 'var(--text-secondary)' }}>জীবনী / বিবরণ</label>
+                  <div style={{ color: 'var(--text-primary)', whiteSpace: 'pre-wrap', lineHeight: 1.6 }}>{viewingAuthor.bio}</div>
+                </div>
+              )}
+              <div className="form-row" style={{ display: 'flex', gap: '24px', flexWrap: 'wrap' }}>
+                {(viewingAuthor.birth_year || viewingAuthor.death_year) && (
+                  <div className="info-group">
+                    <label className="form-label" style={{ fontSize: '0.85rem', color: 'var(--text-secondary)' }}>জীবনকাল</label>
+                    <div style={{ color: 'var(--text-primary)' }}>
+                      {viewingAuthor.birth_year ? enToBnNumber(viewingAuthor.birth_year.toString()) : 'অজানা'} - {viewingAuthor.death_year ? enToBnNumber(viewingAuthor.death_year.toString()) : 'বর্তমান'}
+                    </div>
+                  </div>
+                )}
+                {viewingAuthor.nationality && (
+                  <div className="info-group">
+                    <label className="form-label" style={{ fontSize: '0.85rem', color: 'var(--text-secondary)' }}>জাতীয়তা</label>
+                    <div style={{ color: 'var(--text-primary)' }}>{viewingAuthor.nationality}</div>
+                  </div>
+                )}
+              </div>
+            </div>
+            <div className="modal-footer" style={{ display: 'flex', justifyContent: 'flex-end', gap: '8px' }}>
+              <Link href="/dashboard/authors" className="btn btn-primary" style={{ textDecoration: 'none' }}>
+                ✍🏻 লেখকের পেইজে যান
+              </Link>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Publisher Details Modal */}
+      {viewingPublisher && (
+        <div className="modal-overlay" onClick={() => setViewingPublisher(null)}>
+          <div className="modal" onClick={e => e.stopPropagation()}>
+            <div className="modal-header">
+              <h3>📖 প্রকাশকের বিস্তারিত তথ্য</h3>
+              <button className="btn btn-ghost btn-icon" onClick={() => setViewingPublisher(null)}>✕</button>
+            </div>
+            <div className="modal-body">
+              <div style={{ display: 'flex', gap: '20px', alignItems: 'flex-start', marginBottom: '16px' }}>
+                {viewingPublisher.image_url && (
+                  <div style={{ flexShrink: 0, width: '100px', height: '100px', borderRadius: '50%', overflow: 'hidden', border: '2px solid var(--border)', background: 'var(--bg-secondary)' }}>
+                    <img src={viewingPublisher.image_url} alt={viewingPublisher.name_bn || viewingPublisher.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                  </div>
+                )}
+                <div className="info-group" style={{ flexGrow: 1 }}>
+                  <label className="form-label" style={{ fontSize: '0.85rem', color: 'var(--text-secondary)' }}>নাম</label>
+                  <div style={{ fontSize: '1.2rem', fontWeight: 600, color: 'var(--text-primary)' }}>{viewingPublisher.name_bn || viewingPublisher.name}</div>
+                </div>
+              </div>
+              {viewingPublisher.address && (
+                <div className="info-group" style={{ marginBottom: '16px' }}>
+                  <label className="form-label" style={{ fontSize: '0.85rem', color: 'var(--text-secondary)' }}>ঠিকানা</label>
+                  <div style={{ color: 'var(--text-primary)' }}>{viewingPublisher.address}</div>
+                </div>
+              )}
+              <div className="form-row" style={{ display: 'flex', gap: '24px', flexWrap: 'wrap' }}>
+                {viewingPublisher.website && (
+                  <div className="info-group">
+                    <label className="form-label" style={{ fontSize: '0.85rem', color: 'var(--text-secondary)' }}>ওয়েবসাইট</label>
+                    <div><a href={viewingPublisher.website.startsWith('http') ? viewingPublisher.website : `https://${viewingPublisher.website}`} target="_blank" rel="noreferrer" style={{ color: 'var(--primary)' }}>{viewingPublisher.website}</a></div>
+                  </div>
+                )}
+                {viewingPublisher.phone && (
+                  <div className="info-group">
+                    <label className="form-label" style={{ fontSize: '0.85rem', color: 'var(--text-secondary)' }}>ফোন</label>
+                    <div style={{ color: 'var(--text-primary)' }}>{viewingPublisher.phone}</div>
+                  </div>
+                )}
+                {viewingPublisher.email && (
+                  <div className="info-group">
+                    <label className="form-label" style={{ fontSize: '0.85rem', color: 'var(--text-secondary)' }}>ইমেইল</label>
+                    <div><a href={`mailto:${viewingPublisher.email}`} style={{ color: 'var(--primary)' }}>{viewingPublisher.email}</a></div>
+                  </div>
+                )}
+              </div>
+            </div>
+            <div className="modal-footer" style={{ display: 'flex', justifyContent: 'flex-end', gap: '8px' }}>
+              <Link href="/dashboard/publishers" className="btn btn-primary" style={{ textDecoration: 'none' }}>
+                🏢 প্রকাশকের পেইজে যান
+              </Link>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Delete Confirm */}
       {deleteId && (

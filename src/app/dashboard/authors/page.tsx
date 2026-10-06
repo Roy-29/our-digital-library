@@ -5,11 +5,16 @@ import { createClient } from '@/lib/supabase';
 import { Author, enToBnNumber, bnToEnNumber } from '@/lib/types';
 import toast from 'react-hot-toast';
 
+const nationalitiesList = [
+  'বাংলাদেশী', 'ভারতীয়', 'অস্ট্রিয়ান', 'অস্ট্রেলিয়ান', 'আফগান', 'আমেরিকান', 'আর্জেন্টাইন', 'আইরিশ', 'ইতালীয়', 'ইরাকি', 'ইরানি', 'কানাডিয়ান', 'কেনিয়ান', 'কোরিয়ান', 'কলম্বিয়ান', 'চীনা', 'চিলিয়ান', 'জাপানি', 'জার্মান', 'তুর্কি', 'ডাচ', 'দক্ষিণ আফ্রিকান', 'নাইজেরিয়ান', 'নেপালি', 'পর্তুগিজ', 'পাকিস্তানি', 'ফরাসি', 'ফিলিস্তিনি', 'বেলজিয়ান', 'ব্রিটিশ', 'ব্রাজিলিয়ান', 'ভুটানি', 'মালদ্বীপীয়', 'মিশরীয়', 'রাশিয়ান', 'শ্রীলঙ্কান', 'স্প্যানিশ', 'সুইস', 'সৌদি আরবীয়'
+];
+
 export default function AuthorsPage() {
   const [allPersons, setAllPersons] = useState<Author[]>([]);
   const [loading, setLoading] = useState(true);
   const [viewMode, setViewMode] = useState<'authors' | 'translators' | 'illustrators'>('authors');
   const [showModal, setShowModal] = useState(false);
+  const [formMode, setFormMode] = useState<'view' | 'edit' | 'add'>('add');
   const [editingId, setEditingId] = useState<string | null>(null);
   const [deleteId, setDeleteId] = useState<string | null>(null);
   const [search, setSearch] = useState('');
@@ -20,7 +25,8 @@ export default function AuthorsPage() {
   const [bio, setBio] = useState('');
   const [birthYear, setBirthYear] = useState('');
   const [deathYear, setDeathYear] = useState('');
-  const [nationality, setNationality] = useState('');
+  const [nationality, setNationality] = useState('বাংলাদেশী');
+  const [imageUrl, setImageUrl] = useState('');
 
   useEffect(() => { fetchPersons(); }, []);
 
@@ -46,16 +52,18 @@ export default function AuthorsPage() {
   const currentList = viewMode === 'authors' ? authorsList : viewMode === 'translators' ? translatorsList : illustratorsList;
 
   const resetForm = () => {
-    setName(''); setBio(''); setBirthYear(''); setDeathYear(''); setNationality('');
+    setName(''); setBio(''); setBirthYear(''); setDeathYear(''); setNationality('বাংলাদেশী'); setImageUrl('');
     setEditingId(null);
   };
 
-  const openAdd = () => { resetForm(); setShowModal(true); };
+  const openAdd = () => { resetForm(); setFormMode('add'); setShowModal(true); };
 
-  const openEdit = (a: Author) => {
+  const openView = (a: Author) => {
     setEditingId(a.id); setName(a.name_bn || a.name || '');
-    setBio(a.bio || ''); setBirthYear(a.birth_year ? enToBnNumber(a.birth_year) : '');
-    setDeathYear(a.death_year ? enToBnNumber(a.death_year) : ''); setNationality(a.nationality || '');
+    setBio(a.bio || ''); setBirthYear(a.birth_year ? enToBnNumber(a.birth_year.toString()) : '');
+    setDeathYear(a.death_year ? enToBnNumber(a.death_year.toString()) : ''); setNationality(a.nationality || 'বাংলাদেশী');
+    setImageUrl(a.image_url || '');
+    setFormMode('view');
     setShowModal(true);
   };
 
@@ -82,13 +90,31 @@ export default function AuthorsPage() {
 
     const editingPerson = editingId ? allPersons.find(p => p.id === editingId) : null;
 
+    const parsedBirthYear = birthYear ? parseInt(bnToEnNumber(birthYear)) : null;
+    const parsedDeathYear = deathYear ? parseInt(bnToEnNumber(deathYear)) : null;
+    const currentYear = new Date().getFullYear();
+
+    if (parsedBirthYear && (parsedBirthYear > currentYear || parsedBirthYear < 1)) {
+      toast.error('সঠিক জন্ম সাল লিখুন');
+      return;
+    }
+    if (parsedDeathYear && (parsedDeathYear > currentYear || parsedDeathYear < 1)) {
+      toast.error('সঠিক মৃত্যু সাল লিখুন');
+      return;
+    }
+    if (parsedBirthYear && parsedDeathYear && parsedDeathYear < parsedBirthYear) {
+      toast.error('মৃত্যু সাল জন্ম সালের আগে হতে পারে না');
+      return;
+    }
+
     const data: any = {
       name: trimmedName,
       name_bn: trimmedName,
       bio: bio || null,
-      birth_year: birthYear ? parseInt(bnToEnNumber(birthYear)) : null,
-      death_year: deathYear ? parseInt(bnToEnNumber(deathYear)) : null,
+      birth_year: parsedBirthYear,
+      death_year: parsedDeathYear,
       nationality: nationality || null,
+      image_url: imageUrl || null,
     };
 
     if (viewMode === 'authors') {
@@ -161,7 +187,7 @@ export default function AuthorsPage() {
     <>
       <div className="page-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '16px' }}>
         <div>
-          <h2>{viewMode === 'authors' ? `✍🏻 লেখক তালিকা (${filtered.length})` : viewMode === 'translators' ? `🔄 অনুবাদক তালিকা (${filtered.length})` : `🎨 আঁকিয়ে তালিকা (${filtered.length})`}</h2>
+          <h2>{viewMode === 'authors' ? <>✍🏻 লেখক তালিকা <span style={{ fontFamily: 'var(--font-serif)' }}>({enToBnNumber(filtered.length.toString())})</span></> : viewMode === 'translators' ? <>🔄 অনুবাদক তালিকা <span style={{ fontFamily: 'var(--font-serif)' }}>({enToBnNumber(filtered.length.toString())})</span></> : <>🎨 আঁকিয়ে তালিকা <span style={{ fontFamily: 'var(--font-serif)' }}>({enToBnNumber(filtered.length.toString())})</span></>}</h2>
           <p style={{ margin: '4px 0 0 0', fontSize: '0.85rem', color: 'var(--text-secondary)' }}>
             {viewMode === 'authors' ? 'বইয়ের মূল লেখকদের তালিকা ও তথ্য পরিচালনা' : viewMode === 'translators' ? 'অনূদিত বইয়ের অনুবাদকদের তালিকা ও তথ্য পরিচালনা' : 'বইয়ের প্রচ্ছদ ও অলংকরণ শিল্পীদের তালিকা পরিচালনা'}
           </p>
@@ -181,21 +207,21 @@ export default function AuthorsPage() {
             className={`tab ${viewMode === 'authors' ? 'active' : ''}`}
             onClick={() => { setViewMode('authors'); setSearch(''); }}
           >
-            ✍🏻 লেখক তালিকা ({authorsList.length})
+            ✍🏻 লেখক তালিকা <span style={{ fontFamily: 'var(--font-serif)' }}>({enToBnNumber(authorsList.length.toString())})</span>
           </button>
           <button 
             type="button"
             className={`tab ${viewMode === 'translators' ? 'active' : ''}`}
             onClick={() => { setViewMode('translators'); setSearch(''); }}
           >
-            🔄 অনুবাদক তালিকা ({translatorsList.length})
+            🔄 অনুবাদক তালিকা <span style={{ fontFamily: 'var(--font-serif)' }}>({enToBnNumber(translatorsList.length.toString())})</span>
           </button>
           <button 
             type="button"
             className={`tab ${viewMode === 'illustrators' ? 'active' : ''}`}
             onClick={() => { setViewMode('illustrators'); setSearch(''); }}
           >
-            🎨 আঁকিয়ে তালিকা ({illustratorsList.length})
+            🎨 আঁকিয়ে তালিকা <span style={{ fontFamily: 'var(--font-serif)' }}>({enToBnNumber(illustratorsList.length.toString())})</span>
           </button>
         </div>
 
@@ -228,37 +254,18 @@ export default function AuthorsPage() {
                   <th>জাতীয়তা</th>
                   <th>জন্ম</th>
                   <th>মৃত্যু</th>
-                  <th style={{ textAlign: 'right' }}>অ্যাকশন</th>
                 </tr>
               </thead>
               <tbody>
                 {filtered.map(a => (
-                  <tr key={a.id}>
+                  <tr key={a.id} onClick={() => openView(a)} style={{ cursor: 'pointer' }}>
                     <td style={{ fontWeight: 500 }}>
                       <span style={{ marginRight: '6px' }}>{viewMode === 'authors' ? '✍🏻' : viewMode === 'translators' ? '🔄' : '🎨'}</span>
                       {a.name_bn || a.name}
                     </td>
                     <td>{a.nationality || '—'}</td>
-                    <td>{a.birth_year ? enToBnNumber(a.birth_year) : '—'}</td>
-                    <td>{a.death_year ? enToBnNumber(a.death_year) : '—'}</td>
-                    <td>
-                      <div className="actions">
-                        <button 
-                          className="btn btn-ghost btn-icon btn-sm" 
-                          title="সম্পাদনা করুন"
-                          onClick={() => openEdit(a)}
-                        >
-                          ✏️
-                        </button>
-                        <button 
-                          className="btn btn-ghost btn-icon btn-sm" 
-                          title="মুছে ফেলুন"
-                          onClick={() => setDeleteId(a.id)}
-                        >
-                          🗑️
-                        </button>
-                      </div>
-                    </td>
+                    <td>{a.birth_year ? enToBnNumber(a.birth_year.toString()) : '—'}</td>
+                    <td>{a.death_year ? enToBnNumber(a.death_year.toString()) : '—'}</td>
                   </tr>
                 ))}
               </tbody>
@@ -273,68 +280,155 @@ export default function AuthorsPage() {
           <div className="modal" onClick={e => e.stopPropagation()}>
             <div className="modal-header">
               <h3>
-                {editingId 
+                {formMode === 'edit' 
                   ? (viewMode === 'authors' ? '✏️ লেখক সম্পাদনা' : viewMode === 'translators' ? '✏️ অনুবাদক সম্পাদনা' : '✏️ আঁকিয়ে সম্পাদনা') 
-                  : (viewMode === 'authors' ? '➕ নতুন লেখক' : viewMode === 'translators' ? '➕ নতুন অনুবাদক' : '➕ নতুন আঁকিয়ে')}
+                  : formMode === 'add' ? (viewMode === 'authors' ? '➕ নতুন লেখক' : viewMode === 'translators' ? '➕ নতুন অনুবাদক' : '➕ নতুন আঁকিয়ে')
+                  : '📖 বিস্তারিত তথ্য'}
               </h3>
-              <button className="btn btn-ghost btn-icon" onClick={() => setShowModal(false)}>✕</button>
+              <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+                {formMode === 'edit' && (
+                  <button type="button" className="btn btn-danger" onClick={() => { setShowModal(false); setDeleteId(editingId); }} style={{ padding: '6px 12px', fontSize: '0.9rem' }}>
+                    🗑️ মুছুন
+                  </button>
+                )}
+                <button className="btn btn-ghost btn-icon" onClick={() => setShowModal(false)}>✕</button>
+              </div>
             </div>
-            <form onSubmit={handleSubmit}>
-              <div className="modal-body">
-                <div className="form-group">
-                  <label className="form-label">
-                    {viewMode === 'authors' ? 'লেখকের নাম *' : viewMode === 'translators' ? 'অনুবাদকের নাম *' : 'আঁকিয়ের নাম *'}
-                  </label>
-                  <input 
-                    className="form-input" 
-                    placeholder={viewMode === 'authors' ? 'লেখকের নাম লিখুন...' : viewMode === 'translators' ? 'অনুবাদকের নাম লিখুন...' : 'আঁকিয়ের নাম লিখুন...'} 
-                    value={name} 
-                    onChange={e => setName(e.target.value)} 
-                    required 
-                    autoFocus 
-                  />
+            {formMode === 'view' ? (
+              <>
+                <div className="modal-body">
+                  <div style={{ display: 'flex', gap: '20px', alignItems: 'flex-start', marginBottom: '16px' }}>
+                    {imageUrl && (
+                      <div style={{ flexShrink: 0, width: '100px', height: '100px', borderRadius: '50%', overflow: 'hidden', border: '2px solid var(--border)', background: 'var(--bg-secondary)' }}>
+                        <img src={imageUrl} alt={name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                      </div>
+                    )}
+                    <div className="info-group" style={{ flexGrow: 1 }}>
+                      <label className="form-label" style={{ fontSize: '0.85rem', color: 'var(--text-secondary)' }}>{viewMode === 'authors' ? 'লেখকের নাম' : viewMode === 'translators' ? 'অনুবাদকের নাম' : 'আঁকিয়ের নাম'}</label>
+                      <div style={{ fontSize: '1.2rem', fontWeight: 600, color: 'var(--text-primary)' }}>{name}</div>
+                    </div>
+                  </div>
+                  {bio && (
+                    <div className="info-group" style={{ marginBottom: '16px' }}>
+                      <label className="form-label" style={{ fontSize: '0.85rem', color: 'var(--text-secondary)' }}>জীবনী / বিবরণ</label>
+                      <div style={{ color: 'var(--text-primary)', lineHeight: '1.5', whiteSpace: 'pre-wrap' }}>{bio}</div>
+                    </div>
+                  )}
+                  <div className="form-row" style={{ display: 'flex', gap: '24px', flexWrap: 'wrap' }}>
+                    {birthYear && (
+                      <div className="info-group">
+                        <label className="form-label" style={{ fontSize: '0.85rem', color: 'var(--text-secondary)' }}>জন্ম সাল</label>
+                        <div style={{ color: 'var(--text-primary)' }}>{birthYear}</div>
+                      </div>
+                    )}
+                    {deathYear && (
+                      <div className="info-group">
+                        <label className="form-label" style={{ fontSize: '0.85rem', color: 'var(--text-secondary)' }}>মৃত্যু সাল</label>
+                        <div style={{ color: 'var(--text-primary)' }}>{deathYear}</div>
+                      </div>
+                    )}
+                    {nationality && (
+                      <div className="info-group">
+                        <label className="form-label" style={{ fontSize: '0.85rem', color: 'var(--text-secondary)' }}>জাতীয়তা</label>
+                        <div style={{ color: 'var(--text-primary)' }}>{nationality}</div>
+                      </div>
+                    )}
+                  </div>
                 </div>
-                <div className="form-group">
-                  <label className="form-label">জীবনী / বিবরণ</label>
-                  <textarea 
-                    className="form-textarea" 
-                    value={bio} 
-                    onChange={e => setBio(e.target.value)} 
-                    placeholder={viewMode === 'authors' ? 'লেখকের সংক্ষিপ্ত পরিচিতি...' : viewMode === 'translators' ? 'অনুবাদকের সংক্ষিপ্ত পরিচিতি...' : 'আঁকিয়ের সংক্ষিপ্ত পরিচিতি...'} 
-                  />
+                <div className="modal-footer" style={{ display: 'flex', justifyContent: 'flex-end', gap: '8px' }}>
+                  <button type="button" className="btn btn-secondary" onClick={() => setShowModal(false)}>বন্ধ করুন</button>
+                  <button type="button" className="btn btn-primary" onClick={() => setFormMode('edit')}>✏️ এডিট করুন</button>
                 </div>
-                <div className="form-row">
+              </>
+            ) : (
+              <form onSubmit={handleSubmit}>
+                <div className="modal-body">
                   <div className="form-group">
-                    <label className="form-label">জন্ম সাল</label>
+                    <label className="form-label">
+                      {viewMode === 'authors' ? 'লেখকের নাম *' : viewMode === 'translators' ? 'অনুবাদকের নাম *' : 'আঁকিয়ের নাম *'}
+                    </label>
                     <input 
                       className="form-input" 
-                      type="text" 
-                      value={birthYear} 
-                      onChange={e => setBirthYear(enToBnNumber(e.target.value.replace(/[^0-9০-৯]/g, '')))} 
-                      placeholder="যেমন: ১৯৪৮" 
+                      placeholder={viewMode === 'authors' ? 'লেখকের নাম লিখুন...' : viewMode === 'translators' ? 'অনুবাদকের নাম লিখুন...' : 'আঁকিয়ের নাম লিখুন...'} 
+                      value={name} 
+                      onChange={e => setName(e.target.value)} 
+                      required 
+                      autoFocus 
                     />
                   </div>
                   <div className="form-group">
-                    <label className="form-label">মৃত্যু সাল</label>
-                    <input 
-                      className="form-input" 
-                      type="text" 
-                      value={deathYear} 
-                      onChange={e => setDeathYear(enToBnNumber(e.target.value.replace(/[^0-9০-৯]/g, '')))} 
-                      placeholder="যেমন: ২০১২" 
+                    <label className="form-label">জীবনী / বিবরণ</label>
+                    <textarea 
+                      className="form-textarea" 
+                      value={bio} 
+                      onChange={e => setBio(e.target.value)} 
+                      placeholder={viewMode === 'authors' ? 'লেখকের সংক্ষিপ্ত পরিচিতি...' : viewMode === 'translators' ? 'অনুবাদকের সংক্ষিপ্ত পরিচিতি...' : 'আঁকিয়ের সংক্ষিপ্ত পরিচিতি...'} 
                     />
                   </div>
                   <div className="form-group">
-                    <label className="form-label">জাতীয়তা</label>
-                    <input className="form-input" value={nationality} onChange={e => setNationality(e.target.value)} placeholder="যেমন: বাংলাদেশী" />
+                    <label className="form-label">ছবির লিংক (URL)</label>
+                    <input 
+                      className="form-input" 
+                      type="url"
+                      value={imageUrl} 
+                      onChange={e => setImageUrl(e.target.value)} 
+                      placeholder="https://example.com/image.jpg" 
+                    />
+                  </div>
+                  <div className="form-row">
+                    <div className="form-group">
+                      <label className="form-label">জন্ম সাল</label>
+                      <input 
+                        className="form-input" 
+                        type="text"
+                        maxLength={4}
+                        value={birthYear} 
+                        onChange={e => {
+                          const val = e.target.value.replace(/[^0-9০-৯]/g, '');
+                          if (val.length <= 4) setBirthYear(enToBnNumber(val));
+                        }} 
+                        placeholder="যেমন: ১৯৪৮" 
+                      />
+                    </div>
+                    <div className="form-group">
+                      <label className="form-label">মৃত্যু সাল</label>
+                      <input 
+                        className="form-input" 
+                        type="text" 
+                        maxLength={4}
+                        value={deathYear} 
+                        onChange={e => {
+                          const val = e.target.value.replace(/[^0-9০-৯]/g, '');
+                          if (val.length <= 4) setDeathYear(enToBnNumber(val));
+                        }} 
+                        placeholder="যেমন: ২০১২" 
+                      />
+                    </div>
+                    <div className="form-group">
+                      <label className="form-label">জাতীয়তা</label>
+                      <input 
+                        className="form-input" 
+                        value={nationality} 
+                        onChange={e => setNationality(e.target.value)}
+                        list="nationality-options"
+                        placeholder="যেমন: বাংলাদেশী"
+                      />
+                      <datalist id="nationality-options">
+                        {nationalitiesList.map(n => (
+                          <option key={n} value={n} />
+                        ))}
+                      </datalist>
+                    </div>
                   </div>
                 </div>
-              </div>
-              <div className="modal-footer">
-                <button type="button" className="btn btn-secondary" onClick={() => setShowModal(false)}>বাতিল</button>
-                <button type="submit" className="btn btn-primary">{editingId ? '✅ আপডেট' : '➕ যোগ করুন'}</button>
-              </div>
-            </form>
+                <div className="modal-footer" style={{ display: 'flex', justifyContent: 'flex-end', width: '100%' }}>
+                  <div style={{ display: 'flex', gap: '8px' }}>
+                    <button type="button" className="btn btn-secondary" onClick={() => setShowModal(false)}>বাতিল</button>
+                    <button type="submit" className="btn btn-primary">{formMode === 'edit' ? '✅ আপডেট' : '➕ যোগ করুন'}</button>
+                  </div>
+                </div>
+              </form>
+            )}
           </div>
         </div>
       )}

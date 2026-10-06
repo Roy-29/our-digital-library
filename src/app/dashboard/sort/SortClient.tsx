@@ -949,7 +949,6 @@ export default function SortClient({
                   <th style={{ minWidth: '120px' }}>মালিক ও স্ট্যাটাস</th>
                   <th style={{ minWidth: '90px' }}>রেটিং ও পৃষ্ঠা</th>
                   <th style={{ minWidth: '80px' }}>দাম</th>
-                  <th style={{ minWidth: '90px', textAlign: 'center' }}>অ্যাকশন</th>
                 </tr>
               </thead>
               <tbody>
@@ -1055,29 +1054,6 @@ export default function SortClient({
                         ) : (
                           <span className="text-muted">—</span>
                         )}
-                      </td>
-
-                      {/* Column 7: Actions */}
-                      <td style={{ textAlign: 'center' }}>
-                        <div style={{ display: 'flex', gap: '6px', justifyContent: 'center' }}>
-                          <Link href={`/dashboard/books/${book.id}`} className="btn-icon" title="বিস্তারিত দেখুন">
-                            👁️
-                          </Link>
-                          {isOwner && (
-                            <Link href={`/dashboard/books/${book.id}/edit`} className="btn-icon" title="সম্পাদনা">
-                              ✏️
-                            </Link>
-                          )}
-                          {isOwner && (
-                            <button
-                              className="btn-icon text-danger"
-                              onClick={() => setDeleteId(book.id)}
-                              title="মুছে ফেলুন"
-                            >
-                              🗑️
-                            </button>
-                          )}
-                        </div>
                       </td>
                     </tr>
                   );

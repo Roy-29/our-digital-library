@@ -16,7 +16,6 @@ export default function BookDetailPage() {
   const { user } = useAuth();
   const [book, setBook] = useState<Book | null>(null);
   const [loading, setLoading] = useState(true);
-  const [showDelete, setShowDelete] = useState(false);
   const supabase = createClient();
 
   useEffect(() => {
@@ -69,22 +68,6 @@ export default function BookDetailPage() {
     setLoading(false);
   };
 
-  const handleDelete = async () => {
-    if (!book) return;
-    if (user && book.owner !== user.id) {
-      toast.error('আপনি শুধুমাত্র নিজের বই মুছে ফেলতে পারবেন!');
-      setShowDelete(false);
-      return;
-    }
-    const { error } = await supabase.from('books').delete().eq('id', book.id);
-    if (error) {
-      toast.error('মুছতে পারা যায়নি');
-    } else {
-      toast.success('বই মুছে ফেলা হয়েছে');
-      router.push('/dashboard/books');
-    }
-  };
-
   const statusConfig = BOOK_STATUSES.find(s => s.value === book?.status);
 
   if (loading) {
@@ -104,6 +87,12 @@ export default function BookDetailPage() {
     <>
       <div className="page-header">
         <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+          <h2 style={{ margin: 0, display: 'flex', alignItems: 'center', gap: '8px', fontFamily: 'var(--font-serif)' }} className="font-serif">
+            📖 {book.title}
+            {(book.copies || 1) > 1 && <span className="badge" style={{ fontSize: '0.8rem', padding: '4px 8px', fontFamily: 'var(--font-serif)' }}>{enToBnNumber((book.copies || 1).toString())} কপি</span>}
+          </h2>
+        </div>
+        <div className="flex gap-2 page-header-actions">
           <button 
             onClick={() => router.back()} 
             className="btn btn-secondary"
@@ -113,17 +102,10 @@ export default function BookDetailPage() {
             <span>⬅️</span>
             <span style={{ fontSize: '0.9rem', fontWeight: 500 }}>ফিরে যান</span>
           </button>
-          <h2 style={{ margin: 0, display: 'flex', alignItems: 'center', gap: '8px', fontFamily: 'var(--font-serif)' }} className="font-serif">
-            📖 {book.title}
-            {(book.copies || 1) > 1 && <span className="badge" style={{ fontSize: '0.8rem', padding: '4px 8px', fontFamily: 'var(--font-serif)' }}>{enToBnNumber((book.copies || 1).toString())} কপি</span>}
-          </h2>
-        </div>
-        {isOwner && (
-          <div className="flex gap-2 page-header-actions">
+          {isOwner && (
             <Link href={`/dashboard/books/${book.id}/edit`} className="btn btn-primary">✏️ সম্পাদনা</Link>
-            <button className="btn btn-danger" onClick={() => setShowDelete(true)}>🗑️ মুছুন</button>
-          </div>
-        )}
+          )}
+        </div>
       </div>
 
       <div className="page-body">
@@ -206,6 +188,7 @@ export default function BookDetailPage() {
                 } />
                 <DetailRow label="ভাষা" value={book.language} />
                 <DetailRow label="সংস্করণ" value={book.edition} />
+                <DetailRow label="বইয়ের ধরন (প্রিন্ট)" value={book.print_type} />
                 <DetailRow label="কপি" value={book.copies ? <span style={{ fontFamily: 'var(--font-serif)' }}>{enToBnNumber(book.copies.toString())} কপি</span> : null} />
                 <DetailRow label="প্রকাশের বছর" value={book.publication_year ? <span style={{ fontFamily: 'var(--font-serif)' }}>{enToBnNumber(book.publication_year.toString())}</span> : null} />
                 <DetailRow label="পৃষ্ঠা" value={book.page_count ? <span style={{ fontFamily: 'var(--font-serif)' }}>{enToBnNumber(book.page_count.toString())}</span> : null} />
@@ -315,20 +298,7 @@ export default function BookDetailPage() {
         </div>
       </div>
 
-      {/* Delete Confirm */}
-      {showDelete && (
-        <div className="confirm-overlay" onClick={() => setShowDelete(false)}>
-          <div className="confirm-dialog" onClick={e => e.stopPropagation()}>
-            <div className="confirm-icon">⚠️</div>
-            <h3>বই মুছে ফেলবেন?</h3>
-            <p>&quot;{book.title}&quot; চিরতরে মুছে যাবে।</p>
-            <div className="confirm-actions">
-              <button className="btn btn-secondary" onClick={() => setShowDelete(false)}>বাতিল</button>
-              <button className="btn btn-danger" onClick={handleDelete}>🗑️ মুছে ফেলুন</button>
-            </div>
-          </div>
-        </div>
-      )}
+
     </>
   );
 }

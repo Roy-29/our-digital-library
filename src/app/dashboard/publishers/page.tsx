@@ -2,13 +2,14 @@
 
 import { useEffect, useState } from 'react';
 import { createClient } from '@/lib/supabase';
-import { Publisher } from '@/lib/types';
+import { Publisher, enToBnNumber } from '@/lib/types';
 import toast from 'react-hot-toast';
 
 export default function PublishersPage() {
   const [publishers, setPublishers] = useState<Publisher[]>([]);
   const [loading, setLoading] = useState(true);
   const [showModal, setShowModal] = useState(false);
+  const [formMode, setFormMode] = useState<'view' | 'edit' | 'add'>('add');
   const [editingId, setEditingId] = useState<string | null>(null);
   const [deleteId, setDeleteId] = useState<string | null>(null);
   const [search, setSearch] = useState('');
@@ -19,15 +20,16 @@ export default function PublishersPage() {
   const [website, setWebsite] = useState('');
   const [phone, setPhone] = useState('');
   const [email, setEmail] = useState('');
+  const [imageUrl, setImageUrl] = useState('');
 
   useEffect(() => { fetchData(); }, []);
 
   async function fetchData() { setLoading(true); const { data } = await supabase.from('publishers').select('*').order('name'); setPublishers(data || []); setLoading(false); }
 
-  const resetForm = () => { setName(''); setAddress(''); setWebsite(''); setPhone(''); setEmail(''); setEditingId(null); };
+  const resetForm = () => { setName(''); setAddress(''); setWebsite(''); setPhone(''); setEmail(''); setImageUrl(''); setEditingId(null); };
 
-  const openAdd = () => { resetForm(); setShowModal(true); };
-  const openEdit = (p: Publisher) => { setEditingId(p.id); setName(p.name_bn || p.name); setAddress(p.address || ''); setWebsite(p.website || ''); setPhone(p.phone || ''); setEmail(p.email || ''); setShowModal(true); };
+  const openAdd = () => { resetForm(); setFormMode('add'); setShowModal(true); };
+  const openView = (p: Publisher) => { setEditingId(p.id); setName(p.name_bn || p.name); setAddress(p.address || ''); setWebsite(p.website || ''); setPhone(p.phone || ''); setEmail(p.email || ''); setImageUrl(p.image_url || ''); setFormMode('view'); setShowModal(true); };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -53,7 +55,8 @@ export default function PublishersPage() {
       address: address || null,
       website: website || null,
       phone: phone || null,
-      email: email || null
+      email: email || null,
+      image_url: imageUrl || null
     };
 
     if (editingId) {
@@ -93,26 +96,67 @@ export default function PublishersPage() {
 
   return (
     <>
-      <div className="page-header"><h2>🏢 প্রকাশক ({filtered.length})</h2><button className="btn btn-primary" onClick={openAdd}>➕ নতুন প্রকাশক</button></div>
+      <div className="page-header"><h2>🏢 প্রকাশক <span style={{ fontFamily: 'var(--font-serif)' }}>({enToBnNumber(filtered.length.toString())})</span></h2><button className="btn btn-primary" onClick={openAdd}>➕ নতুন প্রকাশক</button></div>
       <div className="page-body">
         <div className="search-bar" style={{ marginBottom: '16px', maxWidth: '100%' }}><span className="search-icon">🔍</span><input placeholder="প্রকাশক খুঁজুন..." value={search} onChange={e => setSearch(e.target.value)} /></div>
         {loading ? <div className="loading-inline"><div className="spinner" /></div> : filtered.length === 0 ? (
           <div className="empty-state"><div className="empty-icon">🏢</div><h3>কোনো প্রকাশক নেই</h3></div>
         ) : (
-          <div className="table-container"><table className="table"><thead><tr><th>নাম</th><th>ঠিকানা</th><th>ফোন</th><th style={{ textAlign: 'right' }}>অ্যাকশন</th></tr></thead><tbody>
-            {filtered.map(p => (<tr key={p.id}><td style={{ fontWeight: 500 }}>{p.name_bn || p.name}</td><td>{p.address || '—'}</td><td>{p.phone || '—'}</td><td><div className="actions"><button className="btn btn-ghost btn-icon btn-sm" onClick={() => openEdit(p)}>✏️</button><button className="btn btn-ghost btn-icon btn-sm" onClick={() => setDeleteId(p.id)}>🗑️</button></div></td></tr>))}
+          <div className="table-container"><table className="table"><thead><tr><th>নাম</th><th>ঠিকানা</th><th>ফোন</th></tr></thead><tbody>
+            {filtered.map(p => (<tr key={p.id} onClick={() => openView(p)} style={{ cursor: 'pointer' }}><td style={{ fontWeight: 500 }}>{p.name_bn || p.name}</td><td>{p.address || '—'}</td><td>{p.phone || '—'}</td></tr>))}
           </tbody></table></div>
         )}
       </div>
 
       {showModal && (
         <div className="modal-overlay" onClick={() => setShowModal(false)}><div className="modal" onClick={e => e.stopPropagation()}>
-          <div className="modal-header"><h3>{editingId ? '✏️ সম্পাদনা' : '➕ নতুন প্রকাশক'}</h3><button className="btn btn-ghost btn-icon" onClick={() => setShowModal(false)}>✕</button></div>
-          <form onSubmit={handleSubmit}><div className="modal-body">
-            <div className="form-group"><label className="form-label">নাম *</label><input className="form-input" placeholder="প্রকাশকের নাম লিখুন..." value={name} onChange={e => setName(e.target.value)} required autoFocus /></div>
-            <div className="form-group"><label className="form-label">ঠিকানা</label><input className="form-input" value={address} onChange={e => setAddress(e.target.value)} /></div>
-            <div className="form-row"><div className="form-group"><label className="form-label">ওয়েবসাইট</label><input className="form-input" value={website} onChange={e => setWebsite(e.target.value)} /></div><div className="form-group"><label className="form-label">ফোন</label><input className="form-input" value={phone} onChange={e => setPhone(e.target.value)} /></div><div className="form-group"><label className="form-label">ইমেইল</label><input className="form-input" value={email} onChange={e => setEmail(e.target.value)} /></div></div>
-          </div><div className="modal-footer"><button type="button" className="btn btn-secondary" onClick={() => setShowModal(false)}>বাতিল</button><button type="submit" className="btn btn-primary">{editingId ? '✅ আপডেট' : '➕ যোগ'}</button></div></form>
+          <div className="modal-header">
+            <h3>{formMode === 'edit' ? '✏️ সম্পাদনা' : formMode === 'add' ? '➕ নতুন প্রকাশক' : '📖 বিস্তারিত তথ্য'}</h3>
+            <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+              {formMode === 'edit' && (
+                <button type="button" className="btn btn-danger" onClick={() => { setShowModal(false); setDeleteId(editingId); }} style={{ padding: '6px 12px', fontSize: '0.9rem' }}>
+                  🗑️ মুছুন
+                </button>
+              )}
+              <button className="btn btn-ghost btn-icon" onClick={() => setShowModal(false)}>✕</button>
+            </div>
+          </div>
+          {formMode === 'view' ? (
+            <>
+              <div className="modal-body">
+                <div style={{ display: 'flex', gap: '20px', alignItems: 'flex-start', marginBottom: '16px' }}>
+                  {imageUrl && (
+                    <div style={{ flexShrink: 0, width: '100px', height: '100px', borderRadius: '50%', overflow: 'hidden', border: '2px solid var(--border)', background: 'var(--bg-secondary)' }}>
+                      <img src={imageUrl} alt={name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                    </div>
+                  )}
+                  <div className="info-group" style={{ flexGrow: 1 }}><label className="form-label" style={{ fontSize: '0.85rem', color: 'var(--text-secondary)' }}>নাম</label><div style={{ fontSize: '1.2rem', fontWeight: 600, color: 'var(--text-primary)' }}>{name}</div></div>
+                </div>
+                {address && <div className="info-group" style={{ marginBottom: '16px' }}><label className="form-label" style={{ fontSize: '0.85rem', color: 'var(--text-secondary)' }}>ঠিকানা</label><div style={{ color: 'var(--text-primary)' }}>{address}</div></div>}
+                <div className="form-row" style={{ display: 'flex', gap: '24px', flexWrap: 'wrap' }}>
+                  {website && <div className="info-group"><label className="form-label" style={{ fontSize: '0.85rem', color: 'var(--text-secondary)' }}>ওয়েবসাইট</label><div><a href={website.startsWith('http') ? website : `https://${website}`} target="_blank" rel="noreferrer" style={{ color: 'var(--primary)' }}>{website}</a></div></div>}
+                  {phone && <div className="info-group"><label className="form-label" style={{ fontSize: '0.85rem', color: 'var(--text-secondary)' }}>ফোন</label><div style={{ color: 'var(--text-primary)' }}>{phone}</div></div>}
+                  {email && <div className="info-group"><label className="form-label" style={{ fontSize: '0.85rem', color: 'var(--text-secondary)' }}>ইমেইল</label><div><a href={`mailto:${email}`} style={{ color: 'var(--primary)' }}>{email}</a></div></div>}
+                </div>
+              </div>
+              <div className="modal-footer" style={{ display: 'flex', justifyContent: 'flex-end', gap: '8px' }}>
+                <button type="button" className="btn btn-secondary" onClick={() => setShowModal(false)}>বন্ধ করুন</button>
+                <button type="button" className="btn btn-primary" onClick={() => setFormMode('edit')}>✏️ এডিট করুন</button>
+              </div>
+            </>
+          ) : (
+            <form onSubmit={handleSubmit}><div className="modal-body">
+              <div className="form-group"><label className="form-label">নাম *</label><input className="form-input" placeholder="প্রকাশকের নাম লিখুন..." value={name} onChange={e => setName(e.target.value)} required autoFocus /></div>
+              <div className="form-group"><label className="form-label">লোগো / ছবির লিংক (URL)</label><input className="form-input" type="url" placeholder="https://example.com/logo.png" value={imageUrl} onChange={e => setImageUrl(e.target.value)} /></div>
+              <div className="form-group"><label className="form-label">ঠিকানা</label><input className="form-input" value={address} onChange={e => setAddress(e.target.value)} /></div>
+              <div className="form-row"><div className="form-group"><label className="form-label">ওয়েবসাইট</label><input className="form-input" value={website} onChange={e => setWebsite(e.target.value)} /></div><div className="form-group"><label className="form-label">ফোন</label><input className="form-input" value={phone} onChange={e => setPhone(e.target.value)} /></div><div className="form-group"><label className="form-label">ইমেইল</label><input className="form-input" value={email} onChange={e => setEmail(e.target.value)} /></div></div>
+            </div><div className="modal-footer" style={{ display: 'flex', justifyContent: 'flex-end', width: '100%' }}>
+              <div style={{ display: 'flex', gap: '8px' }}>
+                <button type="button" className="btn btn-secondary" onClick={() => setShowModal(false)}>বাতিল</button>
+                <button type="submit" className="btn btn-primary">{formMode === 'edit' ? '✅ আপডেট' : '➕ যোগ'}</button>
+              </div>
+            </div></form>
+          )}
         </div></div>
       )}
 

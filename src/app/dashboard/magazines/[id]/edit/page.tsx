@@ -20,6 +20,7 @@ export default function EditMagazinePage({ params }: { params: Promise<{ id: str
   
   const [title, setTitle] = useState('');
   const [publisher, setPublisher] = useState('');
+  const [showDelete, setShowDelete] = useState(false);
 
   useEffect(() => {
     async function fetchMagazine() {
@@ -101,6 +102,28 @@ export default function EditMagazinePage({ params }: { params: Promise<{ id: str
     }
   };
 
+  const handleDelete = async () => {
+    try {
+      const { error } = await supabase.from('magazines').delete().eq('id', resolvedParams.id);
+      if (error) throw error;
+      
+      toast.success('ম্যাগাজিন মুছে ফেলা হয়েছে');
+      
+      await supabase.from('activity_log').insert({
+        user_id: user?.id,
+        action: 'magazine_deleted',
+        entity_type: 'magazine',
+        entity_id: resolvedParams.id,
+        entity_name: title,
+        details: { owner: user?.id },
+      });
+      
+      router.push('/dashboard/magazines');
+    } catch (err: any) {
+      toast.error('ম্যাগাজিন মুছতে সমস্যা: ' + err.message);
+    }
+  };
+
   const handleKeyDown = (e: React.KeyboardEvent<HTMLFormElement>) => {
     const target = e.target as HTMLElement;
     if (e.key === 'Enter' && target.tagName !== 'TEXTAREA' && target.tagName !== 'BUTTON') {
@@ -121,8 +144,21 @@ export default function EditMagazinePage({ params }: { params: Promise<{ id: str
 
   return (
     <>
-      <div className="page-header">
+      <div className="page-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
         <h2>📰 ম্যাগাজিন এডিট করুন</h2>
+        <div style={{ display: 'flex', gap: '8px' }}>
+          <button 
+            type="button" 
+            className="btn btn-danger" 
+            onClick={() => setShowDelete(true)}
+            style={{ backgroundColor: '#fee2e2', color: '#ef4444', borderColor: '#fca5a5' }}
+          >
+            🗑️ মুছুন
+          </button>
+          <Link href={`/dashboard/magazines/${resolvedParams.id}`} className="btn btn-secondary">
+            ← ফিরে যান
+          </Link>
+        </div>
       </div>
 
       <div className="page-body">
@@ -164,6 +200,51 @@ export default function EditMagazinePage({ params }: { params: Promise<{ id: str
             </button>
           </div>
         </form>
+
+        {showDelete && (
+          <div className="modal-overlay" style={{
+            position: 'fixed', top: 0, left: 0, right: 0, bottom: 0,
+            backgroundColor: 'rgba(0,0,0,0.5)', zIndex: 1000,
+            display: 'flex', alignItems: 'center', justifyContent: 'center'
+          }}>
+            <div className="modal-content card" style={{
+              maxWidth: '400px', width: '90%', padding: '24px',
+              backgroundColor: 'var(--bg-primary)', borderRadius: '12px',
+              boxShadow: '0 20px 25px -5px rgba(0,0,0,0.1), 0 10px 10px -5px rgba(0,0,0,0.04)'
+            }}>
+              <div style={{ textAlign: 'center', marginBottom: '20px' }}>
+                <div style={{ 
+                  width: '48px', height: '48px', borderRadius: '50%', 
+                  backgroundColor: '#fee2e2', color: '#ef4444', 
+                  display: 'flex', alignItems: 'center', justifyContent: 'center', 
+                  margin: '0 auto 16px', fontSize: '24px' 
+                }}>
+                  ⚠️
+                </div>
+                <h3 style={{ margin: '0 0 8px', color: 'var(--text-primary)', fontSize: '1.25rem' }}>ম্যাগাজিন মুছে ফেলতে চান?</h3>
+                <p style={{ margin: 0, color: 'var(--text-secondary)', fontSize: '0.95rem', lineHeight: 1.5 }}>
+                  আপনি কি নিশ্চিত যে আপনি <strong style={{ color: 'var(--text-primary)' }}>{title}</strong> ম্যাগাজিনটি মুছে ফেলতে চান? এই অ্যাকশনটি আর পরিবর্তন করা যাবে না। এর সাথে জড়িত সমস্ত ইস্যু মুছে যাবে।
+                </p>
+              </div>
+              <div style={{ display: 'flex', gap: '12px', justifyContent: 'center' }}>
+                <button 
+                  className="btn btn-secondary" 
+                  onClick={() => setShowDelete(false)}
+                  style={{ flex: 1 }}
+                >
+                  বাতিল
+                </button>
+                <button 
+                  className="btn btn-danger" 
+                  onClick={handleDelete}
+                  style={{ flex: 1, backgroundColor: '#ef4444', color: 'white', border: 'none' }}
+                >
+                  হ্যাঁ, মুছুন
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     </>
   );

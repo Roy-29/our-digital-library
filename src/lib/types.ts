@@ -34,6 +34,7 @@ export interface Publisher {
   website: string | null;
   phone: string | null;
   email: string | null;
+  image_url: string | null;
   created_at: string;
   updated_at: string;
 }
@@ -149,6 +150,7 @@ export interface Book {
   purchase_final_price: number | null;
   purchased_by: string | null;
   book_condition: BookCondition;
+  print_type: string | null;
   
   reading_status: ReadingStatus | null;
   reading_start_date: string | null;

@@ -139,6 +139,7 @@ export default function AddBookPage() {
   const [purchaseDiscount, setPurchaseDiscount] = useState('');
   const [purchaseFinalPrice, setPurchaseFinalPrice] = useState('');
   const [bookCondition, setBookCondition] = useState<BookCondition>('new');
+  const [printType, setPrintType] = useState('');
   const [readingStatus, setReadingStatus] = useState<ReadingStatus | ''>('');
   const [readingStartDate, setReadingStartDate] = useState('');
   const [readingFinishDate, setReadingFinishDate] = useState('');
@@ -554,6 +555,7 @@ export default function AddBookPage() {
       purchase_final_price: purchaseFinalPrice ? parseFloat(bnToEnNumber(purchaseFinalPrice)) : null,
       purchased_by: owner || user?.id || null,
       book_condition: bookCondition,
+      print_type: printType.trim() || null,
       reading_status: readingStatus || null,
       reading_start_date: readingStartDate || null,
       reading_finish_date: readingFinishDate || null,
@@ -815,6 +817,24 @@ export default function AddBookPage() {
                   <div className="form-group">
                     <label className="form-label">পৃষ্ঠা সংখ্যা</label>
                     <input className="form-input" type="text" inputMode="numeric" value={enToBnNumber(pageCount)} onChange={e => handleNumericInput(e.target.value, setPageCount)} style={{ fontFamily: 'var(--font-serif)' }} />
+                  </div>
+                  <div className="form-group">
+                    <label className="form-label">বইয়ের ধরন (প্রিন্ট)</label>
+                    <input 
+                      className="form-input" 
+                      value={printType} 
+                      onChange={e => setPrintType(e.target.value)} 
+                      list="print-type-options"
+                      placeholder="অরিজিনাল, পাইরেটেড..." 
+                    />
+                    <datalist id="print-type-options">
+                      <option value="অরিজিনাল (Original)" />
+                      <option value="পাইরেটেড (Pirated)" />
+                      <option value="প্রিমিয়াম পাইরেটেড (Premium Pirated)" />
+                      <option value="প্রিন্টেড (Printed)" />
+                      <option value="নিউজপ্রিন্ট (Newsprint)" />
+                      <option value="সাদা কাগজ (White Paper)" />
+                    </datalist>
                   </div>
                 </div>
                 <div className="form-group">

@@ -17,6 +17,7 @@ export default function EditBookPage() {
   const supabase = createClient();
   const [saving, setSaving] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [showDelete, setShowDelete] = useState(false);
   const [activeTab, setActiveTab] = useState('basic');
 
   const [allPersons, setAllPersons] = useState<Author[]>([]);
@@ -141,6 +142,7 @@ export default function EditBookPage() {
   const [purchaseDiscount, setPurchaseDiscount] = useState('');
   const [purchaseFinalPrice, setPurchaseFinalPrice] = useState('');
   const [bookCondition, setBookCondition] = useState<BookCondition>('new');
+  const [printType, setPrintType] = useState('');
   const [readingStartDate, setReadingStartDate] = useState('');
   const [readingFinishDate, setReadingFinishDate] = useState('');
   const [readingProgress, setReadingProgress] = useState(0);
@@ -377,6 +379,7 @@ export default function EditBookPage() {
       setPurchaseDiscountPercent('');
     }
     setBookCondition(b.book_condition);
+    setPrintType(b.print_type || '');
     setReadingStatus(b.reading_status || '');
     setReadingStartDate(b.reading_start_date || '');
     setReadingFinishDate(b.reading_finish_date || '');
@@ -397,6 +400,22 @@ export default function EditBookPage() {
   const uploadCover = async (): Promise<string | null> => {
     return coverUrl.trim() || null;
   };
+
+  const handleDelete = async () => {
+    if (user && owner !== user.id) {
+      toast.error('আপনি শুধুমাত্র নিজের বই মুছে ফেলতে পারবেন!');
+      setShowDelete(false);
+      return;
+    }
+    const { error } = await supabase.from('books').delete().eq('id', params.id);
+    if (error) {
+      toast.error('মুছতে পারা যায়নি');
+    } else {
+      toast.success('বই মুছে ফেলা হয়েছে');
+      router.push('/dashboard/books');
+    }
+  };
+
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -578,6 +597,7 @@ export default function EditBookPage() {
       purchase_discount: purchaseDiscount ? parseFloat(bnToEnNumber(purchaseDiscount)) : null,
       purchase_final_price: purchaseFinalPrice ? parseFloat(bnToEnNumber(purchaseFinalPrice)) : null,
       purchased_by: owner || user?.id || null, book_condition: bookCondition,
+      print_type: printType.trim() || null,
       reading_status: readingStatus || null,
       reading_start_date: readingStartDate || null, reading_finish_date: readingFinishDate || null,
       reading_progress: readingProgress, rating: rating || null,
@@ -624,7 +644,10 @@ export default function EditBookPage() {
     <>
       <div className="page-header">
         <h2 style={{ fontFamily: 'var(--font-serif)' }} className="font-serif">✏️ সম্পাদনা: {title}</h2>
-        <button className="btn btn-secondary" onClick={() => router.back()}>← ফিরে যান</button>
+        <div style={{ display: 'flex', gap: '8px' }}>
+          <button className="btn btn-secondary" onClick={() => router.back()}>← ফিরে যান</button>
+          <button type="button" className="btn btn-danger" onClick={() => setShowDelete(true)}>🗑️ মুছুন</button>
+        </div>
       </div>
       <div className="page-body">
         <form onSubmit={handleSubmit} onKeyDown={handleKeyDown}>
@@ -838,6 +861,24 @@ export default function EditBookPage() {
                   <div className="form-group">
                     <label className="form-label">পৃষ্ঠা সংখ্যা</label>
                     <input className="form-input font-serif" type="text" inputMode="numeric" value={enToBnNumber(pageCount)} onChange={e => handleNumericInput(e.target.value, setPageCount)} style={{ fontFamily: 'var(--font-serif)' }} />
+                  </div>
+                  <div className="form-group">
+                    <label className="form-label">বইয়ের ধরন (প্রিন্ট)</label>
+                    <input 
+                      className="form-input" 
+                      value={printType} 
+                      onChange={e => setPrintType(e.target.value)} 
+                      list="print-type-options"
+                      placeholder="অরিজিনাল, পাইরেটেড..." 
+                    />
+                    <datalist id="print-type-options">
+                      <option value="অরিজিনাল (Original)" />
+                      <option value="পাইরেটেড (Pirated)" />
+                      <option value="প্রিমিয়াম পাইরেটেড (Premium Pirated)" />
+                      <option value="প্রিন্টেড (Printed)" />
+                      <option value="নিউজপ্রিন্ট (Newsprint)" />
+                      <option value="সাদা কাগজ (White Paper)" />
+                    </datalist>
                   </div>
                 </div>
                 <div className="form-group">
@@ -1059,6 +1100,21 @@ export default function EditBookPage() {
           </div>
         </form>
       </div>
+
+      {/* Delete Confirm */}
+      {showDelete && (
+        <div className="confirm-overlay" onClick={() => setShowDelete(false)}>
+          <div className="confirm-dialog" onClick={e => e.stopPropagation()}>
+            <div className="confirm-icon">⚠️</div>
+            <h3>বই মুছে ফেলবেন?</h3>
+            <p>&quot;{title}&quot; চিরতরে মুছে যাবে।</p>
+            <div className="confirm-actions">
+              <button type="button" className="btn btn-secondary" onClick={() => setShowDelete(false)}>বাতিল</button>
+              <button type="button" className="btn btn-danger" onClick={handleDelete}>🗑️ মুছে ফেলুন</button>
+            </div>
+          </div>
+        </div>
+      )}
     </>
   );
 }

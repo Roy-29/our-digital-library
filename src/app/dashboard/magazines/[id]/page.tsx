@@ -28,6 +28,7 @@ export default function ViewMagazinePage({ params }: { params: Promise<{ id: str
   const [addingIssue, setAddingIssue] = useState(false);
   
   const [editingIssueId, setEditingIssueId] = useState<string | null>(null);
+  const [deleteIssueId, setDeleteIssueId] = useState<string | null>(null);
   const [editIssueForm, setEditIssueForm] = useState({ month: '', year: '', volume: '', status: 'আছে', copies: '1' });
   const [isCustomEditCopies, setIsCustomEditCopies] = useState(false);
 
@@ -74,10 +75,34 @@ export default function ViewMagazinePage({ params }: { params: Promise<{ id: str
     
     setAddingIssue(true);
     try {
+      const proposedMonth = newMonth.trim() || null;
+      const proposedYear = newYear ? parseInt(bnToEnNumber(newYear)) : null;
+
+      const duplicateIssue = issues.find(
+        issue => {
+          const existingMonth = issue.issue_month?.trim() || null;
+          const existingYear = issue.issue_year ? parseInt(bnToEnNumber(issue.issue_year.toString())) : null;
+          return existingMonth === proposedMonth && existingYear === proposedYear;
+        }
+      );
+
+      if (duplicateIssue) {
+        setAddingIssue(false);
+        if (window.confirm('এই মাস এবং সালের ইস্যু আগে থেকেই যুক্ত করা আছে। আপনি কি ওই ইস্যুটির কপি সংখ্যা বাড়াতে বা সেটি এডিট করতে চান?')) {
+          setNewMonth('');
+          setNewYear('');
+          setNewVolume('');
+          setNewCopies('1');
+          setIsCustomNewCopies(false);
+          startEditingIssue(duplicateIssue);
+        }
+        return;
+      }
+
       const issueData = {
         magazine_id: magazine.id,
-        issue_month: newMonth.trim() || null,
-        issue_year: newYear ? parseInt(bnToEnNumber(newYear)) : null,
+        issue_month: proposedMonth,
+        issue_year: proposedYear,
         volume: newVolume.trim() || null,
         status: newStatus,
         copies: newCopies ? parseInt(bnToEnNumber(newCopies)) : 1,
@@ -119,9 +144,26 @@ export default function ViewMagazinePage({ params }: { params: Promise<{ id: str
 
   const handleSaveIssueEdit = async (issueId: string) => {
     try {
+      const proposedMonth = editIssueForm.month.trim() || null;
+      const proposedYear = editIssueForm.year ? parseInt(bnToEnNumber(editIssueForm.year)) : null;
+
+      const isDuplicate = issues.some(
+        issue => {
+          if (issue.id === issueId) return false;
+          const existingMonth = issue.issue_month?.trim() || null;
+          const existingYear = issue.issue_year ? parseInt(bnToEnNumber(issue.issue_year.toString())) : null;
+          return existingMonth === proposedMonth && existingYear === proposedYear;
+        }
+      );
+
+      if (isDuplicate) {
+        toast.error('এই মাস এবং সালের ইস্যু আগে থেকেই যুক্ত করা আছে।');
+        return;
+      }
+
       const { error } = await supabase.from('magazine_issues').update({
-        issue_month: editIssueForm.month.trim() || null,
-        issue_year: editIssueForm.year ? parseInt(bnToEnNumber(editIssueForm.year)) : null,
+        issue_month: proposedMonth,
+        issue_year: proposedYear,
         volume: editIssueForm.volume.trim() || null,
         status: editIssueForm.status,
         copies: parseInt(bnToEnNumber(editIssueForm.copies)) || 1,
@@ -147,46 +189,21 @@ export default function ViewMagazinePage({ params }: { params: Promise<{ id: str
     }
   };
 
-  const handleDeleteIssue = async (issueId: string) => {
-    if (!window.confirm('আপনি কি নিশ্চিত যে এই ইস্যুটি মুছে ফেলতে চান?')) return;
+  const confirmDeleteIssue = async () => {
+    if (!deleteIssueId) return;
     try {
-      const { error } = await supabase.from('magazine_issues').delete().eq('id', issueId);
+      const { error } = await supabase.from('magazine_issues').delete().eq('id', deleteIssueId);
       if (error) throw error;
-      setIssues(issues.filter(i => i.id !== issueId));
+      setIssues(issues.filter(i => i.id !== deleteIssueId));
       toast.success('মুছে ফেলা হয়েছে!');
+      setDeleteIssueId(null);
+      setEditingIssueId(null);
     } catch (err: any) {
       toast.error('সমস্যা হয়েছে: ' + err.message);
     }
   };
 
-  const handleDelete = async () => {
-    if (!magazine || !user) return;
-    if (magazine.owner !== user.id) return;
-    
-    if (!confirm(`আপনি কি নিশ্চিত যে আপনি "${magazine.title}" ম্যাগাজিনটি মুছে ফেলতে চান?`)) {
-      return;
-    }
 
-    try {
-      const { error } = await supabase.from('magazines').delete().eq('id', magazine.id);
-      if (error) throw error;
-      
-      toast.success('ম্যাগাজিন মুছে ফেলা হয়েছে');
-      
-      await supabase.from('activity_log').insert({
-        user_id: user.id,
-        action: 'magazine_deleted',
-        entity_type: 'magazine',
-        entity_id: magazine.id,
-        entity_name: magazine.title,
-        details: { owner: user.id },
-      });
-      
-      router.push('/dashboard/magazines');
-    } catch (err: any) {
-      toast.error('ম্যাগাজিন মুছতে সমস্যা: ' + err.message);
-    }
-  };
 
   if (loading) {
     return (
@@ -210,9 +227,6 @@ export default function ViewMagazinePage({ params }: { params: Promise<{ id: str
             <Link href={`/dashboard/magazines/${magazine.id}/edit`} className="btn btn-secondary">
               <Edit2 size={16} /> এডিট
             </Link>
-            <button onClick={handleDelete} className="btn btn-danger" style={{ backgroundColor: '#fee2e2', color: '#ef4444', borderColor: '#fca5a5' }}>
-              <Trash2 size={16} /> ডিলিট
-            </button>
           </div>
         )}
       </div>
@@ -348,7 +362,8 @@ export default function ViewMagazinePage({ params }: { params: Promise<{ id: str
                                 <option value="হারিয়ে গেছে">হারানো</option>
                               </select>
                             </td>
-                            <td style={{ padding: '8px 16px', textAlign: 'right' }}>
+                            <td style={{ padding: '8px 16px', textAlign: 'right', whiteSpace: 'nowrap' }}>
+                              <button className="btn btn-danger" style={{ padding: '4px 8px', fontSize: '0.8rem', backgroundColor: '#fee2e2', color: '#ef4444', borderColor: '#fca5a5', marginRight: '4px' }} onClick={() => setDeleteIssueId(issue.id)}>মুছুন</button>
                               <button className="btn btn-primary" style={{ padding: '4px 8px', fontSize: '0.8rem', marginRight: '4px' }} onClick={() => handleSaveIssueEdit(issue.id)}>সেভ</button>
                               <button className="btn btn-secondary" style={{ padding: '4px 8px', fontSize: '0.8rem' }} onClick={() => setEditingIssueId(null)}>বাতিল</button>
                             </td>
@@ -370,8 +385,7 @@ export default function ViewMagazinePage({ params }: { params: Promise<{ id: str
                             </td>
                             {user?.id === magazine.owner && (
                               <td style={{ padding: '12px 16px', textAlign: 'right' }}>
-                                <button className="btn btn-secondary" style={{ padding: '4px 8px', fontSize: '0.8rem', marginRight: '4px' }} onClick={() => startEditingIssue(issue)}>এডিট</button>
-                                <button className="btn btn-danger" style={{ padding: '4px 8px', fontSize: '0.8rem', backgroundColor: '#fee2e2', color: '#ef4444', borderColor: '#fca5a5' }} onClick={() => handleDeleteIssue(issue.id)}>মুছুন</button>
+                                <button className="btn btn-secondary" style={{ padding: '4px 8px', fontSize: '0.8rem' }} onClick={() => startEditingIssue(issue)}>এডিট</button>
                               </td>
                             )}
                           </>
@@ -497,6 +511,51 @@ export default function ViewMagazinePage({ params }: { params: Promise<{ id: str
             ← ফিরে যান
           </Link>
         </div>
+
+        {deleteIssueId && (
+          <div className="modal-overlay" style={{
+            position: 'fixed', top: 0, left: 0, right: 0, bottom: 0,
+            backgroundColor: 'rgba(0,0,0,0.5)', zIndex: 1000,
+            display: 'flex', alignItems: 'center', justifyContent: 'center'
+          }}>
+            <div className="modal-content card" style={{
+              maxWidth: '400px', width: '90%', padding: '24px',
+              backgroundColor: 'var(--bg-primary)', borderRadius: '12px',
+              boxShadow: '0 20px 25px -5px rgba(0,0,0,0.1), 0 10px 10px -5px rgba(0,0,0,0.04)'
+            }}>
+              <div style={{ textAlign: 'center', marginBottom: '20px' }}>
+                <div style={{ 
+                  width: '48px', height: '48px', borderRadius: '50%', 
+                  backgroundColor: '#fee2e2', color: '#ef4444', 
+                  display: 'flex', alignItems: 'center', justifyContent: 'center', 
+                  margin: '0 auto 16px', fontSize: '24px' 
+                }}>
+                  ⚠️
+                </div>
+                <h3 style={{ margin: '0 0 8px', color: 'var(--text-primary)', fontSize: '1.25rem' }}>ইস্যুটি মুছে ফেলতে চান?</h3>
+                <p style={{ margin: 0, color: 'var(--text-secondary)', fontSize: '0.95rem', lineHeight: 1.5 }}>
+                  আপনি কি নিশ্চিত যে আপনি এই ইস্যুটি মুছে ফেলতে চান? এটি আর ফিরিয়ে আনা যাবে না।
+                </p>
+              </div>
+              <div style={{ display: 'flex', gap: '12px', justifyContent: 'center' }}>
+                <button 
+                  className="btn btn-secondary" 
+                  onClick={() => setDeleteIssueId(null)}
+                  style={{ flex: 1 }}
+                >
+                  বাতিল
+                </button>
+                <button 
+                  className="btn btn-danger" 
+                  onClick={confirmDeleteIssue}
+                  style={{ flex: 1, backgroundColor: '#ef4444', color: 'white', border: 'none' }}
+                >
+                  হ্যাঁ, মুছুন
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     </>
   );

@@ -37,6 +37,7 @@ export const publishers = sqliteTable('publishers', {
   website: text('website'),
   phone: text('phone'),
   email: text('email'),
+  imageUrl: text('image_url'),
   createdAt: text('created_at').default(sql`CURRENT_TIMESTAMP`),
   updatedAt: text('updated_at').default(sql`CURRENT_TIMESTAMP`),
 });
@@ -133,6 +134,7 @@ export const books = sqliteTable('books', {
   purchaseFinalPrice: real('purchase_final_price'),
   purchasedBy: text('purchased_by'),
   bookCondition: text('book_condition').default('new'),
+  printType: text('print_type'),
   
   readingStatus: text('reading_status'),
   readingStartDate: text('reading_start_date'),
