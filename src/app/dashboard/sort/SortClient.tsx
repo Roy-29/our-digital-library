@@ -956,16 +956,10 @@ export default function SortClient({
                   const isOwner = user?.id === book.owner;
                   return (
                     <tr key={book.id}>
-                      {/* Column 1: Combined Book & Author details with Cover */}
+                      {/* Column 1: Combined Book & Author details */}
                       <td>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                          <div style={{ width: '40px', height: '54px', borderRadius: '4px', overflow: 'hidden', background: 'var(--bg-secondary)', flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 1px 4px rgba(0,0,0,0.1)' }}>
-                            {book.coverUrl ? (
-                              <img src={book.coverUrl} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-                            ) : (
-                              <span style={{ fontSize: '1.2rem' }}>📖</span>
-                            )}
-                          </div>
+                        <div style={{ display: 'flex', alignItems: 'flex-start', gap: '8px' }}>
+                          <span style={{ fontSize: '1rem', marginTop: '1px', opacity: 0.8 }}>📖</span>
                           <div style={{ minWidth: 0 }}>
                             <Link href={`/dashboard/books/${book.id}`} className="font-serif" style={{ fontWeight: 600, color: 'var(--text-primary)', textDecoration: 'none', display: 'flex', alignItems: 'center', gap: '4px', fontFamily: 'var(--font-serif)' }}>
                               <span>{book.title}</span>
