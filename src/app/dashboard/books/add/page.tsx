@@ -149,6 +149,62 @@ export default function AddBookPage() {
   const [notes, setNotes] = useState('');
   const [favoriteQuote, setFavoriteQuote] = useState('');
   const [isFavorite, setIsFavorite] = useState(false);
+  const [parentBookId, setParentBookId] = useState<string | null>(null);
+  const [duplicateBookSuggestion, setDuplicateBookSuggestion] = useState<any | null>(null);
+
+  useEffect(() => {
+    if (!title || title.trim().length < 2 || !user) {
+      setDuplicateBookSuggestion(null);
+      return;
+    }
+    
+    const delayDebounceFn = setTimeout(async () => {
+      try {
+        const { data } = await supabase
+          .from('books')
+          .select('*, author:authors(name, name_bn), publisher:publishers(name, name_bn)')
+          .ilike('title', title.trim())
+          .neq('owner', user.id)
+          .limit(1)
+          .single();
+          
+        if (data) {
+          setDuplicateBookSuggestion(data);
+        } else {
+          setDuplicateBookSuggestion(null);
+        }
+      } catch (err) {
+        setDuplicateBookSuggestion(null);
+      }
+    }, 600);
+
+    return () => clearTimeout(delayDebounceFn);
+  }, [title, user]);
+
+  const copyDuplicateBookDetails = () => {
+    if (!duplicateBookSuggestion) return;
+    const b = duplicateBookSuggestion;
+    
+    if (b.title_original) setTitleOriginal(b.title_original);
+    if (b.subtitle) setSubtitle(b.subtitle);
+    if (b.isbn) setIsbn(b.isbn);
+    if (b.language) setLanguage(b.language);
+    if (b.edition) setEdition(b.edition);
+    if (b.publication_year) setPubYear(b.publication_year.toString());
+    if (b.page_count) setPageCount(b.page_count.toString());
+    if (b.description) setDescription(b.description);
+    if (b.cover_url) setCoverUrl(b.cover_url);
+    if (b.author_id) setAuthorId(b.author_id);
+    if (b.translator_id) setTranslatorId(b.translator_id);
+    if (b.illustrator_id) setIllustratorId(b.illustrator_id);
+    if (b.publisher_id) setPublisherId(b.publisher_id);
+    if (b.category_id) setCategoryId(b.category_id);
+    if (b.genre_id) setGenreId(b.genre_id);
+    
+    setParentBookId(b.id);
+    setDuplicateBookSuggestion(null);
+    toast.success('বইয়ের তথ্য কপি করা হয়েছে!');
+  };
 
   const formatPriceNum = (num: number): string => {
     if (isNaN(num) || !isFinite(num)) return '';
@@ -566,6 +622,7 @@ export default function AddBookPage() {
       favorite_quote: favoriteQuote || null,
       is_favorite: isFavorite,
       copies,
+      parent_book_id: parentBookId,
       added_by: user?.id || null,
       created_at: new Date().toISOString(),
       updated_at: new Date().toISOString(),
@@ -616,6 +673,59 @@ export default function AddBookPage() {
                 <div className="form-group">
                   <label className="form-label">বইয়ের নাম *</label>
                   <input className="form-input font-serif" style={{ fontFamily: 'var(--font-serif)' }} value={title} onChange={e => setTitle(e.target.value)} placeholder="বইয়ের নাম লিখুন" required />
+                  
+                  {duplicateBookSuggestion && (
+                    <div style={{
+                      marginTop: '12px',
+                      padding: '12px 16px',
+                      backgroundColor: 'rgba(59, 130, 246, 0.1)',
+                      border: '1px solid rgba(59, 130, 246, 0.3)',
+                      borderRadius: '8px',
+                      display: 'flex',
+                      flexDirection: 'column',
+                      gap: '8px'
+                    }}>
+                      <div style={{ color: 'var(--text-primary)', fontSize: '0.95rem' }}>
+                        <strong style={{ fontFamily: 'var(--font-serif)' }}>{duplicateBookSuggestion.title}</strong> বইটি ইতিমধ্যে <strong>{getOwnerLabel(duplicateBookSuggestion.owner)}</strong>-এর সংগ্রহে আছে!
+                      </div>
+                      <div style={{ color: 'var(--text-secondary)', fontSize: '0.85rem' }}>
+                        আপনি কি বইটির কভার ছবি, লেখক, প্রকাশক এবং অন্যান্য তথ্য কপি করে ফর্মটি পূরণ করতে চান?
+                      </div>
+                      <div style={{ display: 'flex', gap: '8px', marginTop: '4px' }}>
+                        <button 
+                          type="button" 
+                          onClick={copyDuplicateBookDetails}
+                          style={{
+                            padding: '6px 12px',
+                            backgroundColor: 'var(--primary)',
+                            color: '#fff',
+                            border: 'none',
+                            borderRadius: '4px',
+                            cursor: 'pointer',
+                            fontWeight: 500,
+                            fontSize: '0.85rem'
+                          }}
+                        >
+                          ✅ তথ্যগুলো কপি করুন
+                        </button>
+                        <button 
+                          type="button" 
+                          onClick={() => setDuplicateBookSuggestion(null)}
+                          style={{
+                            padding: '6px 12px',
+                            backgroundColor: 'var(--bg-secondary)',
+                            color: 'var(--text-secondary)',
+                            border: '1px solid var(--border)',
+                            borderRadius: '4px',
+                            cursor: 'pointer',
+                            fontSize: '0.85rem'
+                          }}
+                        >
+                          না, ধন্যবাদ
+                        </button>
+                      </div>
+                    </div>
+                  )}
                 </div>
                 <div className="form-row">
                   <div className="form-group">

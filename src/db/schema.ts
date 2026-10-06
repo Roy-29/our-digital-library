@@ -116,6 +116,8 @@ export const books = sqliteTable('books', {
   categoryId: text('category_id').references(() => categories.id, { onDelete: 'set null' }),
   genreId: text('genre_id').references(() => genres.id, { onDelete: 'set null' }),
   
+  parentBookId: text('parent_book_id'),
+  
   owner: text('owner').notNull().default('swapnil'),
   
   roomId: text('room_id').references(() => rooms.id, { onDelete: 'set null' }),

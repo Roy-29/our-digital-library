@@ -94,8 +94,51 @@ export default function BooksClient({
     );
   });
 
-  // Sorting: Default priority sorting (latest added books first, preserving order from page.tsx)
-  const sortedBooks = [...filteredBooks];
+  // Sorting: Default priority sorting
+  let sortedBooks = [...filteredBooks];
+
+  // Group duplicate books
+  const groupedBooks: any[] = [];
+  const processedBookIds = new Set<string>();
+  
+  for (const book of sortedBooks) {
+    if (processedBookIds.has(book.id)) continue;
+    
+    const copies = sortedBooks.filter(b => 
+      !processedBookIds.has(b.id) && 
+      (
+        b.id === book.id ||
+        (book.parentBookId && b.parentBookId === book.parentBookId) ||
+        b.parentBookId === book.id ||
+        book.parentBookId === b.id ||
+        (b.title?.trim().toLowerCase() === book.title?.trim().toLowerCase() && 
+         b.authorId === book.authorId && 
+         book.authorId != null)
+      )
+    );
+    
+    copies.forEach(c => processedBookIds.add(c.id));
+    
+    const groupedBook = { ...book };
+    if (copies.length > 1) {
+      groupedBook.isGrouped = true;
+      groupedBook.totalGroupCopies = copies.reduce((sum, c) => sum + (c.copies || 1), 0);
+      groupedBook.groupOwners = Array.from(new Set(copies.map(c => c.owner)));
+      groupedBook.allCopies = copies;
+      
+      const userCopy = copies.find(c => c.owner === user?.id);
+      if (userCopy) {
+        groupedBook.id = userCopy.id;
+      }
+    } else {
+      groupedBook.totalGroupCopies = book.copies || 1;
+      groupedBook.groupOwners = [book.owner];
+    }
+    
+    groupedBooks.push(groupedBook);
+  }
+  
+  sortedBooks = groupedBooks;
 
   const clearFilters = () => {
     setSearch('');
@@ -291,7 +334,7 @@ export default function BooksClient({
                   <div className="book-card-body">
                     <div className="book-card-title font-serif" style={{ display: 'flex', alignItems: 'center', gap: '6px', fontFamily: 'var(--font-serif)' }}>
                       {book.title}
-                      {(book.copies || 1) > 1 && <span className="badge font-serif" style={{ fontSize: '0.65rem', padding: '2px 6px', fontFamily: 'var(--font-serif)' }}>{enToBnNumber((book.copies || 1).toString())} কপি</span>}
+                      {(book.totalGroupCopies || 1) > 1 && <span className="badge font-serif" style={{ fontSize: '0.65rem', padding: '2px 6px', fontFamily: 'var(--font-serif)' }}>{enToBnNumber((book.totalGroupCopies || 1).toString())} কপি</span>}
                     </div>
                     <div className="book-card-author">
                       {book.authorNameBn || book.authorName ? (
@@ -323,7 +366,10 @@ export default function BooksClient({
                     </div>
                     <div className="book-card-meta">
                       <span className="book-card-owner">
-                        {book.owner === user?.id ? '⭐ ' : ''}{getOwnerLabel(book.owner)}{book.owner === user?.id ? ' (আমার)' : ''}
+                        {book.groupOwners && book.groupOwners.length > 1 
+                          ? book.groupOwners.map((o: string) => `👤 ${getOwnerLabel(o)}`).join(', ') 
+                          : <>{book.owner === user?.id ? '⭐ ' : ''}{getOwnerLabel(book.owner)}{book.owner === user?.id ? ' (আমার)' : ''}</>
+                        }
                       </span>
                       <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
                         {book.rating && <span style={{ fontSize: '0.75rem', fontFamily: 'var(--font-serif)' }} className="font-serif">⭐ {enToBnNumber(book.rating.toString())}</span>}
@@ -380,7 +426,7 @@ export default function BooksClient({
                         )}
                         <div>
                           {book.title}
-                          {(book.copies || 1) > 1 && <span className="badge font-serif" style={{ fontSize: '0.65rem', padding: '2px 6px', fontFamily: 'var(--font-serif)', marginLeft: '6px' }}>{enToBnNumber((book.copies || 1).toString())} কপি</span>}
+                          {(book.totalGroupCopies || 1) > 1 && <span className="badge font-serif" style={{ fontSize: '0.65rem', padding: '2px 6px', fontFamily: 'var(--font-serif)', marginLeft: '6px' }}>{enToBnNumber((book.totalGroupCopies || 1).toString())} কপি</span>}
                         </div>
                       </Link>
                       <div className="text-xs text-muted" style={{ marginTop: '2px' }}>
@@ -491,12 +537,26 @@ export default function BooksClient({
                       )}
                     </td>
                     <td>
-                      <span 
-                        className={`badge ${book.owner === user?.id ? 'badge-primary' : 'badge-gray'}`}
-                        style={book.owner === user?.id ? { background: 'rgba(45, 106, 79, 0.15)', color: 'var(--primary)', fontWeight: 600 } : undefined}
-                      >
-                        {book.owner === user?.id ? '⭐ ' : ''}{getOwnerLabel(book.owner)}{book.owner === user?.id ? ' (আমার)' : ''}
-                      </span>
+                      <div style={{ display: 'flex', gap: '4px', flexWrap: 'wrap' }}>
+                        {book.groupOwners && book.groupOwners.length > 1 ? (
+                          book.groupOwners.map((o: string) => (
+                            <span 
+                              key={o}
+                              className={`badge ${o === user?.id ? 'badge-primary' : 'badge-gray'}`}
+                              style={o === user?.id ? { background: 'rgba(45, 106, 79, 0.15)', color: 'var(--primary)', fontWeight: 600 } : undefined}
+                            >
+                              {o === user?.id ? '⭐ ' : '👤 '}{getOwnerLabel(o)}{o === user?.id ? ' (আমার)' : ''}
+                            </span>
+                          ))
+                        ) : (
+                          <span 
+                            className={`badge ${book.owner === user?.id ? 'badge-primary' : 'badge-gray'}`}
+                            style={book.owner === user?.id ? { background: 'rgba(45, 106, 79, 0.15)', color: 'var(--primary)', fontWeight: 600 } : undefined}
+                          >
+                            {book.owner === user?.id ? '⭐ ' : ''}{getOwnerLabel(book.owner)}{book.owner === user?.id ? ' (আমার)' : ''}
+                          </span>
+                        )}
+                      </div>
                     </td>
                     <td>
                       <span className="badge" style={{
