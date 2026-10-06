@@ -902,14 +902,10 @@ export default function EditBookPage() {
                     <select 
                       className="form-select" 
                       value={owner} 
-                      disabled 
-                      style={{ opacity: 0.9, cursor: 'not-allowed', background: 'var(--bg-secondary)', fontWeight: 600 }}
+                      onChange={e => setOwner(e.target.value as BookOwner)}
                     >
                       {OWNERS.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}
                     </select>
-                    <span className="text-xs text-muted" style={{ display: 'block', marginTop: '4px' }}>
-                      🔒 এই বইটির মালিক {getOwnerLabel(owner)}
-                    </span>
                   </div>
                   <div className="form-group">
                     <label className="form-label">📊 স্ট্যাটাস</label>
