@@ -50,6 +50,8 @@ export default async function BooksPage({
       publishers={allPublishers}
       initialStatus={typeof resolvedSearchParams?.status === 'string' ? resolvedSearchParams.status : undefined}
       initialOwner={typeof resolvedSearchParams?.owner === 'string' ? resolvedSearchParams.owner : undefined}
+      initialAuthor={typeof resolvedSearchParams?.author === 'string' ? resolvedSearchParams.author : undefined}
+      initialPublisher={typeof resolvedSearchParams?.publisher === 'string' ? resolvedSearchParams.publisher : undefined}
     />
   );
 }

@@ -168,10 +168,22 @@ export default function BookDetailPage() {
                 <DetailRow label="বইয়ের নাম" value={<span className="font-serif" style={{ fontFamily: 'var(--font-serif)', fontWeight: 600 }}>{book.title}</span>} />
                 <DetailRow label="Original Title" value={book.title_original} />
                 <DetailRow label="Subtitle" value={book.subtitle} />
-                <DetailRow label="লেখক" value={book.author?.name_bn || book.author?.name} />
+                <DetailRow label="লেখক" value={
+                  (book.author?.name_bn || book.author?.name) ? (
+                    <Link href={`/dashboard/books?author=${book.author?.id}`} style={{ color: 'var(--accent)', textDecoration: 'none', fontWeight: 500 }} onMouseOver={e => e.currentTarget.style.textDecoration = 'underline'} onMouseOut={e => e.currentTarget.style.textDecoration = 'none'} title="এই লেখকের সব বই দেখুন">
+                      {book.author?.name_bn || book.author?.name}
+                    </Link>
+                  ) : null
+                } />
                 <DetailRow label="অনুবাদক" value={book.translator?.name_bn || book.translator?.name} />
                 <DetailRow label="আঁকিয়ে" value={book.illustrator?.name_bn || book.illustrator?.name} />
-                <DetailRow label="প্রকাশক" value={book.publisher?.name_bn || book.publisher?.name} />
+                <DetailRow label="প্রকাশক" value={
+                  (book.publisher?.name_bn || book.publisher?.name) ? (
+                    <Link href={`/dashboard/books?publisher=${book.publisher?.id}`} style={{ color: 'var(--accent)', textDecoration: 'none', fontWeight: 500 }} onMouseOver={e => e.currentTarget.style.textDecoration = 'underline'} onMouseOut={e => e.currentTarget.style.textDecoration = 'none'} title="এই প্রকাশকের সব বই দেখুন">
+                      {book.publisher?.name_bn || book.publisher?.name}
+                    </Link>
+                  ) : null
+                } />
                 <DetailRow label="ISBN" value={
                   book.isbn ? (() => {
                     const numOnly = book.isbn.replace(/-/g, '');
