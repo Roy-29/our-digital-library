@@ -949,13 +949,22 @@ export default function EditBookPage() {
                 </div>
                 {!isPurchased && (
                   <div className="form-group" style={{ marginTop: '12px' }}>
-                    <label className="form-label">📍 কোথা থেকে পড়া / উৎস</label>
+                    <label className="form-label">📍 সংগ্রহের মাধ্যম / উৎস</label>
                     <input 
                       className="form-input" 
                       value={purchaseSource} 
                       onChange={e => setPurchaseSource(e.target.value)} 
-                      placeholder="যেমন: বিশ্বসাহিত্য কেন্দ্র লাইব্রেরি, বন্ধুর বই, অনলাইন/পিডিএফ..." 
+                      list="unpurchased-source-options"
+                      placeholder="যেমন: উপহার, চুরি করা, ধার করা..." 
                     />
+                    <datalist id="unpurchased-source-options">
+                      <option value="উপহার (Gift)" />
+                      <option value="পুরস্কার (Prize)" />
+                      <option value="চুরি করা (Stolen 🥷)" />
+                      <option value="ধার করে আর ফেরত দেইনি" />
+                      <option value="অনলাইন / পিডিএফ" />
+                      <option value="বিশ্বসাহিত্য কেন্দ্র লাইব্রেরি" />
+                    </datalist>
                   </div>
                 )}
                 {isPurchased && (

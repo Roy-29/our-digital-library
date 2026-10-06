@@ -96,6 +96,8 @@ export type BookStatus =
   | 'উইশলিস্ট'
   | 'ধার দেওয়া'
   | 'হারিয়ে গেছে'
+  | 'কেউ মেরে দিছে 🥲'
+  | 'চুরি হয়ে গেছে 💔'
   | 'পড়া শেষ (কাছে নেই)';
 
 export type ReadingStatus = 
@@ -286,6 +288,8 @@ export const BOOK_STATUSES: { value: BookStatus; label: string; icon: string; co
   { value: 'উইশলিস্ট', label: 'উইশলিস্ট', icon: '🛒', color: '#06B6D4' },
   { value: 'ধার দেওয়া', label: 'ধার দেওয়া', icon: '📤', color: '#F59E0B' },
   { value: 'হারিয়ে গেছে', label: 'হারিয়ে গেছে', icon: '❌', color: '#DC2626' },
+  { value: 'কেউ মেরে দিছে 🥲', label: 'কেউ মেরে দিছে', icon: '🥲', color: '#9CA3AF' },
+  { value: 'চুরি হয়ে গেছে 💔', label: 'চুরি হয়ে গেছে', icon: '💔', color: '#000000' },
 ];
 
 export const READING_STATUSES: { value: ReadingStatus; label: string; icon: string; color: string }[] = [
