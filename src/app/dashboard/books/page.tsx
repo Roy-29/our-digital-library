@@ -28,8 +28,10 @@ export default async function BooksPage({
     publisherId: books.publisherId,
     authorName: authors.name,
     authorNameBn: authors.nameBn,
+    authorImageUrl: authors.imageUrl,
     publisherName: publishers.name,
     publisherNameBn: publishers.nameBn,
+    publisherImageUrl: publishers.imageUrl,
   })
   .from(books)
   .leftJoin(authors, eq(books.authorId, authors.id))

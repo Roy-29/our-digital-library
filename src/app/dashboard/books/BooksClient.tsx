@@ -372,9 +372,16 @@ export default function BooksClient({
                 {sortedBooks.map((book) => (
                   <tr key={book.id}>
                     <td>
-                      <Link href={`/dashboard/books/${book.id}`} style={{ textDecoration: 'none', color: 'var(--text-primary)', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '6px', fontFamily: 'var(--font-serif)' }} className="font-serif">
-                        {book.title}
-                        {(book.copies || 1) > 1 && <span className="badge font-serif" style={{ fontSize: '0.65rem', padding: '2px 6px', fontFamily: 'var(--font-serif)' }}>{enToBnNumber((book.copies || 1).toString())} কপি</span>}
+                      <Link href={`/dashboard/books/${book.id}`} style={{ textDecoration: 'none', color: 'var(--text-primary)', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '10px', fontFamily: 'var(--font-serif)' }} className="font-serif">
+                        {book.coverUrl ? (
+                          <img src={book.coverUrl} alt={book.title} style={{ width: '32px', height: '46px', objectFit: 'cover', borderRadius: '4px', border: '1px solid var(--border)', flexShrink: 0 }} onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }} />
+                        ) : (
+                          <div style={{ width: '32px', height: '46px', background: 'var(--bg-secondary)', borderRadius: '4px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '16px', border: '1px solid var(--border)', flexShrink: 0 }}>📚</div>
+                        )}
+                        <div>
+                          {book.title}
+                          {(book.copies || 1) > 1 && <span className="badge font-serif" style={{ fontSize: '0.65rem', padding: '2px 6px', fontFamily: 'var(--font-serif)', marginLeft: '6px' }}>{enToBnNumber((book.copies || 1).toString())} কপি</span>}
+                        </div>
                       </Link>
                       <div className="text-xs text-muted" style={{ marginTop: '2px' }}>
                         {(book.authorNameBn || book.authorName) && (
@@ -409,62 +416,76 @@ export default function BooksClient({
                     </td>
                     <td className="hide-mobile">
                       {book.authorNameBn || book.authorName ? (
-                        <button
-                          type="button"
-                          onClick={(e) => {
-                            e.preventDefault();
-                            e.stopPropagation();
-                            const authorObj = authors?.find(a => a.id === book.authorId);
-                            if (authorObj) setViewingAuthor(authorObj);
-                          }}
-                          style={{
-                            background: 'none',
-                            border: 'none',
-                            padding: 0,
-                            cursor: 'pointer',
-                            color: 'inherit',
-                            fontWeight: 500,
-                            fontSize: 'inherit',
-                            fontFamily: 'inherit',
-                            textAlign: 'left'
-                          }}
-                          onMouseOver={(e) => e.currentTarget.style.textDecoration = 'underline'}
-                          onMouseOut={(e) => e.currentTarget.style.textDecoration = 'none'}
-                          title="লেখকের বিস্তারিত দেখুন"
-                        >
-                          {book.authorNameBn || book.authorName}
-                        </button>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                          {book.authorImageUrl ? (
+                            <img src={book.authorImageUrl} alt={book.authorName} style={{ width: '28px', height: '28px', borderRadius: '50%', objectFit: 'cover', border: '1px solid var(--border)', flexShrink: 0 }} onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }} />
+                          ) : (
+                            <div style={{ width: '28px', height: '28px', borderRadius: '50%', background: 'var(--bg-secondary)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '14px', flexShrink: 0 }}>✍🏻</div>
+                          )}
+                          <button
+                            type="button"
+                            onClick={(e) => {
+                              e.preventDefault();
+                              e.stopPropagation();
+                              const authorObj = authors?.find(a => a.id === book.authorId);
+                              if (authorObj) setViewingAuthor(authorObj);
+                            }}
+                            style={{
+                              background: 'none',
+                              border: 'none',
+                              padding: 0,
+                              cursor: 'pointer',
+                              color: 'inherit',
+                              fontWeight: 500,
+                              fontSize: 'inherit',
+                              fontFamily: 'inherit',
+                              textAlign: 'left'
+                            }}
+                            onMouseOver={(e) => e.currentTarget.style.textDecoration = 'underline'}
+                            onMouseOut={(e) => e.currentTarget.style.textDecoration = 'none'}
+                            title="লেখকের বিস্তারিত দেখুন"
+                          >
+                            {book.authorNameBn || book.authorName}
+                          </button>
+                        </div>
                       ) : (
                         '—'
                       )}
                     </td>
                     <td className="hide-mobile">
                       {book.publisherNameBn || book.publisherName ? (
-                        <button
-                          type="button"
-                          onClick={(e) => {
-                            e.preventDefault();
-                            e.stopPropagation();
-                            const pubObj = publishers?.find(p => p.id === book.publisherId);
-                            if (pubObj) setViewingPublisher(pubObj);
-                          }}
-                          style={{
-                            background: 'none',
-                            border: 'none',
-                            padding: 0,
-                            cursor: 'pointer',
-                            color: 'inherit',
-                            fontWeight: 500,
-                            fontSize: 'inherit',
-                            fontFamily: 'inherit',
-                            textAlign: 'left'
-                          }}
-                          onMouseOver={(e) => e.currentTarget.style.textDecoration = 'underline'}
-                          onMouseOut={(e) => e.currentTarget.style.textDecoration = 'none'}
-                          title="প্রকাশকের বিস্তারিত দেখুন"
-                        >
-                          {book.publisherNameBn || book.publisherName}
-                        </button>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                          {book.publisherImageUrl ? (
+                            <img src={book.publisherImageUrl} alt={book.publisherName} style={{ width: '28px', height: '28px', borderRadius: '50%', objectFit: 'cover', border: '1px solid var(--border)', flexShrink: 0 }} onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }} />
+                          ) : (
+                            <div style={{ width: '28px', height: '28px', borderRadius: '50%', background: 'var(--bg-secondary)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '14px', flexShrink: 0 }}>🏢</div>
+                          )}
+                          <button
+                            type="button"
+                            onClick={(e) => {
+                              e.preventDefault();
+                              e.stopPropagation();
+                              const pubObj = publishers?.find(p => p.id === book.publisherId);
+                              if (pubObj) setViewingPublisher(pubObj);
+                            }}
+                            style={{
+                              background: 'none',
+                              border: 'none',
+                              padding: 0,
+                              cursor: 'pointer',
+                              color: 'inherit',
+                              fontWeight: 500,
+                              fontSize: 'inherit',
+                              fontFamily: 'inherit',
+                              textAlign: 'left'
+                            }}
+                            onMouseOver={(e) => e.currentTarget.style.textDecoration = 'underline'}
+                            onMouseOut={(e) => e.currentTarget.style.textDecoration = 'none'}
+                            title="প্রকাশকের বিস্তারিত দেখুন"
+                          >
+                            {book.publisherNameBn || book.publisherName}
+                          </button>
+                        </div>
                       ) : (
                         '—'
                       )}
