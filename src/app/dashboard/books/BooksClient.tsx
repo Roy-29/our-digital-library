@@ -361,14 +361,17 @@ export default function BooksClient({
                         </button>
                       ) : ''}
                     </div>
-                    <div className="book-card-meta">
+                    <div className="book-card-meta" style={{ display: 'flex', flexWrap: 'wrap', gap: '6px', alignItems: 'center', marginTop: '8px' }}>
                       <span className="book-card-owner">
                         {book.groupOwners && book.groupOwners.length > 1 
                           ? book.groupOwners.map((o: string) => `👤 ${getOwnerLabel(o)}`).join(', ') 
                           : <>{book.owner === user?.id ? '⭐ ' : ''}{getOwnerLabel(book.owner)}{book.owner === user?.id ? ' (আমার)' : ''}</>
                         }
                       </span>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+                      <span className="book-card-status-inline">
+                        {BOOK_STATUSES.find(s => s.value === book.status)?.icon} {book.status}
+                      </span>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '4px', marginLeft: 'auto' }}>
                         {book.rating && <span style={{ fontSize: '0.75rem', fontFamily: 'var(--font-serif)' }} className="font-serif">⭐ {enToBnNumber(book.rating.toString())}</span>}
                         {user?.id === book.owner && (
                           <button
@@ -386,11 +389,6 @@ export default function BooksClient({
                           </button>
                         )}
                       </div>
-                    </div>
-                    <div style={{ marginTop: '8px', display: 'flex', alignItems: 'center' }}>
-                      <span className="book-card-status-inline">
-                        {BOOK_STATUSES.find(s => s.value === book.status)?.icon} {book.status}
-                      </span>
                     </div>
                   </div>
                 </div>

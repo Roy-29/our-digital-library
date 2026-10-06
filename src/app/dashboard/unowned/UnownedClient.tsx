@@ -514,19 +514,12 @@ export default function UnownedClient({
                     )}
 
                     <div style={{ marginTop: 'auto', paddingTop: '10px' }}>
-                      <div className="book-card-meta">
+                      <div className="book-card-meta" style={{ display: 'flex', flexWrap: 'wrap', gap: '6px', alignItems: 'center', marginTop: '8px' }}>
                         <span className="book-card-owner">
                           {isOwner ? '⭐ ' : ''}
                           {getOwnerLabel(book.owner)}
                           {isOwner ? ' (আমার)' : ''}
                         </span>
-                        {book.rating && (
-                          <span style={{ fontSize: '0.75rem', fontWeight: 600 }}>
-                            ⭐ {book.rating}
-                          </span>
-                        )}
-                      </div>
-                      <div style={{ marginTop: '8px', display: 'flex', alignItems: 'center' }}>
                         <span 
                           className="book-card-status-inline"
                           style={{
@@ -536,6 +529,11 @@ export default function UnownedClient({
                         >
                           {statusConfig?.icon || '🔖'} {book.status}
                         </span>
+                        {book.rating && (
+                          <span style={{ fontSize: '0.75rem', fontWeight: 600, marginLeft: 'auto' }}>
+                            ⭐ {book.rating}
+                          </span>
+                        )}
                       </div>
 
                       {/* Action buttons on card */}

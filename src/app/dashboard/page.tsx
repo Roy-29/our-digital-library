@@ -230,14 +230,12 @@ export default async function DashboardPage() {
                     <div className="book-card-author">
                       {book.authorName || book.authorNameBn || 'অজানা লেখক'}
                     </div>
-                    <div className="book-card-meta">
+                    <div className="book-card-meta" style={{ display: 'flex', flexWrap: 'wrap', gap: '6px', alignItems: 'center', marginTop: '8px' }}>
                       <span className="book-card-owner">{getOwnerLabel(book.owner)}</span>
-                      {book.rating && <span style={{ fontSize: '0.8rem' }}>⭐ {enToBnNumber(book.rating.toString())}</span>}
-                    </div>
-                    <div style={{ marginTop: '8px', display: 'flex', alignItems: 'center' }}>
                       <span className="book-card-status-inline">
                         {book.status}
                       </span>
+                      {book.rating && <span style={{ fontSize: '0.8rem', marginLeft: 'auto' }}>⭐ {enToBnNumber(book.rating.toString())}</span>}
                     </div>
                   </div>
                 </div>
