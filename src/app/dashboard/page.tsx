@@ -2,7 +2,7 @@ import { db } from '@/db';
 import { books, authors, publishers, lendingRecords, wishlist } from '@/db/schema';
 import { sql, desc, eq, and, isNotNull } from 'drizzle-orm';
 import Link from 'next/link';
-import { getOwnerLabel } from '@/lib/types';
+import { getOwnerLabel, enToBnNumber } from '@/lib/types';
 
 export const dynamic = 'force-dynamic'; // Prevent caching so dashboard is always fresh
 
@@ -70,7 +70,7 @@ export default async function DashboardPage() {
                   <span className="dash-title">মোট বই</span>
                   <div className="dash-icon">📚</div>
                 </div>
-                <div className="dash-value">{s.total_books}</div>
+                <div className="dash-value">{enToBnNumber(s.total_books)}</div>
               </div>
             </Link>
             <Link href="/dashboard/books?status=পড়া শেষ" style={{ textDecoration: 'none', color: 'inherit' }}>
@@ -79,7 +79,7 @@ export default async function DashboardPage() {
                   <span className="dash-title">পড়া শেষ</span>
                   <div className="dash-icon">✅</div>
                 </div>
-                <div className="dash-value">{s.read_books}</div>
+                <div className="dash-value">{enToBnNumber(s.read_books)}</div>
               </div>
             </Link>
             <Link href="/dashboard/reading" style={{ textDecoration: 'none', color: 'inherit' }}>
@@ -88,7 +88,7 @@ export default async function DashboardPage() {
                   <span className="dash-title">পড়ছি / বাকি</span>
                   <div className="dash-icon">📖</div>
                 </div>
-                <div className="dash-value">{s.reading_books + s.unread_books}</div>
+                <div className="dash-value">{enToBnNumber(s.reading_books + s.unread_books)}</div>
               </div>
             </Link>
             <Link href="/dashboard/wishlist" style={{ textDecoration: 'none', color: 'inherit' }}>
@@ -97,7 +97,7 @@ export default async function DashboardPage() {
                   <span className="dash-title">কিনতে হবে</span>
                   <div className="dash-icon">🛒</div>
                 </div>
-                <div className="dash-value">{s.wishlist_count}</div>
+                <div className="dash-value">{enToBnNumber(s.wishlist_count)}</div>
               </div>
             </Link>
           </div>
@@ -113,7 +113,7 @@ export default async function DashboardPage() {
                   <span className="dash-title">ধার দেওয়া</span>
                   <div className="dash-icon">📤</div>
                 </div>
-                <div className="dash-value">{s.lent_books}</div>
+                <div className="dash-value">{enToBnNumber(s.lent_books)}</div>
               </div>
             </Link>
             <Link href="/dashboard/lending" style={{ textDecoration: 'none', color: 'inherit' }}>
@@ -123,7 +123,7 @@ export default async function DashboardPage() {
                   <div className="dash-icon">⏰</div>
                 </div>
                 <div className="dash-value" style={{ color: s.overdue_lendings ? 'var(--danger)' : undefined }}>
-                  {s.overdue_lendings}
+                  {enToBnNumber(s.overdue_lendings)}
                 </div>
               </div>
             </Link>
@@ -133,7 +133,7 @@ export default async function DashboardPage() {
                   <span className="dash-title">হারিয়ে গেছে</span>
                   <div className="dash-icon">⚠️</div>
                 </div>
-                <div className="dash-value">{s.lost_books}</div>
+                <div className="dash-value">{enToBnNumber(s.lost_books)}</div>
               </div>
             </Link>
           </div>
@@ -149,7 +149,7 @@ export default async function DashboardPage() {
                   <span className="dash-title">স্বপ্নীল-এর বই</span>
                   <div className="dash-icon" style={{ background: 'rgba(79, 161, 115, 0.2)', color: 'var(--accent)' }}>S</div>
                 </div>
-                <div className="dash-value">{s.swapnil_books}</div>
+                <div className="dash-value">{enToBnNumber(s.swapnil_books)}</div>
               </div>
             </Link>
             <Link href="/dashboard/books?owner=bipro" style={{ textDecoration: 'none', color: 'inherit' }}>
@@ -158,7 +158,7 @@ export default async function DashboardPage() {
                   <span className="dash-title">বিপ্রতীব-এর বই</span>
                   <div className="dash-icon" style={{ background: 'rgba(61, 187, 185, 0.2)', color: 'var(--success)' }}>B</div>
                 </div>
-                <div className="dash-value">{s.bipro_books}</div>
+                <div className="dash-value">{enToBnNumber(s.bipro_books)}</div>
               </div>
             </Link>
             <Link href="/dashboard/books?owner=srrijan" style={{ textDecoration: 'none', color: 'inherit' }}>
@@ -167,7 +167,7 @@ export default async function DashboardPage() {
                   <span className="dash-title">সৃজন-এর বই</span>
                   <div className="dash-icon" style={{ background: 'rgba(227, 116, 82, 0.2)', color: 'var(--danger)' }}>S</div>
                 </div>
-                <div className="dash-value">{s.srrijan_books}</div>
+                <div className="dash-value">{enToBnNumber(s.srrijan_books)}</div>
               </div>
             </Link>
           </div>
@@ -182,28 +182,28 @@ export default async function DashboardPage() {
                 <span className="dash-title">মোট সংগ্রহের মূল্য</span>
                 <div className="dash-icon">💎</div>
               </div>
-              <div className="dash-value">৳{s.total_value.toLocaleString()}</div>
+              <div className="dash-value">৳{enToBnNumber(s.total_value.toLocaleString())}</div>
             </div>
             <div className="dashboard-card card-danger">
               <div className="dash-header">
                 <span className="dash-title">মোট খরচ</span>
                 <div className="dash-icon">💸</div>
               </div>
-              <div className="dash-value">৳{s.total_spent.toLocaleString()}</div>
+              <div className="dash-value">৳{enToBnNumber(s.total_spent.toLocaleString())}</div>
             </div>
             <div className="dashboard-card card-primary">
               <div className="dash-header">
                 <span className="dash-title">এই মাসে যোগ</span>
                 <div className="dash-icon">📅</div>
               </div>
-              <div className="dash-value">{s.books_this_month}</div>
+              <div className="dash-value">{enToBnNumber(s.books_this_month)}</div>
             </div>
             <div className="dashboard-card card-info">
               <div className="dash-header">
                 <span className="dash-title">এই বছরে কেনা</span>
                 <div className="dash-icon">📆</div>
               </div>
-              <div className="dash-value">{s.books_this_year}</div>
+              <div className="dash-value">{enToBnNumber(s.books_this_year)}</div>
             </div>
           </div>
         </section>
