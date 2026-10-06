@@ -128,17 +128,39 @@ export default function MagazinesPage() {
             {filteredMagazines.map((mag: any) => (
               <div key={mag.id} className="book-card" style={{ display: 'flex', flexDirection: 'column', height: '100%', minHeight: '320px', transition: 'transform 0.2s, box-shadow 0.2s' }}>
                 <Link href={`/dashboard/magazines/${mag.id}`} style={{ textDecoration: 'none', color: 'inherit', flexGrow: 1, display: 'flex', flexDirection: 'column', padding: '16px' }}>
-                  <h3 className="book-title" style={{ fontSize: '1.25rem', fontWeight: 600, marginBottom: '12px' }}>{mag.title}</h3>
-                  
-                  <div className="book-meta" style={{ marginTop: '8px' }}>
-                    <span className="icon">📚</span>
-                    <span style={{ fontSize: '1.1rem', color: 'var(--accent)' }}>
-                      সর্বমোট সংগ্রহ: <strong style={{ fontFamily: 'var(--font-serif)', fontSize: '1.2rem', fontWeight: 600 }}>{enToBnNumber(mag.issues_count?.toString() || '0')}</strong> টি ইস্যু
-                    </span>
+                  <div style={{ display: 'flex', gap: '16px', marginBottom: '12px' }}>
+                    <div style={{ 
+                      width: '64px', 
+                      height: '84px', 
+                      borderRadius: '6px', 
+                      backgroundColor: 'var(--bg-secondary)',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      overflow: 'hidden',
+                      flexShrink: 0,
+                      border: '1px solid var(--border)',
+                      boxShadow: '0 2px 5px rgba(0,0,0,0.1)'
+                    }}>
+                      {mag.cover_url ? (
+                        <img src={mag.cover_url} alt={mag.title} style={{ width: '100%', height: '100%', objectFit: 'cover' }} onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }} />
+                      ) : (
+                        <span style={{ fontSize: '28px' }}>📰</span>
+                      )}
+                    </div>
+                    <div style={{ flexGrow: 1, display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
+                      <h3 className="book-title" style={{ fontSize: '1.25rem', fontWeight: 600, margin: '0 0 8px 0' }}>{mag.title}</h3>
+                      <div className="book-meta">
+                        <span className="icon" style={{ opacity: 0.8 }}>📚</span>
+                        <span style={{ fontSize: '1rem', color: 'var(--text-secondary)' }}>
+                          সর্বমোট সংগ্রহ: <strong style={{ fontFamily: 'var(--font-serif)', fontSize: '1.1rem', fontWeight: 600, color: 'var(--accent)' }}>{enToBnNumber(mag.issues_count?.toString() || '0')}</strong> টি ইস্যু
+                        </span>
+                      </div>
+                    </div>
                   </div>
                 </Link>
                 
-                <div className="book-card-info" style={{ padding: '16px', paddingTop: 0, display: 'flex', flexDirection: 'column' }}>
+                <div className="book-card-info" style={{ padding: '0 16px 16px', display: 'flex', flexDirection: 'column' }}>
                   
                   <div className="book-card-footer" style={{ marginTop: 'auto', paddingTop: '16px', gap: '8px', display: 'flex', flexWrap: 'wrap', alignItems: 'center', justifyContent: 'space-between' }}>
                     <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>

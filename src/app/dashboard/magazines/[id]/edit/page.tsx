@@ -20,6 +20,7 @@ export default function EditMagazinePage({ params }: { params: Promise<{ id: str
   
   const [title, setTitle] = useState('');
   const [publisher, setPublisher] = useState('');
+  const [coverUrl, setCoverUrl] = useState('');
   const [showDelete, setShowDelete] = useState(false);
 
   useEffect(() => {
@@ -36,6 +37,7 @@ export default function EditMagazinePage({ params }: { params: Promise<{ id: str
           }
           
           setTitle(data.title || '');
+          setCoverUrl(data.cover_url || '');
           if (data.publisher?.name) {
             setPublisher(data.publisher.name);
           } else if (data.publisher_id) {
@@ -75,6 +77,7 @@ export default function EditMagazinePage({ params }: { params: Promise<{ id: str
       const magazineData = {
         title: title.trim(),
         publisher_id: pubId,
+        cover_url: coverUrl.trim() || null,
         updated_at: new Date().toISOString(),
       };
 
@@ -187,6 +190,37 @@ export default function EditMagazinePage({ params }: { params: Promise<{ id: str
                   onChange={e => setPublisher(e.target.value)} 
                   placeholder="যেমন: প্রথমা প্রকাশন" 
                 />
+              </div>
+
+              <div className="form-group">
+                <label className="form-label">ম্যাগাজিনের ছবির লিংক (URL)</label>
+                <div style={{ display: 'flex', gap: '16px', alignItems: 'flex-start' }}>
+                  <input 
+                    className="form-input" 
+                    value={coverUrl} 
+                    onChange={e => setCoverUrl(e.target.value)} 
+                    placeholder="https://example.com/image.jpg" 
+                    style={{ flexGrow: 1 }}
+                  />
+                  <div style={{ 
+                    width: '60px', 
+                    height: '80px', 
+                    borderRadius: '4px', 
+                    backgroundColor: 'var(--bg-secondary)',
+                    border: '1px solid var(--border)',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    overflow: 'hidden',
+                    flexShrink: 0
+                  }}>
+                    {coverUrl ? (
+                      <img src={coverUrl} alt="Preview" style={{ width: '100%', height: '100%', objectFit: 'cover' }} onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }} />
+                    ) : (
+                      <span style={{ fontSize: '24px' }}>📰</span>
+                    )}
+                  </div>
+                </div>
               </div>
             </div>
           </div>
