@@ -118,11 +118,11 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
               ✕
             </button>
             <Link href="/dashboard" style={{ textDecoration: 'none', color: 'inherit', display: 'block', textAlign: 'left', minWidth: 0 }}>
-              <h1 style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                <BookOpenText size={22} className="brand-icon-anim" />
+              <h1 style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '1.4rem', marginBottom: '4px' }}>
+                <BookOpenText size={26} className="brand-icon-anim" />
                 ডিজিটাল বইঘর
               </h1>
-              <p>ব্যক্তিগত সংগ্রহশালা</p>
+              <p style={{ marginLeft: '34px', fontSize: '0.85rem' }}>ব্যক্তিগত সংগ্রহশালা</p>
             </Link>
           </div>
           <div className="desktop-theme-toggle" style={{ width: '100%', marginTop: '16px' }}>
