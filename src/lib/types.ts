@@ -9,6 +9,13 @@ export interface Profile {
   updated_at: string;
 }
 
+export const getUserInitial = (name: string): string => {
+  if (!name) return '';
+  const trimmed = name.trim();
+  if (trimmed === 'সৃজন' || trimmed.toLowerCase() === 'srijan') return 'সৃ';
+  return trimmed.charAt(0).toUpperCase();
+};
+
 export interface Author {
   id: string;
   name: string;

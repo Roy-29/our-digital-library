@@ -5,6 +5,7 @@ import { useParams, useRouter } from 'next/navigation';
 import { createClient } from '@/lib/supabase';
 import toast from 'react-hot-toast';
 import Link from 'next/link';
+import { getUserInitial } from '@/lib/types';
 
 interface UserProfile {
   id: string;
@@ -118,7 +119,7 @@ export default function UserProfilePage() {
                 {profile.avatar_url ? (
                   <img src={profile.avatar_url} alt={profile.display_name} style={{ width: '100%', height: '100%', borderRadius: '50%', objectFit: 'cover' }} />
                 ) : (
-                  profile.display_name.charAt(0).toUpperCase()
+                  getUserInitial(profile.display_name)
                 )}
               </div>
             </div>

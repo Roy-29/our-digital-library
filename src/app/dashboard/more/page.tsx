@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { useAuth } from '@/contexts/AuthContext';
-import { getOwnerLabel } from '@/lib/types';
+import { getOwnerLabel, getUserInitial } from '@/lib/types';
 
 const MENU_ITEMS = [
   { href: '/dashboard', icon: '🏠', label: 'ড্যাশবোর্ড', desc: 'পরিসংখ্যান ও সারসংক্ষেপ' },
@@ -23,7 +23,7 @@ const MENU_ITEMS = [
 export default function MorePage() {
   const { user, profile, signOut } = useAuth();
   const displayName = profile?.display_name || user?.email?.split('@')[0] || 'User';
-  const initials = displayName.charAt(0).toUpperCase();
+  const initials = getUserInitial(displayName);
 
   return (
     <>

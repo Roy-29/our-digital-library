@@ -6,7 +6,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import Link from 'next/link';
 import ThemeToggle from '@/components/ThemeToggle';
 import { LogOut } from 'lucide-react';
-import { getOwnerLabel } from '@/lib/types';
+import { getOwnerLabel, getUserInitial } from '@/lib/types';
 
 const NAV_ITEMS = [
   { section: 'প্রধান' },
@@ -65,7 +65,7 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
   if (!user) return null;
 
   const displayName = profile?.display_name || user.email?.split('@')[0] || 'User';
-  const initials = displayName.charAt(0).toUpperCase();
+  const initials = getUserInitial(displayName);
 
   return (
     <div className="app-layout">

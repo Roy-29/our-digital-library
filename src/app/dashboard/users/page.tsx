@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react';
 import { createClient } from '@/lib/supabase';
 import Link from 'next/link';
 import { useAuth } from '@/contexts/AuthContext';
-import { enToBnNumber } from '@/lib/types';
+import { enToBnNumber, getUserInitial } from '@/lib/types';
 
 interface UserProfile {
   id: string;
@@ -89,7 +89,7 @@ export default function UsersPage() {
                             {user.avatar_url ? (
                               <img src={user.avatar_url} alt={user.display_name} style={{ width: '100%', height: '100%', borderRadius: '50%', objectFit: 'cover' }} />
                             ) : (
-                              (user.display_name.match(/^.[\u09BE-\u09D7\u09E2\u09E3]*/)?.[0] || user.display_name.charAt(0)).toUpperCase()
+                              getUserInitial(user.display_name)
                             )}
                           </div>
                           <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
