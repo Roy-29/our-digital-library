@@ -122,7 +122,7 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
               <p>Personal Digital Library</p>
             </Link>
           </div>
-          <div className="desktop-theme-toggle" style={{ flexShrink: 0 }}>
+          <div className="desktop-theme-toggle" style={{ flexShrink: 0, marginTop: '8px' }}>
             <ThemeToggle />
           </div>
         </div>
