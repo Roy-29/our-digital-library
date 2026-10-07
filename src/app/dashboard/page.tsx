@@ -65,37 +65,37 @@ export default async function DashboardPage() {
           <h3 className="dashboard-section-title">📊 লাইব্রেরি একনজরে</h3>
           <div className="dashboard-grid">
             <Link href="/dashboard/books" style={{ textDecoration: 'none', color: 'inherit' }}>
-              <div className="dashboard-card card-primary" style={{ cursor: 'pointer' }}>
+              <div className="dashboard-card" style={{ cursor: 'pointer' }}>
                 <div className="dash-header">
                   <span className="dash-title">মোট বই</span>
-                  <div className="dash-icon">📚</div>
+                  <div className="dash-icon" style={{ background: 'rgba(79, 161, 115, 0.2)', color: 'var(--accent)' }}>📚</div>
                 </div>
                 <div className="dash-value">{enToBnNumber(s.total_books)}</div>
               </div>
             </Link>
             <Link href="/dashboard/books?status=পড়া শেষ" style={{ textDecoration: 'none', color: 'inherit' }}>
-              <div className="dashboard-card card-success" style={{ cursor: 'pointer' }}>
+              <div className="dashboard-card" style={{ cursor: 'pointer' }}>
                 <div className="dash-header">
                   <span className="dash-title">পড়া শেষ</span>
-                  <div className="dash-icon">✅</div>
+                  <div className="dash-icon" style={{ background: 'rgba(61, 187, 185, 0.2)', color: 'var(--success)' }}>✅</div>
                 </div>
                 <div className="dash-value">{enToBnNumber(s.read_books)}</div>
               </div>
             </Link>
             <Link href="/dashboard/reading" style={{ textDecoration: 'none', color: 'inherit' }}>
-              <div className="dashboard-card card-warning" style={{ cursor: 'pointer' }}>
+              <div className="dashboard-card" style={{ cursor: 'pointer' }}>
                 <div className="dash-header">
                   <span className="dash-title">পড়ছি / বাকি</span>
-                  <div className="dash-icon">📖</div>
+                  <div className="dash-icon" style={{ background: 'rgba(234, 179, 8, 0.2)', color: 'var(--warning)' }}>📖</div>
                 </div>
                 <div className="dash-value">{enToBnNumber(s.reading_books + s.unread_books)}</div>
               </div>
             </Link>
             <Link href="/dashboard/wishlist" style={{ textDecoration: 'none', color: 'inherit' }}>
-              <div className="dashboard-card card-info" style={{ cursor: 'pointer' }}>
+              <div className="dashboard-card" style={{ cursor: 'pointer' }}>
                 <div className="dash-header">
                   <span className="dash-title">কিনতে হবে</span>
-                  <div className="dash-icon">🛒</div>
+                  <div className="dash-icon" style={{ background: 'rgba(59, 130, 246, 0.2)', color: 'var(--info)' }}>🛒</div>
                 </div>
                 <div className="dash-value">{enToBnNumber(s.wishlist_count)}</div>
               </div>
@@ -108,19 +108,19 @@ export default async function DashboardPage() {
           <h3 className="dashboard-section-title">📤 ধার ও আদান-প্রদান</h3>
           <div className="dashboard-grid">
             <Link href="/dashboard/lending" style={{ textDecoration: 'none', color: 'inherit' }}>
-              <div className="dashboard-card card-info" style={{ cursor: 'pointer' }}>
+              <div className="dashboard-card" style={{ cursor: 'pointer' }}>
                 <div className="dash-header">
                   <span className="dash-title">ধার দেওয়া</span>
-                  <div className="dash-icon">📤</div>
+                  <div className="dash-icon" style={{ background: 'rgba(59, 130, 246, 0.2)', color: 'var(--info)' }}>📤</div>
                 </div>
                 <div className="dash-value">{enToBnNumber(s.lent_books)}</div>
               </div>
             </Link>
             <Link href="/dashboard/lending" style={{ textDecoration: 'none', color: 'inherit' }}>
-              <div className="dashboard-card card-danger" style={{ cursor: 'pointer' }}>
+              <div className="dashboard-card" style={{ cursor: 'pointer' }}>
                 <div className="dash-header">
                   <span className="dash-title">সময় পেরিয়ে গেছে</span>
-                  <div className="dash-icon">⏰</div>
+                  <div className="dash-icon" style={{ background: 'rgba(239, 68, 68, 0.2)', color: 'var(--danger)' }}>⏰</div>
                 </div>
                 <div className="dash-value" style={{ color: s.overdue_lendings ? 'var(--danger)' : undefined }}>
                   {enToBnNumber(s.overdue_lendings)}
@@ -128,10 +128,10 @@ export default async function DashboardPage() {
               </div>
             </Link>
             <Link href="/dashboard/books?status=হারিয়ে গেছে" style={{ textDecoration: 'none', color: 'inherit' }}>
-              <div className="dashboard-card card-warning" style={{ cursor: 'pointer' }}>
+              <div className="dashboard-card" style={{ cursor: 'pointer' }}>
                 <div className="dash-header">
                   <span className="dash-title">হারিয়ে গেছে</span>
-                  <div className="dash-icon">⚠️</div>
+                  <div className="dash-icon" style={{ background: 'rgba(234, 179, 8, 0.2)', color: 'var(--warning)' }}>⚠️</div>
                 </div>
                 <div className="dash-value">{enToBnNumber(s.lost_books)}</div>
               </div>
@@ -177,31 +177,31 @@ export default async function DashboardPage() {
         <section className="dashboard-section">
           <h3 className="dashboard-section-title">💰 আর্থিক তথ্য</h3>
           <div className="dashboard-grid">
-            <div className="dashboard-card card-success">
+            <div className="dashboard-card">
               <div className="dash-header">
                 <span className="dash-title">মোট সংগ্রহের মূল্য</span>
-                <div className="dash-icon">💎</div>
+                <div className="dash-icon" style={{ background: 'rgba(61, 187, 185, 0.2)', color: 'var(--success)' }}>💎</div>
               </div>
               <div className="dash-value">৳{enToBnNumber(s.total_value.toLocaleString())}</div>
             </div>
-            <div className="dashboard-card card-danger">
+            <div className="dashboard-card">
               <div className="dash-header">
                 <span className="dash-title">মোট খরচ</span>
-                <div className="dash-icon">💸</div>
+                <div className="dash-icon" style={{ background: 'rgba(239, 68, 68, 0.2)', color: 'var(--danger)' }}>💸</div>
               </div>
               <div className="dash-value">৳{enToBnNumber(s.total_spent.toLocaleString())}</div>
             </div>
-            <div className="dashboard-card card-primary">
+            <div className="dashboard-card">
               <div className="dash-header">
                 <span className="dash-title">এই মাসে যোগ</span>
-                <div className="dash-icon">📅</div>
+                <div className="dash-icon" style={{ background: 'rgba(79, 161, 115, 0.2)', color: 'var(--accent)' }}>📅</div>
               </div>
               <div className="dash-value">{enToBnNumber(s.books_this_month)}</div>
             </div>
-            <div className="dashboard-card card-info">
+            <div className="dashboard-card">
               <div className="dash-header">
                 <span className="dash-title">এই বছরে কেনা</span>
-                <div className="dash-icon">📆</div>
+                <div className="dash-icon" style={{ background: 'rgba(59, 130, 246, 0.2)', color: 'var(--info)' }}>📆</div>
               </div>
               <div className="dash-value">{enToBnNumber(s.books_this_year)}</div>
             </div>

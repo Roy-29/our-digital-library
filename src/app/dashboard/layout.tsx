@@ -108,25 +108,21 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
 
       {/* Sidebar */}
       <aside className={`sidebar ${sidebarOpen ? 'open' : ''}`}>
-        <div className="sidebar-brand" style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', padding: '26px 14px 24px 20px' }}>
-          <div style={{ display: 'flex', alignItems: 'flex-start', gap: '8px', minWidth: 0 }}>
+        <div className="sidebar-brand" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '28px 12px 28px 20px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', minWidth: 0 }}>
             <button
               className="mobile-close-sidebar-btn"
               onClick={() => setSidebarOpen(false)}
               aria-label="Close menu"
-              style={{ marginTop: '4px' }}
             >
               ✕
             </button>
             <Link href="/dashboard" style={{ textDecoration: 'none', color: 'inherit', display: 'block', textAlign: 'left', minWidth: 0 }}>
-              <h1 style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                <span style={{ fontSize: '1.25rem' }}>📚</span>
-                <span>ডিজিটাল বইয়ের ঘর</span>
-              </h1>
-              <p style={{ marginTop: '4px', letterSpacing: '0.06em' }}>Personal Digital Library</p>
+              <h1>📚 ডিজিটাল বইয়ের ঘর</h1>
+              <p>Personal Digital Library</p>
             </Link>
           </div>
-          <div className="desktop-theme-toggle" style={{ flexShrink: 0, marginTop: '-2px' }}>
+          <div className="desktop-theme-toggle" style={{ flexShrink: 0, marginTop: '8px' }}>
             <ThemeToggle />
           </div>
         </div>
