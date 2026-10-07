@@ -5,7 +5,7 @@ import { useRouter, usePathname } from 'next/navigation';
 import { useAuth } from '@/contexts/AuthContext';
 import Link from 'next/link';
 import ThemeToggle from '@/components/ThemeToggle';
-import { LogOut } from 'lucide-react';
+import { LogOut, BookOpenText } from 'lucide-react';
 import { getOwnerLabel, getUserInitial } from '@/lib/types';
 
 const NAV_ITEMS = [
@@ -80,8 +80,8 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
             {sidebarOpen ? '✕' : '☰'}
           </button>
           <Link href="/dashboard" className="mobile-brand-link">
-            <span className="mobile-brand-icon">📚</span>
-            <span className="mobile-brand-text">ডিজিটাল বইয়ের ঘর</span>
+            <span className="mobile-brand-icon"><BookOpenText size={20} className="brand-icon-anim" /></span>
+            <span className="mobile-brand-text">ডিজিটাল বইঘর</span>
           </Link>
         </div>
 
@@ -118,8 +118,11 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
               ✕
             </button>
             <Link href="/dashboard" style={{ textDecoration: 'none', color: 'inherit', display: 'block', textAlign: 'left', minWidth: 0 }}>
-              <h1>📚 ডিজিটাল বইয়ের ঘর</h1>
-              <p>Personal Digital Library</p>
+              <h1 style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <BookOpenText size={22} className="brand-icon-anim" />
+                ডিজিটাল বইঘর
+              </h1>
+              <p>ব্যক্তিগত সংগ্রহশালা</p>
             </Link>
           </div>
           <div className="desktop-theme-toggle" style={{ width: '100%', marginTop: '16px' }}>

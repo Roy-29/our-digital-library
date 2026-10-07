@@ -63,16 +63,15 @@ export default function ThemeToggle({ variant = 'icon' }: { variant?: 'icon' | '
           justifyContent: 'space-between', 
           width: '100%', 
           padding: '0 12px',
-          fontSize: '0.75rem',
+          fontSize: '0.85rem',
           fontWeight: 600,
-          letterSpacing: '0.05em',
-          textTransform: 'uppercase',
           position: 'relative',
           zIndex: 1,
-          pointerEvents: 'none'
+          pointerEvents: 'none',
+          fontFamily: 'var(--font-sans)'
         }}>
-          <span style={{ color: 'var(--text-secondary)', opacity: isDark ? 0.3 : 1, transition: 'opacity 0.3s' }}>Light</span>
-          <span style={{ color: 'var(--text-secondary)', opacity: isDark ? 1 : 0.3, transition: 'opacity 0.3s' }}>Dark</span>
+          <span style={{ color: 'var(--text-secondary)', opacity: isDark ? 0.3 : 1, transition: 'opacity 0.3s' }}>লাইট</span>
+          <span style={{ color: 'var(--text-secondary)', opacity: isDark ? 1 : 0.3, transition: 'opacity 0.3s' }}>ডার্ক</span>
         </div>
       </button>
     );

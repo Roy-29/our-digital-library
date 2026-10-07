@@ -234,6 +234,21 @@ h3 { font-size: 1.25rem; }
   white-space: nowrap;
 }
 
+.brand-icon-anim {
+  transition: transform 0.5s cubic-bezier(0.34, 1.56, 0.64, 1), color 0.3s ease;
+  color: var(--accent);
+}
+
+.sidebar-brand:hover .brand-icon-anim {
+  transform: rotate(-10deg) scale(1.1);
+  color: var(--warning);
+}
+
+.mobile-brand-link:hover .brand-icon-anim {
+  transform: rotate(-10deg) scale(1.1);
+  color: var(--warning);
+}
+
 .sidebar-nav {
   flex: 1 0 auto;
   padding: 20px 12px 16px;
