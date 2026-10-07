@@ -9,6 +9,7 @@ import toast from 'react-hot-toast';
 // @ts-ignore
 import * as ISBN from 'isbn3';
 import { BanglaDateInput } from '@/components/BanglaDateInput';
+import { CustomSelect } from '@/components/CustomSelect';
 
 export default function AddBookPage() {
   const router = useRouter();
@@ -739,26 +740,19 @@ export default function AddBookPage() {
                   <div className="form-group">
                     <label className="form-label">কপির সংখ্যা</label>
                     <div style={{ display: 'flex', gap: '8px' }}>
-                      <select 
-                        className="form-select font-serif" 
-                        value={isCustomCopies ? 'custom' : copies} 
-                        onChange={e => {
-                          if (e.target.value === 'custom') {
+                      <CustomSelect
+                        className="font-serif" 
+                        options={[{value:'1',label:'১ কপি'}, {value:'2',label:'২ কপি'}, {value:'3',label:'৩ কপি'}, {value:'4',label:'৪ কপি'}, {value:'5',label:'৫ কপি'}, {value:'custom',label:'✏️ নিজের সংখ্যা লিখুন...'}]}
+                        value={isCustomCopies ? 'custom' : copies.toString()} 
+                        onChange={val => {
+                          if (val === 'custom') {
                             setIsCustomCopies(true);
                           } else {
                             setIsCustomCopies(false);
-                            setCopies(parseInt(e.target.value));
+                            setCopies(parseInt(val));
                           }
                         }}
-                        style={{ fontFamily: 'var(--font-serif)', flex: 1 }}
-                      >
-                        <option value={1} style={{ fontFamily: 'var(--font-serif)' }}>১ কপি</option>
-                        <option value={2} style={{ fontFamily: 'var(--font-serif)' }}>২ কপি</option>
-                        <option value={3} style={{ fontFamily: 'var(--font-serif)' }}>৩ কপি</option>
-                        <option value={4} style={{ fontFamily: 'var(--font-serif)' }}>৪ কপি</option>
-                        <option value={5} style={{ fontFamily: 'var(--font-serif)' }}>৫ কপি</option>
-                        <option value="custom" style={{ fontFamily: 'var(--font-serif)' }}>✏️ নিজের সংখ্যা লিখুন...</option>
-                      </select>
+                      />
                       {isCustomCopies && (
                         <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
                           <input
@@ -891,26 +885,21 @@ export default function AddBookPage() {
                   <div className="form-group">
                     <label className="form-label">ভাষা</label>
                     <div style={{ display: 'flex', flexDirection: isCustomLanguage ? 'column' : 'row', gap: '8px' }}>
-                      <select 
-                        className="form-select" 
-                        value={isCustomLanguage ? 'custom' : (['বাংলা', 'English'].includes(language) ? language : 'custom')} 
-                        onChange={e => {
-                          if (e.target.value === 'custom') {
+                      <CustomSelect
+                        options={[{value:'বাংলা',label:'বাংলা'}, {value:'English',label:'English'}, {value:'custom',label:'✏️ অন্যান্য (নিজে লিখুন)...'}]}
+                        value={isCustomLanguage ? 'custom' : (['বাংলা', 'English'].includes(language) ? language : 'custom')}
+                        onChange={val => {
+                          if (val === 'custom') {
                             setIsCustomLanguage(true);
                             if (language === 'বাংলা' || language === 'English') {
                               setLanguage('');
                             }
                           } else {
                             setIsCustomLanguage(false);
-                            setLanguage(e.target.value);
+                            setLanguage(val);
                           }
                         }}
-                        style={{ height: '42px', width: '100%' }}
-                      >
-                        <option value="বাংলা">বাংলা</option>
-                        <option value="English">English</option>
-                        <option value="custom">✏️ অন্যান্য (নিজে লিখুন)...</option>
-                      </select>
+                      />
                       {isCustomLanguage && (
                         <input 
                           className="form-input" 
@@ -970,21 +959,19 @@ export default function AddBookPage() {
                 <div className="form-row">
                   <div className="form-group">
                     <label className="form-label">👤 মালিক</label>
-                    <select 
-                      className="form-select" 
-                      value={owner} 
-                      onChange={e => setOwner(e.target.value as BookOwner)}
-                    >
-                      {OWNERS.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}
-                    </select>
+                    <CustomSelect
+                      options={OWNERS}
+                      value={owner}
+                      onChange={val => setOwner(val as BookOwner)}
+                    />
                   </div>
                   <div className="form-group">
                     <label className="form-label">📊 স্ট্যাটাস</label>
-                    <select 
-                      className="form-select" 
-                      value={status} 
-                      onChange={e => {
-                        const s = e.target.value as BookStatus;
+                    <CustomSelect
+                      options={BOOK_STATUSES.map(s => ({ value: s.value, label: `${s.icon} ${s.label}` }))}
+                      value={status}
+                      onChange={val => {
+                        const s = val as BookStatus;
                         setStatus(s);
                         if (['পড়া শেষ (কাছে নেই)', 'কিনবো', 'পড়ছি (কাছে নেই)', 'ধার করে পড়া', 'ই-বুক / পিডিএফ'].includes(s)) {
                           setIsPurchased(false);
@@ -992,9 +979,7 @@ export default function AddBookPage() {
                           setIsPurchased(true);
                         }
                       }}
-                    >
-                      {BOOK_STATUSES.map(s => <option key={s.value} value={s.value}>{s.icon} {s.label}</option>)}
-                    </select>
+                    />
                   </div>
                 </div>
                 <div className="form-group">
@@ -1062,12 +1047,11 @@ export default function AddBookPage() {
                       </div>
                       <div className="form-group">
                         <label className="form-label">অবস্থা</label>
-                        <select className="form-select" value={bookCondition} onChange={e => setBookCondition(e.target.value as BookCondition)}>
-                          <option value="new">নতুন</option>
-                          <option value="used">পুরনো</option>
-                          <option value="gift">উপহার</option>
-                          <option value="unknown">অজানা</option>
-                        </select>
+                        <CustomSelect
+                          options={[{value:'new',label:'নতুন'}, {value:'used',label:'পুরনো'}, {value:'gift',label:'উপহার'}, {value:'unknown',label:'অজানা'}]}
+                          value={bookCondition}
+                          onChange={val => setBookCondition(val as BookCondition)}
+                        />
                       </div>
                     </div>
                     <div className="form-row" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(160px, 1fr))', gap: '16px' }}>
@@ -1100,24 +1084,22 @@ export default function AddBookPage() {
               <div className="card-body">
                 <div className="form-group">
                   <label className="form-label">পড়ার অবস্থা (Reading Status)</label>
-                  <select 
-                    className="form-select" 
-                    value={readingStatus} 
-                    onChange={e => {
-                      const val = e.target.value as ReadingStatus | '';
-                      setReadingStatus(val);
-                      if (val === 'পড়বো' || val === 'পড়া বাকি' || val === 'আবার পড়বো') {
+                  <CustomSelect
+                    options={READING_STATUSES.map(rs => ({ value: rs.value, label: `${rs.icon} ${rs.label}` }))}
+                    value={readingStatus}
+                    onChange={val => {
+                      const s = val as ReadingStatus | '';
+                      setReadingStatus(s);
+                      if (s === 'পড়বো' || s === 'পড়া বাকি' || s === 'আবার পড়বো') {
                         setReadingProgress(0);
-                      } else if (val === 'পড়া শেষ' || val === 'পড়া শেষ (কাছে নেই)') {
+                      } else if (s === 'পড়া শেষ' || s === 'পড়া শেষ (কাছে নেই)') {
                         setReadingProgress(100);
-                      } else if (val === 'পড়ছি' || val === 'পড়ছি (কাছে নেই)' || val === 'ধার করে পড়া' || val === 'লাইব্রেরি থেকে পড়া') {
+                      } else if (s === 'পড়ছি' || s === 'পড়ছি (কাছে নেই)' || s === 'ধার করে পড়া' || s === 'লাইব্রেরি থেকে পড়া') {
                         if (readingProgress === 0) setReadingProgress(10);
                       }
                     }}
-                  >
-                    <option value="">নির্বাচন করুন...</option>
-                    {READING_STATUSES.map(rs => <option key={rs.value} value={rs.value}>{rs.icon} {rs.label}</option>)}
-                  </select>
+                    placeholder="নির্বাচন করুন..."
+                  />
                 </div>
                 <div className="form-row">
                   <div className="form-group">
