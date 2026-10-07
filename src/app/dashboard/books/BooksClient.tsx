@@ -610,14 +610,14 @@ export default function BooksClient({
             </div>
             <div className="modal-body">
               <div style={{ display: 'flex', gap: '20px', alignItems: 'flex-start', marginBottom: '16px' }}>
-                {viewingAuthor.image_url && (
+                {viewingAuthor.imageUrl && (
                   <div style={{ flexShrink: 0, width: '100px', height: '100px', borderRadius: '50%', overflow: 'hidden', border: '2px solid var(--border)', background: 'var(--bg-secondary)' }}>
-                    <img src={viewingAuthor.image_url} alt={viewingAuthor.name_bn || viewingAuthor.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                    <img src={viewingAuthor.imageUrl} alt={viewingAuthor.nameBn || viewingAuthor.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                   </div>
                 )}
                 <div className="info-group" style={{ flexGrow: 1 }}>
                   <label className="form-label" style={{ fontSize: '0.85rem', color: 'var(--text-secondary)' }}>নাম</label>
-                  <div style={{ fontSize: '1.2rem', fontWeight: 600, color: 'var(--text-primary)' }}>{viewingAuthor.name_bn || viewingAuthor.name}</div>
+                  <div style={{ fontSize: '1.2rem', fontWeight: 600, color: 'var(--text-primary)' }}>{viewingAuthor.nameBn || viewingAuthor.name}</div>
                 </div>
               </div>
               {viewingAuthor.bio && (
@@ -627,11 +627,11 @@ export default function BooksClient({
                 </div>
               )}
               <div className="form-row" style={{ display: 'flex', gap: '24px', flexWrap: 'wrap' }}>
-                {(viewingAuthor.birth_year || viewingAuthor.death_year) && (
+                {(viewingAuthor.birthYear || viewingAuthor.deathYear) && (
                   <div className="info-group">
                     <label className="form-label" style={{ fontSize: '0.85rem', color: 'var(--text-secondary)' }}>জীবনকাল</label>
                     <div style={{ color: 'var(--text-primary)' }}>
-                      {viewingAuthor.birth_year ? enToBnNumber(viewingAuthor.birth_year.toString()) : 'অজানা'} - {viewingAuthor.death_year ? enToBnNumber(viewingAuthor.death_year.toString()) : 'বর্তমান'}
+                      {viewingAuthor.birthYear ? enToBnNumber(viewingAuthor.birthYear.toString()) : 'অজানা'} - {viewingAuthor.deathYear ? enToBnNumber(viewingAuthor.deathYear.toString()) : 'বর্তমান'}
                     </div>
                   </div>
                 )}
@@ -662,14 +662,14 @@ export default function BooksClient({
             </div>
             <div className="modal-body">
               <div style={{ display: 'flex', gap: '20px', alignItems: 'flex-start', marginBottom: '16px' }}>
-                {viewingPublisher.image_url && (
+                {viewingPublisher.imageUrl && (
                   <div style={{ flexShrink: 0, width: '100px', height: '100px', borderRadius: '50%', overflow: 'hidden', border: '2px solid var(--border)', background: 'var(--bg-secondary)' }}>
-                    <img src={viewingPublisher.image_url} alt={viewingPublisher.name_bn || viewingPublisher.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                    <img src={viewingPublisher.imageUrl} alt={viewingPublisher.nameBn || viewingPublisher.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                   </div>
                 )}
                 <div className="info-group" style={{ flexGrow: 1 }}>
                   <label className="form-label" style={{ fontSize: '0.85rem', color: 'var(--text-secondary)' }}>নাম</label>
-                  <div style={{ fontSize: '1.2rem', fontWeight: 600, color: 'var(--text-primary)' }}>{viewingPublisher.name_bn || viewingPublisher.name}</div>
+                  <div style={{ fontSize: '1.2rem', fontWeight: 600, color: 'var(--text-primary)' }}>{viewingPublisher.nameBn || viewingPublisher.name}</div>
                 </div>
               </div>
               {viewingPublisher.address && (
