@@ -108,8 +108,8 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
 
       {/* Sidebar */}
       <aside className={`sidebar ${sidebarOpen ? 'open' : ''}`}>
-        <div className="sidebar-brand" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '28px 12px 28px 20px' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', minWidth: 0 }}>
+        <div className="sidebar-brand" style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start', padding: '28px 20px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', width: '100%' }}>
             <button
               className="mobile-close-sidebar-btn"
               onClick={() => setSidebarOpen(false)}
@@ -122,8 +122,8 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
               <p>Personal Digital Library</p>
             </Link>
           </div>
-          <div className="desktop-theme-toggle" style={{ flexShrink: 0, marginTop: '8px' }}>
-            <ThemeToggle />
+          <div className="desktop-theme-toggle" style={{ width: '100%', marginTop: '16px' }}>
+            <ThemeToggle variant="rod" />
           </div>
         </div>
 
