@@ -2,7 +2,7 @@ import { db } from '@/db';
 import { books, authors, publishers, lendingRecords, wishlist } from '@/db/schema';
 import { sql, desc, eq, and, isNotNull } from 'drizzle-orm';
 import Link from 'next/link';
-import { getOwnerLabel, enToBnNumber } from '@/lib/types';
+import { getOwnerLabel, enToBnNumber, getUserInitial } from '@/lib/types';
 
 export const dynamic = 'force-dynamic'; // Prevent caching so dashboard is always fresh
 
@@ -147,7 +147,7 @@ export default async function DashboardPage() {
               <div className="dashboard-card" style={{ cursor: 'pointer' }}>
                 <div className="dash-header">
                   <span className="dash-title">স্বপ্নীল-এর বই</span>
-                  <div className="dash-icon" style={{ background: 'rgba(79, 161, 115, 0.2)', color: 'var(--accent)' }}>S</div>
+                  <div className="dash-icon" style={{ background: 'rgba(79, 161, 115, 0.2)', color: 'var(--accent)' }}>{getUserInitial('স্বপ্নীল')}</div>
                 </div>
                 <div className="dash-value">{enToBnNumber(s.swapnil_books)}</div>
               </div>
@@ -156,7 +156,7 @@ export default async function DashboardPage() {
               <div className="dashboard-card" style={{ cursor: 'pointer' }}>
                 <div className="dash-header">
                   <span className="dash-title">বিপ্রতীব-এর বই</span>
-                  <div className="dash-icon" style={{ background: 'rgba(61, 187, 185, 0.2)', color: 'var(--success)' }}>B</div>
+                  <div className="dash-icon" style={{ background: 'rgba(61, 187, 185, 0.2)', color: 'var(--success)' }}>{getUserInitial('বিপ্রতীব')}</div>
                 </div>
                 <div className="dash-value">{enToBnNumber(s.bipro_books)}</div>
               </div>
@@ -165,7 +165,7 @@ export default async function DashboardPage() {
               <div className="dashboard-card" style={{ cursor: 'pointer' }}>
                 <div className="dash-header">
                   <span className="dash-title">সৃজন-এর বই</span>
-                  <div className="dash-icon" style={{ background: 'rgba(227, 116, 82, 0.2)', color: 'var(--danger)' }}>S</div>
+                  <div className="dash-icon" style={{ background: 'rgba(227, 116, 82, 0.2)', color: 'var(--danger)' }}>{getUserInitial('সৃজন')}</div>
                 </div>
                 <div className="dash-value">{enToBnNumber(s.srrijan_books)}</div>
               </div>
