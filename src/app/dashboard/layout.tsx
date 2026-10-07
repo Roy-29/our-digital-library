@@ -108,28 +108,23 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
 
       {/* Sidebar */}
       <aside className={`sidebar ${sidebarOpen ? 'open' : ''}`}>
-        <div className="sidebar-brand">
-          <button
-            className="mobile-close-sidebar-btn"
-            onClick={() => setSidebarOpen(false)}
-            aria-label="Close menu"
-          >
-            ✕
-          </button>
-          <Link href="/dashboard" style={{ textDecoration: 'none', color: 'inherit', display: 'block' }}>
-            <h1>📚 ডিজিটাল বইয়ের ঘর</h1>
-            <p>Personal Digital Library</p>
-          </Link>
-        </div>
-
-        {/* User Card at top of sidebar for quick visibility on mobile */}
-        <div className="sidebar-top-user">
-          <div className="sidebar-user-avatar">{initials}</div>
-          <div className="sidebar-user-info">
-            <div className="sidebar-user-name">{displayName}</div>
-            <div className="sidebar-user-email">{user.email}</div>
+        <div className="sidebar-brand" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', paddingRight: '16px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <button
+              className="mobile-close-sidebar-btn"
+              onClick={() => setSidebarOpen(false)}
+              aria-label="Close menu"
+            >
+              ✕
+            </button>
+            <Link href="/dashboard" style={{ textDecoration: 'none', color: 'inherit', display: 'block' }}>
+              <h1>📚 ডিজিটাল বইয়ের ঘর</h1>
+              <p>Personal Digital Library</p>
+            </Link>
           </div>
-          <span className="badge badge-gray" style={{ fontSize: '0.65rem' }}>{profile?.owner ? getOwnerLabel(profile.owner) : 'সদস্য'}</span>
+          <div className="desktop-theme-toggle">
+            <ThemeToggle />
+          </div>
         </div>
 
         <nav className="sidebar-nav">
@@ -159,18 +154,20 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
 
         <div className="sidebar-user">
           <div className="sidebar-user-avatar">{initials}</div>
-          <div className="sidebar-user-info" style={{ color: 'rgba(255,255,255,0.9)' }}>
-            <div className="sidebar-user-name">{displayName}</div>
+          <div className="sidebar-user-info" style={{ color: 'rgba(255,255,255,0.9)', display: 'flex', flexDirection: 'column', gap: '2px' }}>
+            <div className="sidebar-user-name" style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+              {displayName}
+              <span className="badge badge-gray" style={{ fontSize: '0.65rem', padding: '2px 6px', background: 'rgba(255,255,255,0.1)', color: 'rgba(255,255,255,0.9)', border: 'none' }}>
+                {profile?.owner ? getOwnerLabel(profile.owner) : 'সদস্য'}
+              </span>
+            </div>
             <div className="sidebar-user-email" style={{ color: 'rgba(255,255,255,0.5)' }}>{user.email}</div>
-          </div>
-          <div className="desktop-theme-toggle">
-            <ThemeToggle />
           </div>
           <button
             className="btn btn-ghost btn-icon"
             onClick={signOut}
             title="লগআউট"
-            style={{ color: 'rgba(255,255,255,0.7)' }}
+            style={{ color: 'rgba(255,255,255,0.7)', marginLeft: 'auto' }}
           >
             <LogOut size={20} />
           </button>
