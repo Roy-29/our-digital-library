@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import "./globals.css";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { Toaster } from "react-hot-toast";
+import { Analytics } from "@vercel/analytics/next";
 
 export const metadata: Metadata = {
   title: "ডিজিটাল বইয়ের ঘর | Digital Library",
@@ -37,6 +38,7 @@ export default function RootLayout({
             }}
           />
         </AuthProvider>
+        <Analytics />
         </ThemeProvider>
       </body>
     </html>
