@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { createClient } from '@/lib/supabase';
+import { dbGetBookCopies } from '@/app/actions';
 import { Book, BOOK_STATUSES, READING_STATUSES, getOwnerLabel, parseDbDate, formatDateBn, enToBnNumber } from '@/lib/types';
 import { useAuth } from '@/contexts/AuthContext';
 import Link from 'next/link';
@@ -15,6 +16,7 @@ export default function BookDetailPage() {
   const router = useRouter();
   const { user } = useAuth();
   const [book, setBook] = useState<Book | null>(null);
+  const [copies, setCopies] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const supabase = createClient();
 
@@ -64,6 +66,31 @@ export default function BookDetailPage() {
     data.category = categoryRes.data;
     data.genre = genreRes.data;
 
+    const parentIdToSearch = data.parent_book_id || data.id;
+    const allCopies = await dbGetBookCopies(parentIdToSearch);
+
+    if (allCopies && allCopies.length > 0) {
+      // Convert Drizzle camelCase response to snake_case so the UI code doesn't break
+      const snakeCopies = allCopies.map(c => {
+        const copy: any = { ...c };
+        copy.is_favorite = c.isFavorite;
+        copy.is_purchased = c.isPurchased;
+        copy.purchase_date = c.purchaseDate;
+        copy.purchase_source = c.purchaseSource;
+        copy.purchase_price = c.purchasePrice;
+        copy.purchase_discount = c.purchaseDiscount;
+        copy.purchase_final_price = c.purchaseFinalPrice;
+        copy.book_condition = c.bookCondition;
+        copy.reading_status = c.readingStatus;
+        copy.reading_start_date = c.readingStartDate;
+        copy.reading_finish_date = c.readingFinishDate;
+        copy.reading_progress = c.readingProgress;
+        copy.favorite_quote = c.favoriteQuote;
+        return copy;
+      });
+      setCopies(snakeCopies);
+    }
+
     setBook(data);
     setLoading(false);
   };
@@ -91,16 +118,15 @@ export default function BookDetailPage() {
           </h2>
         </div>
         <div className="flex gap-2 page-header-actions">
-          <button 
-            onClick={() => router.back()} 
+          <Link 
+            href="/dashboard/books"
             className="btn btn-secondary"
-            title="আগের পেজে ফিরে যান"
-            style={{ padding: '8px 16px', display: 'flex', alignItems: 'center', gap: '8px' }}
+            title="সব বইয়ের তালিকায় ফিরে যান"
+            style={{ padding: '8px 16px', display: 'flex', alignItems: 'center', gap: '8px', textDecoration: 'none' }}
           >
             <span>⬅️</span>
             <span style={{ fontSize: '0.9rem', fontWeight: 500 }}>ফিরে যান</span>
-          </button>
-          <Link href={`/dashboard/books/${book.id}/edit`} className="btn btn-primary">✏️ সম্পাদনা</Link>
+          </Link>
         </div>
       </div>
 
@@ -182,113 +208,119 @@ export default function BookDetailPage() {
               </div>
             </div>
 
-            <div className="card" style={{ marginBottom: '16px' }}>
-              <div className="card-header"><h3>👤 মালিকানা ও স্ট্যাটাস</h3></div>
-              <div className="card-body">
-                <DetailRow label="মালিক" value={getOwnerLabel(book.owner)} />
-                <DetailRow label="বর্তমান স্ট্যাটাস" value={
-                  <span style={{ color: statusConfig?.color, fontWeight: 600, padding: '2px 8px', borderRadius: '12px', background: `${statusConfig?.color}15` }}>
-                    {statusConfig?.icon} {book.status}
-                  </span>
-                } />
-                {book.is_favorite && <DetailRow label="প্রিয় বই" value="⭐ হ্যাঁ" />}
-              </div>
-            </div>
+            <div style={{ marginTop: '32px' }}>
+              <h3 className="font-serif" style={{ fontFamily: 'var(--font-serif)', fontSize: '1.4rem', marginBottom: '16px', display: 'flex', alignItems: 'center', gap: '8px', color: 'var(--primary-dark)' }}>
+                📚 মালিকানা ও বিস্তারিত তথ্য 
+                <span className="badge" style={{ fontSize: '1rem', padding: '2px 8px' }}>{enToBnNumber((copies?.length || 1).toString())} টি কপি</span>
+              </h3>
+              
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
+                {(copies && copies.length > 0 ? copies : [book]).map((c) => {
+                  const cStatusConfig = BOOK_STATUSES.find(s => s.value === c.status);
+                  
+                  return (
+                    <div key={c.id} className="card" style={{ 
+                      border: c.id === book.id ? '2px solid var(--primary)' : '1px solid var(--border)',
+                      boxShadow: 'var(--shadow-sm)'
+                    }}>
+                      <div className="card-header" style={{ background: c.id === book.id ? 'var(--primary-light)' : 'var(--bg-secondary)', padding: '16px', borderBottom: '1px solid var(--border-light)' }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                          <h3 style={{ margin: 0, fontSize: '1.2rem', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                            👤 {getOwnerLabel(c.owner)}
+                            {c.owner === user?.id && <span className="badge badge-primary" style={{ fontSize: '0.75rem', padding: '4px 8px' }}>আমার বই</span>}
+                          </h3>
+                          <Link href={`/dashboard/books/${c.id}/edit`} className="btn btn-secondary btn-sm" style={{ padding: '6px 12px', fontSize: '0.85rem' }}>
+                            ✏️ সম্পাদনা
+                          </Link>
+                        </div>
+                      </div>
+                      
+                      <div className="card-body" style={{ padding: 0 }}>
+                        {/* Status Section */}
+                        <div style={{ padding: '16px', borderBottom: '1px solid var(--border-light)' }}>
+                          <h4 style={{ margin: '0 0 12px 0', fontSize: '1rem', color: 'var(--text-secondary)' }}>🔖 স্ট্যাটাস</h4>
+                          <DetailRow label="বর্তমান স্ট্যাটাস" value={
+                            <span style={{ color: cStatusConfig?.color, fontWeight: 600, padding: '2px 8px', borderRadius: '12px', background: `${cStatusConfig?.color}15` }}>
+                              {cStatusConfig?.icon} {c.status}
+                            </span>
+                          } />
+                          {c.is_favorite && <DetailRow label="প্রিয় বই" value="⭐ হ্যাঁ" />}
+                        </div>
 
-            {(book.is_purchased || book.purchase_source || book.purchase_date || book.purchase_price || book.purchase_discount || book.purchase_final_price || (book.book_condition && book.book_condition !== 'unknown')) && (
-              <div className="card" style={{ marginBottom: '16px' }}>
-                <div className="card-header"><h3>💰 সংগ্রহ ও উৎস</h3></div>
-                <div className="card-body">
-                  <DetailRow label="সংগ্রহের ধরণ" value={book.is_purchased ? 'কেনা হয়েছে (সংগ্রহে আছে)' : 'পড়ার উৎস'} />
-                  <DetailRow label={book.is_purchased ? 'কেনার তারিখ' : 'সংগ্রহের তারিখ'} value={formatDateToDdMmYyyyBn(book.purchase_date)} />
-                  <DetailRow label="উৎস" value={book.purchase_source} />
-                  <DetailRow label="দাম" value={book.purchase_price ? <span style={{ fontFamily: 'var(--font-serif)' }}>৳{enToBnNumber(book.purchase_price.toString())}</span> : null} />
-                  <DetailRow 
-                    label="ছাড়" 
-                    value={book.purchase_discount ? (
-                      <span style={{ fontFamily: 'var(--font-serif)' }}>
-                        ৳{enToBnNumber(book.purchase_discount.toString())}
-                        {book.purchase_price ? ` (${enToBnNumber(Number(((book.purchase_discount / book.purchase_price) * 100).toFixed(1)).toString().replace(/\.0$/, ''))}%)` : ''}
-                      </span>
-                    ) : null} 
-                  />
-                  <DetailRow label="চূড়ান্ত দাম" value={book.purchase_final_price ? <span style={{ fontFamily: 'var(--font-serif)' }}>৳{enToBnNumber(book.purchase_final_price.toString())}</span> : null} />
-                  {book.book_condition !== 'unknown' && (
-                    <DetailRow label="অবস্থা" value={book.book_condition === 'new' ? 'নতুন' : book.book_condition === 'used' ? 'পুরনো' : book.book_condition === 'gift' ? 'উপহার' : book.book_condition} />
-                  )}
-                </div>
-              </div>
-            )}
+                        {/* Collection Section */}
+                        {(c.is_purchased || c.purchase_source || c.purchase_date || c.purchase_price || c.purchase_discount || c.purchase_final_price || (c.book_condition && c.book_condition !== 'unknown')) && (
+                          <div style={{ padding: '16px', borderBottom: '1px solid var(--border-light)', background: 'var(--bg-subtle)' }}>
+                            <h4 style={{ margin: '0 0 12px 0', fontSize: '1rem', color: 'var(--text-secondary)' }}>💰 সংগ্রহ ও উৎস</h4>
+                            <DetailRow label="সংগ্রহের ধরণ" value={c.is_purchased ? 'কেনা হয়েছে (সংগ্রহে আছে)' : 'পড়ার উৎস'} />
+                            <DetailRow label={c.is_purchased ? 'কেনার তারিখ' : 'সংগ্রহের তারিখ'} value={formatDateToDdMmYyyyBn(c.purchase_date)} />
+                            <DetailRow label="উৎস" value={c.purchase_source} />
+                            <DetailRow label="দাম" value={c.purchase_price ? <span style={{ fontFamily: 'var(--font-serif)' }}>৳{enToBnNumber(c.purchase_price.toString())}</span> : null} />
+                            <DetailRow 
+                              label="ছাড়" 
+                              value={c.purchase_discount ? (
+                                <span style={{ fontFamily: 'var(--font-serif)' }}>
+                                  ৳{enToBnNumber(c.purchase_discount.toString())}
+                                  {c.purchase_price ? ` (${enToBnNumber(Number(((c.purchase_discount / c.purchase_price) * 100).toFixed(1)).toString().replace(/\.0$/, ''))}%)` : ''}
+                                </span>
+                              ) : null} 
+                            />
+                            <DetailRow label="চূড়ান্ত দাম" value={c.purchase_final_price ? <span style={{ fontFamily: 'var(--font-serif)' }}>৳{enToBnNumber(c.purchase_final_price.toString())}</span> : null} />
+                            {c.book_condition !== 'unknown' && (
+                              <DetailRow label="অবস্থা" value={c.book_condition === 'new' ? 'নতুন' : c.book_condition === 'used' ? 'পুরনো' : c.book_condition === 'gift' ? 'উপহার' : c.book_condition} />
+                            )}
+                          </div>
+                        )}
 
-            {(book.reading_status || book.reading_start_date || book.reading_finish_date || book.reading_progress > 0 || book.rating || book.review || book.notes || book.favorite_quote) && (
-              <div className="card" style={{ marginBottom: '16px' }}>
-                <div className="card-header"><h3>📖 পড়ার তথ্য</h3></div>
-                <div className="card-body">
-                {book.reading_status && (
-                  <DetailRow 
-                    label="পড়ার অবস্থা" 
-                    value={
-                      (() => {
-                        const statusObj = READING_STATUSES.find(s => s.value === book.reading_status);
-                        return statusObj ? `${statusObj.icon} ${statusObj.label}` : book.reading_status;
-                      })()
-                    } 
-                  />
-                )}
-                <DetailRow label="পড়া শুরু" value={formatDateToDdMmYyyyBn(book.reading_start_date)} />
-                <DetailRow label="পড়া শেষ" value={formatDateToDdMmYyyyBn(book.reading_finish_date)} />
-                {book.reading_progress > 0 && (
-                  <div style={{ marginBottom: '12px' }}>
-                    <span className="text-sm text-muted">অগ্রগতি: <span style={{ fontFamily: 'var(--font-serif)' }}>{enToBnNumber(book.reading_progress.toString())}</span>%</span>
-                    <div className="progress-bar mt-2">
-                      <div className="progress-bar-fill" style={{ width: `${book.reading_progress}%` }} />
+                        {/* Reading Info Section */}
+                        {(c.reading_status || c.reading_start_date || c.reading_finish_date || c.reading_progress > 0 || c.rating || c.review || c.notes || c.favorite_quote) && (
+                          <div style={{ padding: '16px' }}>
+                            <h4 style={{ margin: '0 0 12px 0', fontSize: '1rem', color: 'var(--text-secondary)' }}>📖 পড়ার তথ্য</h4>
+                            {c.reading_status && (
+                              <DetailRow 
+                                label="পড়ার অবস্থা" 
+                                value={
+                                  (() => {
+                                    const statusObj = READING_STATUSES.find(s => s.value === c.reading_status);
+                                    return statusObj ? `${statusObj.icon} ${statusObj.label}` : c.reading_status;
+                                  })()
+                                } 
+                              />
+                            )}
+                            <DetailRow label="পড়া শুরু" value={formatDateToDdMmYyyyBn(c.reading_start_date)} />
+                            <DetailRow label="পড়া শেষ" value={formatDateToDdMmYyyyBn(c.reading_finish_date)} />
+                            {c.reading_progress > 0 && (
+                              <div style={{ marginBottom: '12px' }}>
+                                <span className="text-sm text-muted">অগ্রগতি: <span style={{ fontFamily: 'var(--font-serif)' }}>{enToBnNumber(c.reading_progress.toString())}</span>%</span>
+                                <div className="progress-bar mt-2">
+                                  <div className="progress-bar-fill" style={{ width: `${c.reading_progress}%` }} />
+                                </div>
+                              </div>
+                            )}
+                            {c.rating && (
+                              <DetailRow label="রেটিং" value={
+                                <span style={{ fontFamily: 'var(--font-serif)' }}>
+                                  {'⭐'.repeat(Math.floor(c.rating))} ({enToBnNumber(c.rating.toString())}/৫)
+                                </span>
+                              } />
+                            )}
+                            {c.review && <DetailRow label="পর্যালোচনা" value={c.review} />}
+                            {c.notes && <DetailRow label="নোট" value={c.notes} />}
+                            {c.favorite_quote && (
+                              <div style={{ marginTop: '12px', padding: '16px', background: 'var(--cream)', borderRadius: 'var(--radius-md)', borderLeft: '3px solid var(--gold)', fontFamily: 'var(--font-serif)', fontStyle: 'italic' }}>
+                                &ldquo;{c.favorite_quote}&rdquo;
+                              </div>
+                            )}
+                          </div>
+                        )}
+                      </div>
                     </div>
-                  </div>
-                )}
-                {book.rating && (
-                  <DetailRow label="রেটিং" value={
-                    <span style={{ fontFamily: 'var(--font-serif)' }}>
-                      {'⭐'.repeat(Math.floor(book.rating))} ({enToBnNumber(book.rating.toString())}/৫)
-                    </span>
-                  } />
-                )}
-                {book.review && <DetailRow label="পর্যালোচনা" value={book.review} />}
-                {book.notes && <DetailRow label="নোট" value={book.notes} />}
-                {book.favorite_quote && (
-                  <div style={{ marginTop: '12px', padding: '16px', background: 'var(--cream)', borderRadius: 'var(--radius-md)', borderLeft: '3px solid var(--gold)', fontFamily: 'var(--font-serif)', fontStyle: 'italic' }}>
-                    &ldquo;{book.favorite_quote}&rdquo;
-                  </div>
-                )}
+                  );
+                })}
               </div>
             </div>
-            )}
-
-            {(() => {
-              const createdDate = parseDbDate(book.created_at);
-              const updatedDate = parseDbDate(book.updated_at);
-              const isUpdated =
-                createdDate &&
-                updatedDate &&
-                Math.abs(updatedDate.getTime() - createdDate.getTime()) > 60000;
-
-              return (
-                <div className="text-sm text-muted" style={{ marginTop: '16px', display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
-                  <span>
-                    📅 যোগ হয়েছে: {formatDateBn(book.created_at)}
-                  </span>
-                  {isUpdated && (
-                    <span>
-                      · ✏️ সর্বশেষ পরিবর্তন: {formatDateBn(book.updated_at)}
-                    </span>
-                  )}
-                </div>
-              );
-            })()}
           </div>
         </div>
       </div>
-
-
     </>
   );
 }

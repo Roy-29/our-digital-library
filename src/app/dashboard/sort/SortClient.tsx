@@ -101,11 +101,7 @@ export default function SortClient({
   const handleDelete = async () => {
     if (!deleteId) return;
     const targetBook = books.find(b => b.id === deleteId);
-    if (targetBook && user && targetBook.owner !== user.id) {
-      toast.error('আপনি শুধুমাত্র নিজের বই মুছে ফেলতে পারবেন!');
-      setDeleteId(null);
-      return;
-    }
+
     const { error } = await supabase.from('books').delete().eq('id', deleteId);
     if (error) {
       toast.error('মুছতে সমস্যা হয়েছে: ' + error.message);

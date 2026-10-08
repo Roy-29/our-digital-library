@@ -102,11 +102,7 @@ export default function WishlistPage() {
   };
 
   const openEdit = (item: WishlistItem) => {
-    // Only the owner of the wishlist item can edit it
-    if (user && item.requested_by !== user.id) {
-      toast.error(`এই উইশলিস্টটি ${getOwnerLabel(item.requested_by)}-এর। শুধুমাত্র উনি এটি সম্পাদনা করতে পারবেন!`);
-      return;
-    }
+
     setEditingId(item.id);
     setTitle(item.title);
     setAuthorName(item.author_name || '');
@@ -131,10 +127,7 @@ export default function WishlistPage() {
 
     if (editingId) {
       const existing = items.find((i) => i.id === editingId);
-      if (existing && user && existing.requested_by !== user.id) {
-        toast.error('আপনি শুধুমাত্র নিজের উইশলিস্ট এন্ট্রি সম্পাদনা করতে পারবেন!');
-        return;
-      }
+
 
       const payload = {
         title: title.trim(),
@@ -186,10 +179,7 @@ export default function WishlistPage() {
   };
 
   const handlePurchased = async (item: WishlistItem) => {
-    if (user && item.requested_by !== user.id) {
-      toast.error('আপনি শুধুমাত্র নিজের উইশলিস্টের বই কেনা হয়েছে মার্ক করতে পারবেন!');
-      return;
-    }
+
     
     setPurchasingId(item.id);
     const targetOwner = (item.requested_by as BookOwner) || (user?.id as BookOwner) || 'swapnil';
@@ -532,7 +522,6 @@ export default function WishlistPage() {
                       <th>আনুমানিক দাম</th>
                       <th>অগ্রাধিকার</th>
                       <th>উৎস</th>
-                      <th style={{ textAlign: 'right' }}>অ্যাকশন</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -541,13 +530,15 @@ export default function WishlistPage() {
                       const isMyItem = item.requested_by === user?.id;
 
                       return (
-                        <tr key={item.id}>
+                        <tr 
+                          key={item.id} 
+                          onClick={() => setDetailsItem(item)}
+                          style={{ cursor: 'pointer' }}
+                          className="hover-row"
+                        >
                           <td>
                             <div 
-                              style={{ fontWeight: 600, color: 'var(--accent)', fontSize: '0.95rem', cursor: 'pointer' }}
-                              onClick={() => setDetailsItem(item)}
-                              onMouseOver={e => e.currentTarget.style.textDecoration = 'underline'}
-                              onMouseOut={e => e.currentTarget.style.textDecoration = 'none'}
+                              style={{ fontWeight: 600, color: 'var(--accent)', fontSize: '0.95rem' }}
                             >
                               {item.title}
                             </div>
@@ -649,57 +640,7 @@ export default function WishlistPage() {
                             {item.source || '—'}
                           </td>
 
-                          <td>
-                            <div className="actions" style={{ justifyContent: 'flex-end', gap: '6px' }}>
-                              {/* Purchase button only allowed for the user who added it */}
-                              {isMyItem && (
-                                <button
-                                  className="btn btn-sm btn-gold"
-                                  onClick={() => handlePurchased(item)}
-                                  disabled={purchasingId === item.id}
-                                  title="বইটি কেনা হয়েছে হিসেবে মার্ক করুন এবং আপনার লাইব্রেরিতে যুক্ত করুন"
-                                  style={{ whiteSpace: 'nowrap' }}
-                                >
-                                  {purchasingId === item.id ? '...' : '🛒 কেনা হয়েছে'}
-                                </button>
-                              )}
 
-                              {/* Edit only allowed for the user who added it */}
-                              {isMyItem ? (
-                                <button
-                                  className="btn btn-ghost btn-icon btn-sm"
-                                  onClick={() => openEdit(item)}
-                                  title="সম্পাদনা করুন"
-                                >
-                                  ✏️
-                                </button>
-                              ) : (
-                                <button
-                                  className="btn btn-ghost btn-icon btn-sm"
-                                  style={{ opacity: 0.3, cursor: 'not-allowed' }}
-                                  onClick={() =>
-                                    toast.error(
-                                      `এই উইশলিস্টটি ${getOwnerLabel(item.requested_by)}-এর। শুধুমাত্র উনি এটি সম্পাদনা করতে পারবেন!`
-                                    )
-                                  }
-                                  title={`শুধুমাত্র ${getOwnerLabel(item.requested_by)} সম্পাদনা করতে পারবেন`}
-                                >
-                                  🔒
-                                </button>
-                              )}
-
-                              {/* Delete only allowed for the user who added it */}
-                              {isMyItem && (
-                                <button
-                                  className="btn btn-ghost btn-icon btn-sm"
-                                  onClick={() => setDeleteId(item.id)}
-                                  title="মুছে ফেলুন"
-                                >
-                                  🗑️
-                                </button>
-                              )}
-                            </div>
-                          </td>
                         </tr>
                       );
                     })}
@@ -737,13 +678,19 @@ export default function WishlistPage() {
                     </thead>
                     <tbody>
                       {filteredPurchased.map((item) => (
-                        <tr key={item.id} style={{ opacity: 0.75 }}>
+                        <tr 
+                          key={item.id} 
+                          style={{ opacity: 0.75, cursor: 'pointer' }}
+                          onClick={(e) => {
+                            // Don't trigger if they clicked on the 'বই দেখুন' link
+                            if ((e.target as HTMLElement).closest('a')) return;
+                            setDetailsItem(item);
+                          }}
+                          className="hover-row"
+                        >
                           <td style={{ fontWeight: 600 }}>
                             <span 
-                              style={{ cursor: 'pointer', color: 'var(--accent)' }}
-                              onClick={() => setDetailsItem(item)}
-                              onMouseOver={e => e.currentTarget.style.textDecoration = 'underline'}
-                              onMouseOut={e => e.currentTarget.style.textDecoration = 'none'}
+                              style={{ color: 'var(--accent)' }}
                             >
                               {item.title}
                             </span>
@@ -968,13 +915,27 @@ export default function WishlistPage() {
                 </div>
               </div>
 
-              <div className="modal-footer">
-                <button type="button" className="btn btn-secondary" onClick={() => setShowModal(false)}>
-                  বাতিল
-                </button>
-                <button type="submit" className="btn btn-primary">
-                  {editingId ? '✅ আপডেট করুন' : '➕ উইশলিস্টে যোগ করুন'}
-                </button>
+              <div className="modal-footer" style={{ display: 'flex', justifyContent: 'space-between', width: '100%' }}>
+                {editingId ? (
+                  <button 
+                    type="button" 
+                    className="btn btn-danger" 
+                    onClick={() => {
+                      setDeleteId(editingId);
+                      setShowModal(false);
+                    }}
+                  >
+                    🗑️ মুছে ফেলুন
+                  </button>
+                ) : <div></div>}
+                <div style={{ display: 'flex', gap: '8px' }}>
+                  <button type="button" className="btn btn-secondary" onClick={() => setShowModal(false)}>
+                    বাতিল
+                  </button>
+                  <button type="submit" className="btn btn-primary">
+                    {editingId ? '✅ আপডেট করুন' : '➕ উইশলিস্টে যোগ করুন'}
+                  </button>
+                </div>
               </div>
             </form>
           </div>
@@ -1063,17 +1024,35 @@ export default function WishlistPage() {
               )}
             </div>
             <div className="modal-footer">
-              {!detailsItem.is_purchased && user?.id === detailsItem.requested_by && (
-                <button 
-                  className="btn btn-gold" 
-                  onClick={() => {
-                    setDetailsItem(null);
-                    handlePurchased(detailsItem);
-                  }}
-                >
-                  🛒 কেনা হয়েছে
-                </button>
-              )}
+              <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', width: '100%', justifyContent: 'space-between' }}>
+                <div style={{ display: 'flex', gap: '8px' }}>
+                  {(!detailsItem.is_purchased && user?.id === detailsItem.requested_by) && (
+                    <button 
+                      className="btn btn-gold" 
+                      onClick={() => {
+                        setDetailsItem(null);
+                        handlePurchased(detailsItem);
+                      }}
+                    >
+                      🛒 কেনা হয়েছে
+                    </button>
+                  )}
+                </div>
+
+                <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+                  {user?.id === detailsItem.requested_by && (
+                    <button
+                      className="btn btn-secondary"
+                      onClick={() => {
+                        setDetailsItem(null);
+                        openEdit(detailsItem);
+                      }}
+                    >
+                      ✏️ সম্পাদনা
+                    </button>
+                  )}
+                </div>
+              </div>
               <button type="button" className="btn btn-secondary" onClick={() => setDetailsItem(null)}>
                 বন্ধ করুন
               </button>

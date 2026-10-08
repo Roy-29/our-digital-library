@@ -1,7 +1,7 @@
 'use server';
 
 import { db, client } from '@/db';
-import { eq, desc, asc } from 'drizzle-orm';
+import { eq, desc, asc, like } from 'drizzle-orm';
 import { 
   profiles, authors, publishers, categories, genres, borrowers, 
   rooms, shelves, racks, wishlist, activityLog, books, lendingRecords, magazines, magazineIssues
@@ -56,6 +56,32 @@ export async function dbInsert(table: string, data: any) {
     console.error(`[dbInsert ERROR on table ${table}]:`, error);
     const realError = error.cause?.message || error.message || String(error);
     throw new Error(realError);
+  }
+}
+
+export async function dbSearchBookByTitle(title: string) {
+  try {
+    const result = await db.select().from(books).where(like(books.title, `%${title.trim()}%`)).limit(1);
+    return result[0] || null;
+  } catch (error) {
+    console.error('[dbSearchBookByTitle ERROR]:', error);
+    return null;
+  }
+}
+
+export async function dbGetBookCopies(parentId: string) {
+  try {
+    const { or } = await import('drizzle-orm');
+    const result = await db.select().from(books).where(
+      or(
+        eq(books.id, parentId),
+        eq(books.parentBookId, parentId)
+      )
+    ).orderBy(asc(books.createdAt));
+    return result;
+  } catch (error) {
+    console.error('[dbGetBookCopies ERROR]:', error);
+    return [];
   }
 }
 

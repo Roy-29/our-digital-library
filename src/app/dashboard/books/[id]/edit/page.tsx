@@ -327,11 +327,7 @@ export default function EditBookPage() {
     }
 
     const b: Book = bookRes.data;
-    if (user && b.owner && b.owner !== user.id) {
-      toast.error('আপনি শুধুমাত্র নিজের বই সম্পাদনা করতে পারবেন!');
-      router.push(`/dashboard/books/${params.id}`);
-      return;
-    }
+
     setTitle(b.title);
     setTitleOriginal(b.title_original || '');
     setSubtitle(b.subtitle || '');
@@ -405,11 +401,7 @@ export default function EditBookPage() {
   };
 
   const handleDelete = async () => {
-    if (user && owner !== user.id) {
-      toast.error('আপনি শুধুমাত্র নিজের বই মুছে ফেলতে পারবেন!');
-      setShowDelete(false);
-      return;
-    }
+
     const { error } = await supabase.from('books').delete().eq('id', params.id);
     if (error) {
       toast.error('মুছতে পারা যায়নি');
@@ -422,10 +414,7 @@ export default function EditBookPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (user && owner !== user.id) {
-      toast.error('আপনি শুধুমাত্র নিজের বই সম্পাদনা করতে পারবেন!');
-      return;
-    }
+
     if (!title.trim()) { toast.error('বইয়ের নাম লিখুন'); return; }
     setSaving(true);
     const resolveAuthor = async (name: string) => {

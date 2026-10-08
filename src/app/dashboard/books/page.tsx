@@ -22,6 +22,7 @@ export default async function BooksPage({
     rating: books.rating,
     pageCount: books.pageCount,
     copies: books.copies,
+    parentBookId: books.parentBookId,
     categoryId: books.categoryId,
     genreId: books.genreId,
     authorId: books.authorId,

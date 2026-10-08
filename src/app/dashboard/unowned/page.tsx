@@ -8,7 +8,8 @@ export const dynamic = 'force-dynamic';
 export default async function UnownedBooksPage() {
   const unownedStatuses = [
     'নাই',
-    'হারিয়ে গেছে'
+    'হারিয়ে গেছে',
+    'পড়া শেষ (কাছে নেই)'
   ];
 
   const unownedBooks = await db.select({
@@ -42,10 +43,7 @@ export default async function UnownedBooksPage() {
   .leftJoin(authors, eq(books.authorId, authors.id))
   .leftJoin(publishers, eq(books.publisherId, publishers.id))
   .where(
-    or(
-      inArray(books.status, unownedStatuses),
-      eq(books.isPurchased, false)
-    )
+    inArray(books.status, unownedStatuses)
   )
   .orderBy(desc(books.createdAt));
 

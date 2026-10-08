@@ -31,11 +31,11 @@ const NAV_ITEMS = [
 ];
 
 const MOBILE_NAV = [
-  { href: '/dashboard', icon: '🏠', label: 'Home' },
-  { href: '/dashboard/books', icon: '📚', label: 'Books' },
-  { href: '/dashboard/books/add', icon: '➕', label: 'Add', isAdd: true },
-  { href: '/dashboard/lending', icon: '📤', label: 'Lent' },
-  { href: '/dashboard/more', icon: '☰', label: 'More' },
+  { href: '/dashboard', icon: '🏠', label: 'হোম' },
+  { href: '/dashboard/books', icon: '📚', label: 'বই' },
+  { href: '/dashboard/books/add', icon: '➕', label: 'যোগ', isAdd: true },
+  { href: '/dashboard/lending', icon: '📤', label: 'ধার দেওয়া' },
+  { href: '/dashboard/more', icon: '☰', label: 'আরও' },
 ];
 
 export default function DashboardLayout({ children }: { children: ReactNode }) {

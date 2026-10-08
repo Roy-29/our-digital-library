@@ -41,7 +41,7 @@ export default function UnownedClient({
   const { user } = useAuth();
   const supabase = createClient();
   const [books, setBooks] = useState(initialBooks);
-  const [viewMode, setViewMode] = useState<ViewMode>('grid');
+  const [viewMode, setViewMode] = useState<ViewMode>('list');
   const [search, setSearch] = useState('');
   const [filterOwner, setFilterOwner] = useState('');
   const [filterStatus, setFilterStatus] = useState('');
@@ -120,10 +120,7 @@ export default function UnownedClient({
 
   // Convert to physical collection (Bought)
   const handleAddToCollection = async (book: any) => {
-    if (user && book.owner !== user.id) {
-      toast.error('আপনি শুধুমাত্র নিজের বই সংগ্রহে যুক্ত করতে পারবেন!');
-      return;
-    }
+
     const confirmMove = window.confirm(
       `আপনি কি "${book.title}" বইটি কিনে সংগ্রহে যোগ করতে চান? এটি মূল বই তালিকায় যুক্ত হবে।`
     );
@@ -304,13 +301,13 @@ export default function UnownedClient({
               className={viewMode === 'grid' ? 'active' : ''}
               onClick={() => setViewMode('grid')}
             >
-              🔲 Grid
+              🔲 গ্রিড
             </button>
             <button
               className={viewMode === 'list' ? 'active' : ''}
               onClick={() => setViewMode('list')}
             >
-              📋 List
+              📋 লিস্ট
             </button>
           </div>
           <button

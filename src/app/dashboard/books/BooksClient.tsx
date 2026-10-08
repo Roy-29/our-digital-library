@@ -57,11 +57,7 @@ export default function BooksClient({
   const handleDelete = async () => {
     if (!deleteId) return;
     const targetBook = books.find(b => b.id === deleteId);
-    if (targetBook && user && targetBook.owner !== user.id) {
-      toast.error('আপনি শুধুমাত্র নিজের বই মুছে ফেলতে পারবেন!');
-      setDeleteId(null);
-      return;
-    }
+
     const { error } = await supabase.from('books').delete().eq('id', deleteId);
     if (error) {
       toast.error('মুছতে সমস্যা হয়েছে: ' + error.message);
@@ -152,10 +148,14 @@ export default function BooksClient({
 
   const hasFilters = search || filterOwner || filterStatus || filterCategory || filterGenre || filterAuthor || filterPublisher;
 
+  const totalCopiesCount = sortedBooks.reduce((sum, book) => sum + (book.totalGroupCopies || book.copies || 1), 0);
+  const allBooksTotalCount = books.reduce((sum, book) => sum + (book.copies || 1), 0);
+  const myBooksTotalCount = user ? books.filter(b => b.owner === user.id).reduce((sum, book) => sum + (book.copies || 1), 0) : 0;
+
   return (
     <>
       <div className="page-header">
-        <h2 className="font-serif">📚 সব বই ({enToBnNumber(sortedBooks.length.toString())})</h2>
+        <h2 className="font-serif">📚 সব বই ({enToBnNumber(totalCopiesCount.toString())})</h2>
         <div className="flex gap-3 items-center">
           <div className="view-toggle">
             <button className={viewMode === 'grid' ? 'active' : ''} onClick={() => setViewMode('grid')}>
@@ -186,7 +186,7 @@ export default function BooksClient({
             onClick={() => setFilterOwner('')}
           >
             <span>📚 সব বই</span>
-            <span className="pill-badge">{enToBnNumber(books.length.toString())}</span>
+            <span className="pill-badge">{enToBnNumber(allBooksTotalCount.toString())}</span>
           </button>
           {user && (
             <button 
@@ -195,11 +195,11 @@ export default function BooksClient({
               onClick={() => setFilterOwner(filterOwner === user.id ? '' : user.id)}
             >
               <span>⭐ আমার বই</span>
-              <span className="pill-badge">{enToBnNumber(books.filter(b => b.owner === user.id).length.toString())}</span>
+              <span className="pill-badge">{enToBnNumber(myBooksTotalCount.toString())}</span>
             </button>
           )}
           {OWNERS.filter(o => o.value !== user?.id).map(o => {
-            const count = books.filter(b => b.owner === o.value).length;
+            const count = books.filter(b => b.owner === o.value).reduce((sum, book) => sum + (book.copies || 1), 0);
             return (
               <button
                 key={o.value}
