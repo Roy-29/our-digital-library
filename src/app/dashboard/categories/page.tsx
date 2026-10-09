@@ -11,6 +11,7 @@ export default function CategoriesPage() {
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState<'categories' | 'genres'>('categories');
   const [showModal, setShowModal] = useState(false);
+  const [viewingItem, setViewingItem] = useState<Category | Genre | null>(null);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [deleteId, setDeleteId] = useState<string | null>(null);
   const [deleteType, setDeleteType] = useState<'category' | 'genre'>('category');
@@ -86,7 +87,22 @@ export default function CategoriesPage() {
         ) : (
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(250px, 1fr))', gap: '12px' }}>
             {items.map(item => (
-              <div key={item.id} className="card" style={{ padding: '16px', display: 'flex', alignItems: 'center', gap: '12px' }}>
+              <div 
+                key={item.id} 
+                className="card" 
+                style={{ padding: '16px', display: 'flex', alignItems: 'center', gap: '12px', cursor: 'pointer', transition: 'all 0.2s' }}
+                onClick={() => setViewingItem(item)}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.transform = 'translateY(-2px)';
+                  e.currentTarget.style.boxShadow = '0 10px 15px -3px rgba(0, 0, 0, 0.1)';
+                  e.currentTarget.style.border = '1px solid var(--border-hover)';
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.transform = 'translateY(0)';
+                  e.currentTarget.style.boxShadow = 'var(--shadow-sm)';
+                  e.currentTarget.style.border = '1px solid var(--border)';
+                }}
+              >
                 <span style={{ fontSize: '1.5rem' }}>{item.icon}</span>
                 <div style={{ flex: 1 }}>
                   <div style={{ fontWeight: 600, display: 'flex', alignItems: 'center', gap: '8px' }}>
@@ -95,24 +111,89 @@ export default function CategoriesPage() {
                   </div>
                   {item.name_bn && <div className="text-xs text-muted">{item.name}</div>}
                 </div>
-                <div className="actions">
-                  <button className="btn btn-ghost btn-icon btn-sm" onClick={() => openEdit(item)}>✏️</button>
-                  <button className="btn btn-ghost btn-icon btn-sm" onClick={() => { setDeleteId(item.id); setDeleteType(activeTab === 'categories' ? 'category' : 'genre'); }}>🗑️</button>
-                </div>
               </div>
             ))}
           </div>
         )}
       </div>
 
+      {viewingItem && (
+        <div className="modal-overlay" onClick={() => setViewingItem(null)}>
+          <div className="modal" onClick={e => e.stopPropagation()}>
+            <div className="modal-header">
+              <h3>🏷️ বিস্তারিত তথ্য</h3>
+              <button className="btn btn-ghost btn-icon" onClick={() => setViewingItem(null)}>✕</button>
+            </div>
+            <div className="modal-body">
+              <div style={{ display: 'flex', alignItems: 'center', gap: '16px', marginBottom: '24px' }}>
+                <div style={{ fontSize: '3rem' }}>{viewingItem.icon}</div>
+                <div>
+                  <div style={{ fontSize: '1.25rem', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    {viewingItem.name_bn || viewingItem.name}
+                    <span style={{ width: '12px', height: '12px', borderRadius: '50%', background: viewingItem.color, display: 'inline-block' }} />
+                  </div>
+                  {viewingItem.name_bn && <div className="text-muted">{viewingItem.name}</div>}
+                </div>
+              </div>
+              {viewingItem.description && (
+                <div className="info-group">
+                  <label className="form-label" style={{ fontSize: '0.85rem', color: 'var(--text-secondary)' }}>বিবরণ</label>
+                  <div style={{ color: 'var(--text-primary)', whiteSpace: 'pre-wrap' }}>{viewingItem.description}</div>
+                </div>
+              )}
+            </div>
+            <div className="modal-footer" style={{ display: 'flex', justifyContent: 'flex-end', gap: '8px' }}>
+              <button type="button" className="btn btn-primary" onClick={() => {
+                const item = viewingItem;
+                setViewingItem(null);
+                openEdit(item);
+              }}>✏️ এডিট করুন</button>
+              <button type="button" className="btn btn-secondary" onClick={() => setViewingItem(null)}>বন্ধ করুন</button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {showModal && (
         <div className="modal-overlay" onClick={() => setShowModal(false)}><div className="modal" onClick={e => e.stopPropagation()}>
-          <div className="modal-header"><h3>{editingId ? '✏️ সম্পাদনা' : `➕ নতুন ${activeTab === 'categories' ? 'Category' : 'Genre'}`}</h3><button className="btn btn-ghost btn-icon" onClick={() => setShowModal(false)}>✕</button></div>
+          <div className="modal-header">
+            <h3>{editingId ? '✏️ সম্পাদনা' : `➕ নতুন ${activeTab === 'categories' ? 'Category' : 'Genre'}`}</h3>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+              {editingId && (
+                <button type="button" className="btn btn-icon" style={{ 
+                  backgroundColor: '#ef4444', 
+                  color: 'white', 
+                  borderRadius: '50%',
+                  width: '32px',
+                  height: '32px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  border: 'none',
+                  fontSize: '14px'
+                }} onClick={() => {
+                  setShowModal(false);
+                  setDeleteId(editingId);
+                  setDeleteType(activeTab === 'categories' ? 'category' : 'genre');
+                }} title="মুছুন">
+                  🗑️
+                </button>
+              )}
+              <button className="btn btn-ghost btn-icon" onClick={() => setShowModal(false)}>✕</button>
+            </div>
+          </div>
           <form onSubmit={handleSubmit}><div className="modal-body">
             <div className="form-group"><label className="form-label">নাম *</label><input className="form-input" placeholder="নাম লিখুন..." value={name} onChange={e => setName(e.target.value)} required autoFocus /></div>
             <div className="form-group"><label className="form-label">বিবরণ</label><textarea className="form-textarea" value={description} onChange={e => setDescription(e.target.value)} /></div>
             <div className="form-row"><div className="form-group"><label className="form-label">আইকন (emoji)</label><input className="form-input" value={icon} onChange={e => setIcon(e.target.value)} /></div><div className="form-group"><label className="form-label">রঙ</label><input className="form-input" type="color" value={color} onChange={e => setColor(e.target.value)} /></div></div>
-          </div><div className="modal-footer"><button type="button" className="btn btn-secondary" onClick={() => setShowModal(false)}>বাতিল</button><button type="submit" className="btn btn-primary">{editingId ? '✅ আপডেট' : '➕ যোগ'}</button></div></form>
+          </div>
+          <div className="modal-footer" style={{ display: 'flex', justifyContent: 'flex-end' }}>
+            <div style={{ display: 'flex', gap: '8px' }}>
+              <button type="button" className="btn btn-secondary" onClick={() => setShowModal(false)}>বাতিল</button>
+              <button type="submit" className="btn btn-primary">{editingId ? '✅ আপডেট' : '➕ যোগ'}</button>
+            </div>
+          </div>
+          </form>
         </div></div>
       )}
 
@@ -120,3 +201,4 @@ export default function CategoriesPage() {
     </>
   );
 }
+

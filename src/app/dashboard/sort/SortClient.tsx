@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useMemo } from 'react';
+import { CustomSelect } from '@/components/CustomSelect';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { BOOK_STATUSES, OWNERS, getOwnerLabel, enToBnNumber, bnToEnNumber } from '@/lib/types';
@@ -375,18 +376,11 @@ export default function SortClient({
               <span style={{ fontSize: '0.88rem', fontWeight: 600, color: 'var(--text-secondary)' }}>
                 সাজানোর মাধ্যম:
               </span>
-              <select
+              <CustomSelect
                 value={sortBy}
-                onChange={(e) => setSortBy(e.target.value)}
-                className="minimal-select"
-                style={{ fontWeight: 500, minWidth: '190px' }}
-              >
-                {SORT_OPTIONS.map((opt) => (
-                  <option key={opt.value} value={opt.value}>
-                    {opt.label}
-                  </option>
-                ))}
-              </select>
+                onChange={(val) => setSortBy(val as any)}
+                options={SORT_OPTIONS}
+              />
 
               <button
                 type="button"
@@ -474,97 +468,85 @@ export default function SortClient({
                     <label className="form-label" style={{ fontSize: '0.84rem', fontWeight: 600, color: 'var(--text-secondary)' }}>
                       ✍🏻 লেখক
                     </label>
-                    <select
-                      className="filter-select"
+                    <CustomSelect
                       value={filterAuthor}
-                      onChange={(e) => setFilterAuthor(e.target.value)}
-                    >
-                      <option value="">সব লেখক</option>
-                      {authors.map((a) => (
-                        <option key={a.id} value={a.id}>{a.nameBn || a.name}</option>
-                      ))}
-                    </select>
+                      onChange={(val) => setFilterAuthor(val)}
+                      options={[
+                        { value: '', label: 'সব লেখক' },
+                        ...authors.map((a) => ({ value: a.id, label: a.nameBn || a.name }))
+                      ]}
+                    />
                   </div>
 
                   <div className="form-group" style={{ margin: 0 }}>
                     <label className="form-label" style={{ fontSize: '0.84rem', fontWeight: 600, color: 'var(--text-secondary)' }}>
                       🔄 অনুবাদক
                     </label>
-                    <select
-                      className="filter-select"
+                    <CustomSelect
                       value={filterTranslator}
-                      onChange={(e) => setFilterTranslator(e.target.value)}
-                    >
-                      <option value="">সব (অনূদিত/মৌলিক)</option>
-                      <option value="__has_translator__">✨ শুধুমাত্র অনূদিত বই</option>
-                      {translatorsList.map((t) => (
-                        <option key={t.id} value={t.id}>{t.name}</option>
-                      ))}
-                    </select>
+                      onChange={(val) => setFilterTranslator(val)}
+                      options={[
+                        { value: '', label: 'সব (অনূদিত/মৌলিক)' },
+                        { value: '__has_translator__', label: '✨ শুধুমাত্র অনূদিত বই' },
+                        ...translatorsList.map((t) => ({ value: t.id, label: t.name }))
+                      ]}
+                    />
                   </div>
 
                   <div className="form-group" style={{ margin: 0 }}>
                     <label className="form-label" style={{ fontSize: '0.84rem', fontWeight: 600, color: 'var(--text-secondary)' }}>
                       🏢 প্রকাশক
                     </label>
-                    <select
-                      className="filter-select"
+                    <CustomSelect
                       value={filterPublisher}
-                      onChange={(e) => setFilterPublisher(e.target.value)}
-                    >
-                      <option value="">সব প্রকাশক</option>
-                      {publishers.map((p) => (
-                        <option key={p.id} value={p.id}>{p.nameBn || p.name}</option>
-                      ))}
-                    </select>
+                      onChange={(val) => setFilterPublisher(val)}
+                      options={[
+                        { value: '', label: 'সব প্রকাশক' },
+                        ...publishers.map((p) => ({ value: p.id, label: p.nameBn || p.name }))
+                      ]}
+                    />
                   </div>
 
                   <div className="form-group" style={{ margin: 0 }}>
                     <label className="form-label" style={{ fontSize: '0.84rem', fontWeight: 600, color: 'var(--text-secondary)' }}>
                       🏷️ ক্যাটাগরি
                     </label>
-                    <select
-                      className="filter-select"
+                    <CustomSelect
                       value={filterCategory}
-                      onChange={(e) => setFilterCategory(e.target.value)}
-                    >
-                      <option value="">সব ক্যাটাগরি</option>
-                      {categories.map((c) => (
-                        <option key={c.id} value={c.id}>{c.icon ? `${c.icon} ` : ''}{c.nameBn || c.name}</option>
-                      ))}
-                    </select>
+                      onChange={(val) => setFilterCategory(val)}
+                      options={[
+                        { value: '', label: 'সব ক্যাটাগরি' },
+                        ...categories.map((c) => ({ value: c.id, label: `${c.icon ? c.icon + ' ' : ''}${c.nameBn || c.name}` }))
+                      ]}
+                    />
                   </div>
 
                   <div className="form-group" style={{ margin: 0 }}>
                     <label className="form-label" style={{ fontSize: '0.84rem', fontWeight: 600, color: 'var(--text-secondary)' }}>
                       📚 ধরন (Genre)
                     </label>
-                    <select
-                      className="filter-select"
+                    <CustomSelect
                       value={filterGenre}
-                      onChange={(e) => setFilterGenre(e.target.value)}
-                    >
-                      <option value="">সব ধরন</option>
-                      {genres.map((g) => (
-                        <option key={g.id} value={g.id}>{g.icon ? `${g.icon} ` : ''}{g.nameBn || g.name}</option>
-                      ))}
-                    </select>
+                      onChange={(val) => setFilterGenre(val)}
+                      options={[
+                        { value: '', label: 'সব ধরন' },
+                        ...genres.map((g) => ({ value: g.id, label: `${g.icon ? g.icon + ' ' : ''}${g.nameBn || g.name}` }))
+                      ]}
+                    />
                   </div>
 
                   <div className="form-group" style={{ margin: 0 }}>
                     <label className="form-label" style={{ fontSize: '0.84rem', fontWeight: 600, color: 'var(--text-secondary)' }}>
                       🌐 ভাষা
                     </label>
-                    <select
-                      className="filter-select"
+                    <CustomSelect
                       value={filterLanguage}
-                      onChange={(e) => setFilterLanguage(e.target.value)}
-                    >
-                      <option value="">সব ভাষা</option>
-                      {languages.map((lang) => (
-                        <option key={lang} value={lang}>{lang}</option>
-                      ))}
-                    </select>
+                      onChange={(val) => setFilterLanguage(val)}
+                      options={[
+                        { value: '', label: 'সব ভাষা' },
+                        ...languages.map((lang) => ({ value: lang, label: lang }))
+                      ]}
+                    />
                   </div>
                 </div>
               )}
@@ -576,93 +558,87 @@ export default function SortClient({
                     <label className="form-label" style={{ fontSize: '0.84rem', fontWeight: 600, color: 'var(--text-secondary)' }}>
                       👤 বইয়ের মালিক
                     </label>
-                    <select
-                      className="filter-select"
+                    <CustomSelect
                       value={filterOwner}
-                      onChange={(e) => setFilterOwner(e.target.value)}
-                    >
-                      <option value="">সব মালিক</option>
-                      {OWNERS.map((o) => (
-                        <option key={o.value} value={o.value}>{o.label}</option>
-                      ))}
-                    </select>
+                      onChange={(val) => setFilterOwner(val)}
+                      options={[
+                        { value: '', label: 'সব মালিক' },
+                        ...OWNERS.map((o) => ({ value: o.value, label: o.label }))
+                      ]}
+                    />
                   </div>
 
                   <div className="form-group" style={{ margin: 0 }}>
                     <label className="form-label" style={{ fontSize: '0.84rem', fontWeight: 600, color: 'var(--text-secondary)' }}>
                       📊 বর্তমান স্ট্যাটাস
                     </label>
-                    <select
-                      className="filter-select"
+                    <CustomSelect
                       value={filterStatus}
-                      onChange={(e) => setFilterStatus(e.target.value)}
-                    >
-                      <option value="">সব স্ট্যাটাস</option>
-                      {BOOK_STATUSES.map((s) => (
-                        <option key={s.value} value={s.value}>{s.icon} {s.label}</option>
-                      ))}
-                    </select>
+                      onChange={(val) => setFilterStatus(val)}
+                      options={[
+                        { value: '', label: 'সব স্ট্যাটাস' },
+                        ...BOOK_STATUSES.map((s) => ({ value: s.value, label: `${s.icon} ${s.label}` }))
+                      ]}
+                    />
                   </div>
 
                   <div className="form-group" style={{ margin: 0 }}>
                     <label className="form-label" style={{ fontSize: '0.84rem', fontWeight: 600, color: 'var(--text-secondary)' }}>
                       📦 সংগ্রহের ধরন
                     </label>
-                    <select
-                      className="filter-select"
+                    <CustomSelect
                       value={filterPurchased}
-                      onChange={(e) => setFilterPurchased(e.target.value)}
-                    >
-                      <option value="all">সব বই (কেনা ও অ-কেনা)</option>
-                      <option value="yes">ফিজিক্যাল কেনা কপি আছে</option>
-                      <option value="no">সংগ্রহে নেই (ই-বুক / পিডিএফ / পড়তে চাই)</option>
-                    </select>
+                      onChange={(val) => setFilterPurchased(val)}
+                      options={[
+                        { value: 'all', label: 'সব বই (কেনা ও অ-কেনা)' },
+                        { value: 'yes', label: 'ফিজিক্যাল কেনা কপি আছে' },
+                        { value: 'no', label: 'সংগ্রহে নেই (ই-বুক / পিডিএফ / পড়তে চাই)' }
+                      ]}
+                    />
                   </div>
 
                   <div className="form-group" style={{ margin: 0 }}>
                     <label className="form-label" style={{ fontSize: '0.84rem', fontWeight: 600, color: 'var(--text-secondary)' }}>
                       ⭐ প্রিয় বই
                     </label>
-                    <select
-                      className="filter-select"
+                    <CustomSelect
                       value={filterFavorite ? 'fav' : 'all'}
-                      onChange={(e) => setFilterFavorite(e.target.value === 'fav')}
-                    >
-                      <option value="all">সব বই</option>
-                      <option value="fav">⭐ শুধুমাত্র প্রিয় বই</option>
-                    </select>
+                      onChange={(val) => setFilterFavorite(val === 'fav')}
+                      options={[
+                        { value: 'all', label: 'সব বই' },
+                        { value: 'fav', label: '⭐ শুধুমাত্র প্রিয় বই' }
+                      ]}
+                    />
                   </div>
 
                   <div className="form-group" style={{ margin: 0 }}>
                     <label className="form-label" style={{ fontSize: '0.84rem', fontWeight: 600, color: 'var(--text-secondary)' }}>
                       🏷️ বইয়ের অবস্থা
                     </label>
-                    <select
-                      className="filter-select"
+                    <CustomSelect
                       value={filterCondition}
-                      onChange={(e) => setFilterCondition(e.target.value)}
-                    >
-                      <option value="all">সব অবস্থা</option>
-                      <option value="new">নতুন (New)</option>
-                      <option value="used">পুরনো (Used)</option>
-                      <option value="gift">উপহার (Gift)</option>
-                    </select>
+                      onChange={(val) => setFilterCondition(val)}
+                      options={[
+                        { value: 'all', label: 'সব অবস্থা' },
+                        { value: 'new', label: 'নতুন (New)' },
+                        { value: 'used', label: 'পুরনো (Used)' },
+                        { value: 'gift', label: 'উপহার (Gift)' }
+                      ]}
+                    />
                   </div>
 
                   <div className="form-group" style={{ margin: 0 }}>
                     <label className="form-label" style={{ fontSize: '0.84rem', fontWeight: 600, color: 'var(--text-secondary)' }}>
                       📍 কেনার উৎস
                     </label>
-                    <select
-                      className="filter-select"
+                    <CustomSelect
                       value={filterPurchaseSource}
-                      onChange={(e) => setFilterPurchaseSource(e.target.value)}
-                    >
-                      <option value="">সব উৎস</option>
-                      {purchaseSources.map((src) => (
-                        <option key={src} value={src}>{src}</option>
-                      ))}
-                    </select>
+                      onChange={(val) => setFilterPurchaseSource(val)}
+                      options={[
+                        { value: '', label: 'সব উৎস' },
+                        ...purchaseSources.map((src) => ({ value: src, label: src }))
+                      ]}
+                    />
                   </div>
                 </div>
               )}
@@ -674,34 +650,34 @@ export default function SortClient({
                     <label className="form-label" style={{ fontSize: '0.84rem', fontWeight: 600, color: 'var(--text-secondary)' }}>
                       ⭐ সর্বনিম্ন রেটিং
                     </label>
-                    <select
-                      className="filter-select"
-                      value={filterRating}
-                      onChange={(e) => setFilterRating(Number(e.target.value))}
-                    >
-                      <option value={0}>সব রেটিং</option>
-                      <option value={5}>⭐⭐⭐⭐⭐ (৫ স্টার)</option>
-                      <option value={4}>⭐⭐⭐⭐ (৪+ স্টার)</option>
-                      <option value={3}>⭐⭐⭐ (৩+ স্টার)</option>
-                      <option value={2}>⭐⭐ (২+ স্টার)</option>
-                      <option value={1}>⭐ (১+ স্টার)</option>
-                    </select>
+                    <CustomSelect
+                      value={filterRating.toString()}
+                      onChange={(val) => setFilterRating(Number(val))}
+                      options={[
+                        { value: '0', label: 'সব রেটিং' },
+                        { value: '5', label: '⭐⭐⭐⭐⭐ (৫ স্টার)' },
+                        { value: '4', label: '⭐⭐⭐⭐ (৪+ স্টার)' },
+                        { value: '3', label: '⭐⭐⭐ (৩+ স্টার)' },
+                        { value: '2', label: '⭐⭐ (২+ স্টার)' },
+                        { value: '1', label: '⭐ (১+ স্টার)' }
+                      ]}
+                    />
                   </div>
 
                   <div className="form-group" style={{ margin: 0 }}>
                     <label className="form-label" style={{ fontSize: '0.84rem', fontWeight: 600, color: 'var(--text-secondary)' }}>
                       📈 পড়ার অগ্রগতি
                     </label>
-                    <select
-                      className="filter-select"
+                    <CustomSelect
                       value={filterProgress}
-                      onChange={(e) => setFilterProgress(e.target.value)}
-                    >
-                      <option value="all">সব অগ্রগতি</option>
-                      <option value="finished">✅ পড়া শেষ (১০০%)</option>
-                      <option value="reading">📖 বর্তমানে পড়ছি (১-৯৯%)</option>
-                      <option value="unread">⏳ এখনো পড়া শুরু হয়নি (০%)</option>
-                    </select>
+                      onChange={(val) => setFilterProgress(val)}
+                      options={[
+                        { value: 'all', label: 'সব অগ্রগতি' },
+                        { value: 'finished', label: '✅ পড়া শেষ (১০০%)' },
+                        { value: 'reading', label: '📖 বর্তমানে পড়ছি (১-৯৯%)' },
+                        { value: 'unread', label: '⏳ এখনো পড়া শুরু হয়নি (০%)' }
+                      ]}
+                    />
                   </div>
 
                   <div className="form-group" style={{ margin: 0, display: 'flex', flexDirection: 'column', justifyContent: 'center', gap: '10px' }}>

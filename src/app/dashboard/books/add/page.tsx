@@ -10,6 +10,7 @@ import toast from 'react-hot-toast';
 import * as ISBN from 'isbn3';
 import { BanglaDateInput } from '@/components/BanglaDateInput';
 import { CustomSelect } from '@/components/CustomSelect';
+import { CustomCombobox } from '@/components/CustomCombobox';
 
 export default function AddBookPage() {
   const router = useRouter();
@@ -726,65 +727,41 @@ export default function AddBookPage() {
                 <div className="form-row">
                   <div className="form-group">
                     <label className="form-label">✍🏻 লেখক</label>
-                    <input 
-                      className="form-input" 
+                    <CustomCombobox 
                       value={authorId} 
-                      onChange={e => setAuthorId(e.target.value)} 
-                      list="author-options"
+                      onChange={setAuthorId} 
+                      options={uniqueAuthors}
                       placeholder="লেখকের নাম লিখুন বা নির্বাচন করুন" 
                     />
-                    <datalist id="author-options">
-                      {uniqueAuthors.map(name => (
-                        <option key={name} value={name} />
-                      ))}
-                    </datalist>
                   </div>
                   <div className="form-group">
                     <label className="form-label">🔄 অনুবাদক</label>
-                    <input 
-                      className="form-input" 
+                    <CustomCombobox 
                       value={translatorId} 
-                      onChange={e => setTranslatorId(e.target.value)} 
-                      list="translator-options"
+                      onChange={setTranslatorId} 
+                      options={uniqueTranslators}
                       placeholder="অনুবাদকের নাম লিখুন বা নির্বাচন করুন" 
                     />
-                    <datalist id="translator-options">
-                      {uniqueTranslators.map(name => (
-                        <option key={`trans-${name}`} value={name} />
-                      ))}
-                    </datalist>
                   </div>
                 </div>
                 <div className="form-row">
                   <div className="form-group">
                     <label className="form-label">🎨 আঁকিয়ে (Illustrator)</label>
-                    <input 
-                      className="form-input" 
+                    <CustomCombobox 
                       value={illustratorId} 
-                      onChange={e => setIllustratorId(e.target.value)} 
-                      list="illustrator-options"
+                      onChange={setIllustratorId} 
+                      options={uniqueIllustrators}
                       placeholder="আঁকিয়ের নাম লিখুন বা নির্বাচন করুন" 
                     />
-                    <datalist id="illustrator-options">
-                      {uniqueIllustrators.map(name => (
-                        <option key={`ill-${name}`} value={name} />
-                      ))}
-                    </datalist>
                   </div>
                   <div className="form-group">
                     <label className="form-label">🏢 প্রকাশক</label>
-                    <input 
-                      className="form-input" 
+                    <CustomCombobox 
                       value={publisherId} 
-                      onChange={e => setPublisherId(e.target.value)} 
-                      list="publisher-options"
+                      onChange={setPublisherId} 
+                      options={uniquePublishers}
                       placeholder="প্রকাশকের নাম লিখুন বা নির্বাচন করুন" 
                     />
-                    <datalist id="publisher-options">
-                      {uniquePublishers.map(name => (
-                        <option key={name} value={name} />
-                      ))}
-                    </datalist>
                   </div>
                 </div>
                 <div className="form-row">
@@ -796,33 +773,21 @@ export default function AddBookPage() {
                 <div className="form-row">
                   <div className="form-group">
                     <label className="form-label">🏷️ ক্যাটাগরি</label>
-                    <input 
-                      className="form-input" 
+                    <CustomCombobox 
                       value={categoryId} 
-                      onChange={e => setCategoryId(e.target.value)} 
-                      list="category-options"
+                      onChange={setCategoryId} 
+                      options={uniqueCategories}
                       placeholder="ক্যাটাগরি লিখুন বা নির্বাচন করুন"
                     />
-                    <datalist id="category-options">
-                      {uniqueCategories.map(name => (
-                        <option key={name} value={name} />
-                      ))}
-                    </datalist>
                   </div>
                   <div className="form-group">
                     <label className="form-label">📚 ধরন (Genre)</label>
-                    <input 
-                      className="form-input" 
+                    <CustomCombobox 
                       value={genreId} 
-                      onChange={e => setGenreId(e.target.value)} 
-                      list="genre-options"
+                      onChange={setGenreId} 
+                      options={uniqueGenres}
                       placeholder="ধরন লিখুন বা নির্বাচন করুন"
                     />
-                    <datalist id="genre-options">
-                      {uniqueGenres.map(name => (
-                        <option key={name} value={name} />
-                      ))}
-                    </datalist>
                   </div>
                 </div>
                 <div className="form-row">
@@ -871,21 +836,12 @@ export default function AddBookPage() {
                   </div>
                   <div className="form-group">
                     <label className="form-label">বইয়ের ধরন (প্রিন্ট)</label>
-                    <input 
-                      className="form-input" 
+                    <CustomCombobox 
                       value={printType} 
-                      onChange={e => setPrintType(e.target.value)} 
-                      list="print-type-options"
+                      onChange={setPrintType} 
+                      options={['অরিজিনাল (Original)', 'পাইরেটেড (Pirated)', 'প্রিমিয়াম পাইরেটেড (Premium Pirated)', 'প্রিন্টেড (Printed)', 'নিউজপ্রিন্ট (Newsprint)', 'সাদা কাগজ (White Paper)']}
                       placeholder="অরিজিনাল, পাইরেটেড..." 
                     />
-                    <datalist id="print-type-options">
-                      <option value="অরিজিনাল (Original)" />
-                      <option value="পাইরেটেড (Pirated)" />
-                      <option value="প্রিমিয়াম পাইরেটেড (Premium Pirated)" />
-                      <option value="প্রিন্টেড (Printed)" />
-                      <option value="নিউজপ্রিন্ট (Newsprint)" />
-                      <option value="সাদা কাগজ (White Paper)" />
-                    </datalist>
                   </div>
                 </div>
                 <div className="form-group">
@@ -949,22 +905,12 @@ export default function AddBookPage() {
                 {!isPurchased && (
                   <div className="form-group" style={{ marginTop: '12px' }}>
                     <label className="form-label">📍 সংগ্রহের মাধ্যম / উৎস</label>
-                    <input 
-                      className="form-input" 
+                    <CustomCombobox 
                       value={purchaseSource} 
-                      onChange={e => setPurchaseSource(e.target.value)} 
-                      list="unpurchased-source-options"
+                      onChange={setPurchaseSource} 
+                      options={['উপহার (Gift)', 'পুরস্কার (Prize)', 'আমি মেরে দিসি 🥷', 'চুরি করা (Stolen 🥷)', 'ধার করে আর ফেরত দেইনি', 'অনলাইন / পিডিএফ', 'বিশ্বসাহিত্য কেন্দ্র লাইব্রেরি']}
                       placeholder="যেমন: উপহার, চুরি করা, ধার করা..." 
                     />
-                    <datalist id="unpurchased-source-options">
-                      <option value="উপহার (Gift)" />
-                      <option value="পুরস্কার (Prize)" />
-                      <option value="আমি মেরে দিসি 🥷" />
-                      <option value="চুরি করা (Stolen 🥷)" />
-                      <option value="ধার করে আর ফেরত দেইনি" />
-                      <option value="অনলাইন / পিডিএফ" />
-                      <option value="বিশ্বসাহিত্য কেন্দ্র লাইব্রেরি" />
-                    </datalist>
                   </div>
                 )}
                 {!isPurchased && purchaseSource && (

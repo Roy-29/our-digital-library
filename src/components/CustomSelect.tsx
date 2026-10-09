@@ -34,9 +34,9 @@ export function CustomSelect({ options, value, onChange, placeholder, className 
   }, []);
 
   return (
-    <div className={`custom-select-container ${className}`} ref={containerRef} style={{ position: 'relative', width: '100%', opacity: disabled ? 0.6 : 1, pointerEvents: disabled ? 'none' : 'auto' }}>
+    <div className={`custom-select-container`} ref={containerRef} style={{ position: 'relative', width: '100%', opacity: disabled ? 0.6 : 1, pointerEvents: disabled ? 'none' : 'auto' }}>
       <div 
-        className={`form-select custom-select-trigger ${isOpen ? 'open' : ''}`}
+        className={`form-select custom-select-trigger ${isOpen ? 'open' : ''} ${className}`}
         onClick={() => !disabled && setIsOpen(!isOpen)}
         style={{ 
           display: 'flex', 

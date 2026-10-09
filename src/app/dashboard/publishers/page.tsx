@@ -152,8 +152,8 @@ export default function PublishersPage() {
                 </div>
               </div>
               <div className="modal-footer" style={{ display: 'flex', justifyContent: 'flex-end', gap: '8px' }}>
-                <button type="button" className="btn btn-secondary" onClick={() => setShowModal(false)}>বন্ধ করুন</button>
                 <button type="button" className="btn btn-primary" onClick={() => setFormMode('edit')}>✏️ এডিট করুন</button>
+                <button type="button" className="btn btn-secondary" onClick={() => setShowModal(false)}>বন্ধ করুন</button>
               </div>
             </>
           ) : (

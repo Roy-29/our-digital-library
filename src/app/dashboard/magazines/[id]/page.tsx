@@ -7,8 +7,15 @@ import { useAuth } from '@/contexts/AuthContext';
 import Link from 'next/link';
 import { toast } from 'react-hot-toast';
 import { bnToEnNumber, enToBnNumber, getOwnerLabel, formatDateBn } from '@/lib/types';
+import { CustomSelect } from '@/components/CustomSelect';
+import { CustomCombobox } from '@/components/CustomCombobox';
 import { use } from 'react';
 import { Edit2, Trash2 } from 'lucide-react';
+
+const MONTH_OPTIONS = [
+  'জানুয়ারি', 'ফেব্রুয়ারি', 'মার্চ', 'এপ্রিল', 'মে', 'জুন',
+  'জুলাই', 'আগস্ট', 'সেপ্টেম্বর', 'অক্টোবর', 'নভেম্বর', 'ডিসেম্বর'
+];
 
 const monthOrder: Record<string, number> = {
   'জানুয়ারি': 1, 'জানুয়ারি': 1,
@@ -73,6 +80,7 @@ export default function ViewMagazinePage({ params }: { params: Promise<{ id: str
   const [newCopies, setNewCopies] = useState('1');
   const [isCustomNewCopies, setIsCustomNewCopies] = useState(false);
   const [addingIssue, setAddingIssue] = useState(false);
+  const [duplicateIssueConfirm, setDuplicateIssueConfirm] = useState<any>(null);
   
   const [editingIssueId, setEditingIssueId] = useState<string | null>(null);
   const [deleteIssueId, setDeleteIssueId] = useState<string | null>(null);
@@ -135,14 +143,7 @@ export default function ViewMagazinePage({ params }: { params: Promise<{ id: str
 
       if (duplicateIssue) {
         setAddingIssue(false);
-        if (window.confirm('এই মাস এবং সালের ইস্যু আগে থেকেই যুক্ত করা আছে। আপনি কি ওই ইস্যুটির কপি সংখ্যা বাড়াতে বা সেটি এডিট করতে চান?')) {
-          setNewMonth('');
-          setNewYear('');
-          setNewVolume('');
-          setNewCopies('1');
-          setIsCustomNewCopies(false);
-          startEditingIssue(duplicateIssue);
-        }
+        setDuplicateIssueConfirm(duplicateIssue);
         return;
       }
 
@@ -322,8 +323,13 @@ export default function ViewMagazinePage({ params }: { params: Promise<{ id: str
 
 
               <div className="info-group">
-                <span style={{ display: 'block', fontSize: '0.85rem', color: 'var(--text-secondary)', marginBottom: '4px' }}>মোট ইস্যু/সংখ্যা</span>
-                <span style={{ fontWeight: 600, fontSize: '1.3rem', color: 'var(--accent)', fontFamily: 'var(--font-serif)' }}>{enToBnNumber(issues.length.toString())} টি</span>
+                <span style={{ display: 'block', fontSize: '0.85rem', color: 'var(--text-secondary)', marginBottom: '4px' }}>মোট ইস্যু ও কপি</span>
+                <span style={{ fontWeight: 600, fontSize: '1.3rem', color: 'var(--accent)', fontFamily: 'var(--font-serif)' }}>
+                  {enToBnNumber(issues.length.toString())} টি ইস্যু 
+                  <span style={{ fontSize: '0.9rem', color: 'var(--text-muted)', fontWeight: 400, marginLeft: '8px' }}>
+                    (মোট {enToBnNumber(issues.reduce((sum, issue) => sum + (issue.copies || 1), 0).toString())} কপি)
+                  </span>
+                </span>
               </div>
             </div>
             
@@ -340,7 +346,7 @@ export default function ViewMagazinePage({ params }: { params: Promise<{ id: str
           </div>
           <div className="card-body" style={{ padding: 0 }}>
             {issues.length > 0 ? (
-              <div style={{ overflowX: 'auto' }}>
+              <div style={{ overflowX: 'visible' }}>
                 <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left' }}>
                   <thead>
                     <tr style={{ backgroundColor: 'var(--bg-secondary)', borderBottom: '1px solid var(--border)' }}>
@@ -359,34 +365,46 @@ export default function ViewMagazinePage({ params }: { params: Promise<{ id: str
                         {editingIssueId === issue.id ? (
                           <>
                             <td style={{ padding: '8px 16px' }}>
-                              <input className="form-input font-serif" style={{ width: '80px', marginBottom: '4px', padding: '4px 8px', fontFamily: 'var(--font-serif)' }} placeholder="সাল" value={enToBnNumber(editIssueForm.year)} onChange={e => handleYearInput(e.target.value, val => setEditIssueForm({...editIssueForm, year: val}))} />
-                              <input className="form-input" style={{ width: '100px', padding: '4px 8px' }} placeholder="মাস" value={editIssueForm.month} onChange={e => setEditIssueForm({...editIssueForm, month: e.target.value})} list="months-datalist" />
+                              <div style={{ display: 'flex', gap: '8px' }}>
+                                <input className="form-input font-serif" style={{ width: '80px', marginBottom: '4px', padding: '4px 8px', fontFamily: 'var(--font-serif)' }} placeholder="সাল" value={enToBnNumber(editIssueForm.year)} onChange={e => handleYearInput(e.target.value, val => setEditIssueForm({...editIssueForm, year: val}))} />
+                                <div style={{ width: '100px' }}>
+                                  <CustomCombobox 
+                                    className="form-input" 
+                                    placeholder="মাস" 
+                                    value={editIssueForm.month} 
+                                    onChange={val => setEditIssueForm({...editIssueForm, month: val})} 
+                                    options={MONTH_OPTIONS} 
+                                  />
+                                </div>
+                              </div>
                             </td>
                             <td style={{ padding: '8px 16px' }}>
                               <input className="form-input" style={{ width: '120px', padding: '4px 8px' }} placeholder="সংখ্যা" value={editIssueForm.volume} onChange={e => setEditIssueForm({...editIssueForm, volume: e.target.value})} />
                             </td>
                             <td style={{ padding: '8px 16px' }}>
                               <div style={{ display: 'flex', gap: '4px', alignItems: 'center' }}>
-                                <select
-                                  className="form-select font-serif"
-                                  value={isCustomEditCopies ? 'custom' : (['1', '2', '3', '4', '5'].includes(editIssueForm.copies) ? editIssueForm.copies : 'custom')}
-                                  onChange={e => {
-                                    if (e.target.value === 'custom') {
-                                      setIsCustomEditCopies(true);
-                                    } else {
-                                      setIsCustomEditCopies(false);
-                                      setEditIssueForm({ ...editIssueForm, copies: e.target.value });
-                                    }
-                                  }}
-                                  style={{ fontFamily: 'var(--font-serif)', height: '34px', padding: '4px 26px 4px 6px', fontSize: '0.85rem', minWidth: '85px' }}
-                                >
-                                  <option value="1">১ কপি</option>
-                                  <option value="2">২ কপি</option>
-                                  <option value="3">৩ কপি</option>
-                                  <option value="4">৪ কপি</option>
-                                  <option value="5">৫ কপি</option>
-                                  <option value="custom">✏️ অন্য...</option>
-                                </select>
+                                <div style={{ flex: 1, minWidth: '85px' }}>
+                                  <CustomSelect
+                                    className="font-serif"
+                                    value={isCustomEditCopies ? 'custom' : (['1', '2', '3', '4', '5'].includes(editIssueForm.copies) ? editIssueForm.copies : 'custom')}
+                                    onChange={val => {
+                                      if (val === 'custom') {
+                                        setIsCustomEditCopies(true);
+                                      } else {
+                                        setIsCustomEditCopies(false);
+                                        setEditIssueForm({ ...editIssueForm, copies: val });
+                                      }
+                                    }}
+                                    options={[
+                                      { value: '1', label: '১ কপি' },
+                                      { value: '2', label: '২ কপি' },
+                                      { value: '3', label: '৩ কপি' },
+                                      { value: '4', label: '৪ কপি' },
+                                      { value: '5', label: '৫ কপি' },
+                                      { value: 'custom', label: '✏️ অন্য...' }
+                                    ]}
+                                  />
+                                </div>
                                 {isCustomEditCopies && (
                                   <input
                                     className="form-input font-serif"
@@ -402,12 +420,16 @@ export default function ViewMagazinePage({ params }: { params: Promise<{ id: str
                               </div>
                             </td>
                             <td style={{ padding: '8px 16px' }}>
-                              <select className="form-input" style={{ padding: '4px 8px' }} value={editIssueForm.status} onChange={e => setEditIssueForm({...editIssueForm, status: e.target.value})}>
-                                <option value="আছে">আছে</option>
-                                <option value="নাই">নাই</option>
-                                <option value="ধার দেওয়া হয়েছে">ধার দেওয়া</option>
-                                <option value="হারিয়ে গেছে">হারানো</option>
-                              </select>
+                              <CustomSelect
+                                value={editIssueForm.status} 
+                                onChange={val => setEditIssueForm({...editIssueForm, status: val})}
+                                options={[
+                                  { value: 'আছে', label: 'আছে' },
+                                  { value: 'নাই', label: 'নাই' },
+                                  { value: 'ধার দেওয়া হয়েছে', label: 'ধার দেওয়া' },
+                                  { value: 'হারিয়ে গেছে', label: 'হারানো' }
+                                ]}
+                              />
                             </td>
                             <td style={{ padding: '8px 16px', textAlign: 'right', whiteSpace: 'nowrap' }}>
                               <button className="btn btn-danger" style={{ padding: '4px 8px', fontSize: '0.8rem', backgroundColor: '#fee2e2', color: '#ef4444', borderColor: '#fca5a5', marginRight: '4px' }} onClick={() => setDeleteIssueId(issue.id)}>মুছুন</button>
@@ -462,12 +484,12 @@ export default function ViewMagazinePage({ params }: { params: Promise<{ id: str
                 <div className="form-row" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr 1fr 1fr', gap: '16px', alignItems: 'end' }}>
                   <div className="form-group" style={{ marginBottom: 0 }}>
                     <label className="form-label" style={{ fontSize: '0.8rem' }}>মাস</label>
-                    <input 
+                    <CustomCombobox 
                       className="form-input" 
                       value={newMonth} 
-                      onChange={e => setNewMonth(e.target.value)} 
+                      onChange={val => setNewMonth(val)} 
                       placeholder="যেমন: জুন" 
-                      list="months-datalist"
+                      options={MONTH_OPTIONS}
                     />
                   </div>
                   <div className="form-group" style={{ marginBottom: 0 }}>
@@ -495,26 +517,28 @@ export default function ViewMagazinePage({ params }: { params: Promise<{ id: str
                   <div className="form-group" style={{ marginBottom: 0 }}>
                     <label className="form-label" style={{ fontSize: '0.8rem' }}>কপি</label>
                     <div style={{ display: 'flex', gap: '6px' }}>
-                      <select 
-                        className="form-select font-serif" 
-                        value={isCustomNewCopies ? 'custom' : (['1', '2', '3', '4', '5'].includes(newCopies) ? newCopies : 'custom')} 
-                        onChange={e => {
-                          if (e.target.value === 'custom') {
-                            setIsCustomNewCopies(true);
-                          } else {
-                            setIsCustomNewCopies(false);
-                            setNewCopies(e.target.value);
-                          }
-                        }}
-                        style={{ fontFamily: 'var(--font-serif)', height: '42px', flex: 1, minWidth: '95px' }}
-                      >
-                        <option value="1">১ কপি</option>
-                        <option value="2">২ কপি</option>
-                        <option value="3">৩ কপি</option>
-                        <option value="4">৪ কপি</option>
-                        <option value="5">৫ কপি</option>
-                        <option value="custom">✏️ অন্যান্য...</option>
-                      </select>
+                      <div style={{ flex: 1, minWidth: '95px' }}>
+                        <CustomSelect 
+                          className="font-serif" 
+                          value={isCustomNewCopies ? 'custom' : (['1', '2', '3', '4', '5'].includes(newCopies) ? newCopies : 'custom')} 
+                          onChange={val => {
+                            if (val === 'custom') {
+                              setIsCustomNewCopies(true);
+                            } else {
+                              setIsCustomNewCopies(false);
+                              setNewCopies(val);
+                            }
+                          }}
+                          options={[
+                            { value: '1', label: '১ কপি' },
+                            { value: '2', label: '২ কপি' },
+                            { value: '3', label: '৩ কপি' },
+                            { value: '4', label: '৪ কপি' },
+                            { value: '5', label: '৫ কপি' },
+                            { value: 'custom', label: '✏️ অন্যান্য...' }
+                          ]}
+                        />
+                      </div>
                       {isCustomNewCopies && (
                         <input 
                           className="form-input font-serif" 
@@ -531,16 +555,16 @@ export default function ViewMagazinePage({ params }: { params: Promise<{ id: str
                   </div>
                   <div className="form-group" style={{ marginBottom: 0 }}>
                     <label className="form-label" style={{ fontSize: '0.8rem' }}>অবস্থা</label>
-                    <select 
-                      className="form-input"
+                    <CustomSelect 
                       value={newStatus}
-                      onChange={e => setNewStatus(e.target.value)}
-                    >
-                      <option value="আছে">আছে</option>
-                      <option value="নাই">নাই</option>
-                      <option value="ধার দেওয়া হয়েছে">ধার দেওয়া</option>
-                      <option value="হারিয়ে গেছে">হারিয়ে গেছে</option>
-                    </select>
+                      onChange={val => setNewStatus(val)}
+                      options={[
+                        { value: 'আছে', label: 'আছে' },
+                        { value: 'নাই', label: 'নাই' },
+                        { value: 'ধার দেওয়া হয়েছে', label: 'ধার দেওয়া' },
+                        { value: 'হারিয়ে গেছে', label: 'হারিয়ে গেছে' }
+                      ]}
+                    />
                   </div>
                 </div>
                 <div style={{ marginTop: '16px', display: 'flex', justifyContent: 'flex-end' }}>
@@ -598,6 +622,60 @@ export default function ViewMagazinePage({ params }: { params: Promise<{ id: str
                   style={{ flex: 1, backgroundColor: '#ef4444', color: 'white', border: 'none' }}
                 >
                   হ্যাঁ, মুছুন
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {duplicateIssueConfirm && (
+          <div className="modal-overlay" style={{
+            position: 'fixed', top: 0, left: 0, right: 0, bottom: 0,
+            backgroundColor: 'rgba(0,0,0,0.5)', zIndex: 1000,
+            display: 'flex', alignItems: 'center', justifyContent: 'center'
+          }}>
+            <div className="modal-content card" style={{
+              maxWidth: '400px', width: '90%', padding: '24px',
+              backgroundColor: 'var(--bg-primary)', borderRadius: '12px',
+              boxShadow: '0 20px 25px -5px rgba(0,0,0,0.1), 0 10px 10px -5px rgba(0,0,0,0.04)'
+            }}>
+              <div style={{ textAlign: 'center', marginBottom: '20px' }}>
+                <div style={{ 
+                  width: '48px', height: '48px', borderRadius: '50%', 
+                  backgroundColor: 'rgba(234, 179, 8, 0.1)', color: '#eab308', 
+                  display: 'flex', alignItems: 'center', justifyContent: 'center', 
+                  margin: '0 auto 16px', fontSize: '24px' 
+                }}>
+                  ⚠️
+                </div>
+                <h3 style={{ margin: '0 0 8px', color: 'var(--text-primary)', fontSize: '1.25rem' }}>ইস্যুটি আগে থেকেই আছে</h3>
+                <p style={{ margin: 0, color: 'var(--text-secondary)', fontSize: '0.95rem', lineHeight: 1.5 }}>
+                  এই মাস এবং সালের ইস্যু আগে থেকেই যুক্ত করা আছে। আপনি কি ওই ইস্যুটির কপি সংখ্যা বাড়াতে বা সেটি এডিট করতে চান?
+                </p>
+              </div>
+              <div style={{ display: 'flex', gap: '12px', justifyContent: 'center' }}>
+                <button 
+                  className="btn btn-secondary" 
+                  onClick={() => setDuplicateIssueConfirm(null)}
+                  style={{ flex: 1 }}
+                >
+                  বাতিল
+                </button>
+                <button 
+                  className="btn btn-primary" 
+                  onClick={() => {
+                    const issue = duplicateIssueConfirm;
+                    setDuplicateIssueConfirm(null);
+                    setNewMonth('');
+                    setNewYear('');
+                    setNewVolume('');
+                    setNewCopies('1');
+                    setIsCustomNewCopies(false);
+                    startEditingIssue(issue);
+                  }}
+                  style={{ flex: 1 }}
+                >
+                  হ্যাঁ, এডিট করুন
                 </button>
               </div>
             </div>
