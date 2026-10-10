@@ -141,6 +141,8 @@ export interface Book {
   category_id: string | null;
   genre_id: string | null;
   
+  parent_book_id: string | null;
+  
   owner: BookOwner;
   
   room_id: string | null;

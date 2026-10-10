@@ -159,7 +159,7 @@ export default function EditMagazinePage({ params }: { params: Promise<{ id: str
             🗑️ মুছুন
           </button>
           <Link href={`/dashboard/magazines/${resolvedParams.id}`} className="btn btn-secondary">
-            ← ফিরে যান
+            ⬅️ ফিরে যান
           </Link>
         </div>
       </div>

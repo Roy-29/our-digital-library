@@ -155,9 +155,10 @@ export default function AddBookPage() {
   const [parentBookId, setParentBookId] = useState<string | null>(null);
   const [duplicateBookSuggestion, setDuplicateBookSuggestion] = useState<any | null>(null);
   const [submitDuplicate, setSubmitDuplicate] = useState<any | null>(null);
+  const [hasDeclinedSuggestion, setHasDeclinedSuggestion] = useState(false);
 
   useEffect(() => {
-    if (!title || title.trim().length < 2 || !user) {
+    if (!title || title.trim().length < 2 || !user || hasDeclinedSuggestion) {
       setDuplicateBookSuggestion(null);
       return;
     }
@@ -167,7 +168,10 @@ export default function AddBookPage() {
         const { dbSearchBookByTitle } = await import('@/app/actions');
         const data = await dbSearchBookByTitle(title);
         
-        if (data && data.owner !== user.id) {
+        if (data && data.ownersList && !data.ownersList.includes(user.id)) {
+          setDuplicateBookSuggestion(data);
+        } else if (data && !data.ownersList && data.owner !== user.id) {
+          // Fallback if ownersList is somehow missing
           setDuplicateBookSuggestion(data);
         } else {
           setDuplicateBookSuggestion(null);
@@ -381,22 +385,66 @@ export default function AddBookPage() {
   }, [user]);
 
   useEffect(() => {
-    fetchReferenceData();
+    const init = async () => {
+      const [a, p, c, g] = await Promise.all([
+        supabase.from('authors').select('*').order('name'),
+        supabase.from('publishers').select('*').order('name'),
+        supabase.from('categories').select('*').order('name'),
+        supabase.from('genres').select('*').order('name'),
+      ]);
+      
+      const personsData = a.data || [];
+      const publishersData = p.data || [];
+      const categoriesData = c.data || [];
+      const genresData = g.data || [];
+      
+      setAllPersons(personsData);
+      setPublishers(publishersData);
+      setCategories(categoriesData);
+      setGenres(genresData);
+
+      const params = new URLSearchParams(window.location.search);
+      const copyFromId = params.get('copyFrom');
+      
+      if (copyFromId) {
+        const { data: b } = await supabase.from('books').select('*').eq('id', copyFromId).single();
+        if (b) {
+          setTitle(b.title || '');
+          
+          const parentId = b.parent_book_id || b.id;
+          const { data: copiesResult } = await supabase.from('books').select('owner').or(`id.eq.${parentId},parent_book_id.eq.${parentId}`);
+          const owners = copiesResult ? Array.from(new Set(copiesResult.map((c: any) => c.owner).filter(Boolean))) : [b.owner];
+          
+          const camelB = {
+            id: b.id,
+            title: b.title,
+            titleOriginal: b.title_original,
+            subtitle: b.subtitle,
+            isbn: b.isbn,
+            language: b.language,
+            edition: b.edition,
+            publicationYear: b.publication_year,
+            pageCount: b.page_count,
+            description: b.description,
+            coverUrl: b.cover_url,
+            authorId: b.author_id,
+            translatorId: b.translator_id,
+            illustratorId: b.illustrator_id,
+            publisherId: b.publisher_id,
+            categoryId: b.category_id,
+            genreId: b.genre_id,
+            parentBookId: parentId,
+            owner: b.owner,
+            ownersList: owners
+          };
+          
+          setDuplicateBookSuggestion(camelB);
+        }
+      }
+    };
+    init();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
-
-  const fetchReferenceData = async () => {
-    const [a, p, c, g] = await Promise.all([
-      supabase.from('authors').select('*').order('name'),
-      supabase.from('publishers').select('*').order('name'),
-      supabase.from('categories').select('*').order('name'),
-      supabase.from('genres').select('*').order('name'),
-    ]);
-    if (a.data) setAllPersons(a.data);
-    if (p.data) setPublishers(p.data);
-    if (c.data) setCategories(c.data);
-    if (g.data) setGenres(g.data);
-  };
 
   const uploadCover = async (): Promise<string | null> => {
     return coverUrl.trim() || null;
@@ -664,7 +712,7 @@ export default function AddBookPage() {
     <>
       <div className="page-header">
         <h2 style={{ fontFamily: 'var(--font-serif)' }} className="font-serif">➕ নতুন বই যোগ করুন</h2>
-        <button className="btn btn-secondary" onClick={() => router.back()}>← ফিরে যান</button>
+        <button type="button" className="btn btn-secondary" onClick={() => router.back()}>⬅️ ফিরে যান</button>
       </div>
 
       <div className="page-body">
@@ -1072,12 +1120,12 @@ export default function AddBookPage() {
             <div className="confirm-icon">💡</div>
             <h3>বইটি আগে থেকেই আছে!</h3>
             <p>
-              <strong style={{ fontFamily: 'var(--font-serif)', color: 'var(--primary)' }}>{duplicateBookSuggestion.title}</strong> বইটি ইতিমধ্যে <strong>{getOwnerLabel(duplicateBookSuggestion.owner)}</strong>-এর সংগ্রহে আছে।
+              <strong style={{ fontFamily: 'var(--font-serif)', color: 'var(--primary)' }}>{duplicateBookSuggestion.title}</strong> বইটি ইতিমধ্যে <strong>{duplicateBookSuggestion.ownersList ? duplicateBookSuggestion.ownersList.map((o: string) => getOwnerLabel(o)).join(', ') : getOwnerLabel(duplicateBookSuggestion.owner)}</strong>-এর সংগ্রহে আছে।
               <br /><br />
               আপনি কি বইটির কভার ছবি, লেখক, এবং অন্যান্য তথ্য কপি করে আপনার ফর্মটি পূরণ করতে চান?
             </p>
             <div className="confirm-actions">
-              <button type="button" className="btn btn-secondary" onClick={() => setDuplicateBookSuggestion(null)}>
+              <button type="button" className="btn btn-secondary" onClick={() => { setDuplicateBookSuggestion(null); setHasDeclinedSuggestion(true); }}>
                 না, ধন্যবাদ
               </button>
               <button type="button" className="btn btn-primary" onClick={copyDuplicateBookDetails}>

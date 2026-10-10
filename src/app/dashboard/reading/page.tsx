@@ -1,6 +1,6 @@
 import { db } from '@/db';
 import { books, authors } from '@/db/schema';
-import { desc, eq, inArray } from 'drizzle-orm';
+import { desc, eq, inArray, isNotNull, and } from 'drizzle-orm';
 import ReadingClient from './ReadingClient';
 
 export const dynamic = 'force-dynamic';
@@ -20,7 +20,7 @@ export default async function ReadingPage() {
   })
   .from(books)
   .leftJoin(authors, eq(books.authorId, authors.id))
-  .where(inArray(books.readingStatus, ['পড়ছি', 'পড়ছি (কাছে নেই)', 'লাইব্রেরি থেকে পড়া', 'ধার করে পড়া']))
+  .where(eq(books.readingStatus, 'পড়ছি'))
   .orderBy(desc(books.readingStartDate));
 
   const recentlyFinished = await db.select({
@@ -37,7 +37,10 @@ export default async function ReadingPage() {
   })
   .from(books)
   .leftJoin(authors, eq(books.authorId, authors.id))
-  .where(inArray(books.readingStatus, ['পড়া শেষ', 'পড়া শেষ (কাছে নেই)']))
+  .where(and(
+    inArray(books.readingStatus, ['পড়া শেষ', 'পড়া শেষ (কাছে নেই)']),
+    isNotNull(books.readingFinishDate)
+  ))
   .orderBy(desc(books.readingFinishDate))
   .limit(20);
 

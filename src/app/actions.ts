@@ -62,7 +62,18 @@ export async function dbInsert(table: string, data: any) {
 export async function dbSearchBookByTitle(title: string) {
   try {
     const result = await db.select().from(books).where(like(books.title, `%${title.trim()}%`)).limit(1);
-    return result[0] || null;
+    if (!result || result.length === 0) return null;
+    
+    const matchedBook = result[0];
+    const parentId = matchedBook.parentBookId || matchedBook.id;
+    
+    const copiesResult = await dbGetBookCopies(parentId);
+    const uniqueOwners = Array.from(new Set(copiesResult.map(c => c.owner).filter(Boolean)));
+    
+    return {
+      ...matchedBook,
+      ownersList: uniqueOwners
+    };
   } catch (error) {
     console.error('[dbSearchBookByTitle ERROR]:', error);
     return null;

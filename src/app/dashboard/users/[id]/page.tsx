@@ -83,6 +83,12 @@ export default function UserProfilePage() {
     <>
       <div className="page-header">
         <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+          <h2 style={{ margin: 0 }}>👥 প্রোফাইল: {profile.display_name}</h2>
+        </div>
+        <div className="flex gap-2 page-header-actions">
+          {!isEditing && (
+            <button className="btn btn-primary" onClick={() => setIsEditing(true)}>✏️ সম্পাদনা</button>
+          )}
           <button 
             onClick={() => router.push('/dashboard/users')} 
             className="btn btn-secondary"
@@ -92,13 +98,7 @@ export default function UserProfilePage() {
             <span>⬅️</span>
             <span style={{ fontSize: '0.9rem', fontWeight: 500 }}>ফিরে যান</span>
           </button>
-          <h2 style={{ margin: 0 }}>👥 প্রোফাইল: {profile.display_name}</h2>
         </div>
-        {!isEditing && (
-          <div className="flex gap-2 page-header-actions">
-            <button className="btn btn-primary" onClick={() => setIsEditing(true)}>✏️ সম্পাদনা</button>
-          </div>
-        )}
       </div>
 
       <div className="page-body">

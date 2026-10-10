@@ -7,6 +7,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import toast from 'react-hot-toast';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
+import { CustomSelect } from '@/components/CustomSelect';
 
 type OwnerFilter = 'all' | BookOwner;
 
@@ -51,6 +52,7 @@ export default function WishlistPage() {
   const [source, setSource] = useState('');
   const [notes, setNotes] = useState('');
   const [coverUrl, setCoverUrl] = useState('');
+  const [isPurchasedEdit, setIsPurchasedEdit] = useState(false);
 
   const [detailsItem, setDetailsItem] = useState<WishlistItem | null>(null);
 
@@ -93,6 +95,7 @@ export default function WishlistPage() {
     setSource('');
     setNotes('');
     setCoverUrl('');
+    setIsPurchasedEdit(false);
     setEditingId(null);
   };
 
@@ -113,6 +116,7 @@ export default function WishlistPage() {
     setSource(item.source || '');
     setNotes(item.notes || '');
     setCoverUrl(item.cover_url || '');
+    setIsPurchasedEdit(item.is_purchased);
     setShowModal(true);
   };
 
@@ -140,6 +144,7 @@ export default function WishlistPage() {
         notes: notes.trim() || null,
         cover_url: coverUrl.trim() || null,
         requested_by: existing?.requested_by || currentUserId,
+        is_purchased: isPurchasedEdit,
       };
 
       const { error } = await supabase.from('wishlist').update(payload).eq('id', editingId);
@@ -164,6 +169,7 @@ export default function WishlistPage() {
         notes: notes.trim() || null,
         cover_url: coverUrl.trim() || null,
         requested_by: currentUserId,
+        is_purchased: isPurchasedEdit,
       };
 
       const { error } = await supabase.from('wishlist').insert(payload);
@@ -740,9 +746,24 @@ export default function WishlistPage() {
           >
             <div className="modal-header">
               <h3>{editingId ? '✏️ উইশলিস্ট সম্পাদনা' : '🛒 নতুন উইশলিস্ট যোগ'}</h3>
-              <button className="btn btn-ghost btn-icon" onClick={() => setShowModal(false)}>
-                ✕
-              </button>
+              <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+                {editingId && (
+                  <button 
+                    type="button" 
+                    className="btn btn-danger"
+                    style={{ backgroundColor: '#fee2e2', color: '#ef4444', borderColor: '#fca5a5', padding: '4px 12px', fontSize: '0.85rem', borderRadius: '20px' }}
+                    onClick={() => {
+                      setDeleteId(editingId);
+                      setShowModal(false);
+                    }}
+                  >
+                    🗑️ মুছে ফেলুন
+                  </button>
+                )}
+                <button className="btn btn-ghost btn-icon" type="button" onClick={() => setShowModal(false)}>
+                  ✕
+                </button>
+              </div>
             </div>
 
             <form onSubmit={handleSubmit}>
@@ -857,17 +878,23 @@ export default function WishlistPage() {
 
                   <div className="form-group">
                     <label className="form-label">অগ্রাধিকার</label>
-                    <select
-                      className="form-select"
+                    <CustomSelect
+                      options={PRIORITIES.map(p => ({ value: p.value, label: p.label }))}
                       value={priority}
-                      onChange={(e) => setPriority(e.target.value)}
-                    >
-                      {PRIORITIES.map((p) => (
-                        <option key={p.value} value={p.value}>
-                          {p.label}
-                        </option>
-                      ))}
-                    </select>
+                      onChange={setPriority}
+                    />
+                  </div>
+
+                  <div className="form-group">
+                    <label className="form-label">অবস্থা</label>
+                    <CustomSelect
+                      options={[
+                        { value: 'false', label: '🛒 কেনা হয়নি (বাকি)' },
+                        { value: 'true', label: '✅ কেনা হয়েছে' }
+                      ]}
+                      value={isPurchasedEdit ? 'true' : 'false'}
+                      onChange={(val) => setIsPurchasedEdit(val === 'true')}
+                    />
                   </div>
 
                   <div className="form-group">
@@ -915,19 +942,7 @@ export default function WishlistPage() {
                 </div>
               </div>
 
-              <div className="modal-footer" style={{ display: 'flex', justifyContent: 'space-between', width: '100%' }}>
-                {editingId ? (
-                  <button 
-                    type="button" 
-                    className="btn btn-danger" 
-                    onClick={() => {
-                      setDeleteId(editingId);
-                      setShowModal(false);
-                    }}
-                  >
-                    🗑️ মুছে ফেলুন
-                  </button>
-                ) : <div></div>}
+              <div className="modal-footer" style={{ display: 'flex', justifyContent: 'flex-end', width: '100%' }}>
                 <div style={{ display: 'flex', gap: '8px' }}>
                   <button type="button" className="btn btn-secondary" onClick={() => setShowModal(false)}>
                     বাতিল
@@ -985,7 +1000,14 @@ export default function WishlistPage() {
                   </div>
                 )}
                 <div style={{ flex: 1 }}>
-                  <h2 style={{ fontSize: '1.25rem', marginBottom: '8px', color: 'var(--text-primary)' }}>{detailsItem.title}</h2>
+                  <h2 style={{ fontSize: '1.25rem', marginBottom: '8px', color: 'var(--text-primary)', display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
+                    {detailsItem.title}
+                    {detailsItem.priority && (
+                      <span className="badge" style={{ fontSize: '0.75rem', padding: '4px 8px', background: `${PRIORITIES.find(p => p.value === detailsItem.priority)?.color || '#999'}15`, color: PRIORITIES.find(p => p.value === detailsItem.priority)?.color || '#999' }}>
+                        {PRIORITIES.find(p => p.value === detailsItem.priority)?.label} অগ্রাধিকার
+                      </span>
+                    )}
+                  </h2>
                   {detailsItem.author_name && <p style={{ color: 'var(--text-secondary)', marginBottom: '4px' }}><strong>লেখক:</strong> {detailsItem.author_name}</p>}
                   {detailsItem.publisher_name && <p style={{ color: 'var(--text-secondary)', marginBottom: '4px' }}><strong>প্রকাশক:</strong> {detailsItem.publisher_name}</p>}
                   {detailsItem.isbn && <p style={{ color: 'var(--text-muted)', fontSize: '0.85rem', marginBottom: '12px' }}>ISBN: {detailsItem.isbn}</p>}
@@ -994,11 +1016,6 @@ export default function WishlistPage() {
                     <span className="badge" style={{ background: 'var(--bg-secondary)', border: '1px solid var(--border-light)' }}>
                       👤 {getOwnerLabel(detailsItem.requested_by)}
                     </span>
-                    {detailsItem.priority && (
-                      <span className="badge" style={{ background: `${PRIORITIES.find(p => p.value === detailsItem.priority)?.color || '#999'}15`, color: PRIORITIES.find(p => p.value === detailsItem.priority)?.color || '#999' }}>
-                        {PRIORITIES.find(p => p.value === detailsItem.priority)?.label} অগ্রাধিকার
-                      </span>
-                    )}
                   </div>
                   
                   {detailsItem.estimated_price && (
@@ -1023,36 +1040,31 @@ export default function WishlistPage() {
                 </div>
               )}
             </div>
-            <div className="modal-footer">
-              <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', width: '100%', justifyContent: 'space-between' }}>
-                <div style={{ display: 'flex', gap: '8px' }}>
-                  {(!detailsItem.is_purchased && user?.id === detailsItem.requested_by) && (
-                    <button 
-                      className="btn btn-gold" 
-                      onClick={() => {
-                        setDetailsItem(null);
-                        handlePurchased(detailsItem);
-                      }}
-                    >
-                      🛒 কেনা হয়েছে
-                    </button>
-                  )}
-                </div>
+            <div className="modal-footer" style={{ display: 'flex', justifyContent: 'flex-end', width: '100%', gap: '8px', alignItems: 'center' }}>
+              {(!detailsItem.is_purchased && user?.id === detailsItem.requested_by) && (
+                <button 
+                  className="btn btn-gold" 
+                  onClick={() => {
+                    setDetailsItem(null);
+                    handlePurchased(detailsItem);
+                  }}
+                >
+                  🛒 কেনা হয়েছে
+                </button>
+              )}
 
-                <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
-                  {user?.id === detailsItem.requested_by && (
-                    <button
-                      className="btn btn-secondary"
-                      onClick={() => {
-                        setDetailsItem(null);
-                        openEdit(detailsItem);
-                      }}
-                    >
-                      ✏️ সম্পাদনা
-                    </button>
-                  )}
-                </div>
-              </div>
+              {user?.id === detailsItem.requested_by && (
+                <button
+                  className="btn btn-secondary"
+                  onClick={() => {
+                    setDetailsItem(null);
+                    openEdit(detailsItem);
+                  }}
+                >
+                  ✏️ সম্পাদনা
+                </button>
+              )}
+              
               <button type="button" className="btn btn-secondary" onClick={() => setDetailsItem(null)}>
                 বন্ধ করুন
               </button>

@@ -97,6 +97,15 @@ export default function BookDetailPage() {
 
   const statusConfig = BOOK_STATUSES.find(s => s.value === book?.status);
 
+  const totalCopiesSum = copies && copies.length > 0 ? copies.reduce((sum, c) => sum + (c.copies || 1), 0) : (book?.copies || 1);
+  const isOwnedByCurrentUser = user && copies?.some(c => c.owner === user.id);
+
+  const handleAddToCollection = () => {
+    if (!book) return;
+    const parentId = book.parent_book_id || book.id;
+    router.push(`/dashboard/books/add?copyFrom=${parentId}`);
+  };
+
   if (loading) {
     return (
       <>
@@ -114,7 +123,7 @@ export default function BookDetailPage() {
         <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
           <h2 style={{ margin: 0, display: 'flex', alignItems: 'center', gap: '8px', fontFamily: 'var(--font-serif)' }} className="font-serif">
             📖 {book.title}
-            {(book.copies || 1) > 1 && <span className="badge" style={{ fontSize: '0.8rem', padding: '4px 8px', fontFamily: 'var(--font-serif)' }}>{enToBnNumber((book.copies || 1).toString())} কপি</span>}
+            {totalCopiesSum > 1 && <span className="badge" style={{ fontSize: '0.8rem', padding: '4px 8px', fontFamily: 'var(--font-serif)' }}>{enToBnNumber(totalCopiesSum.toString())} কপি (মোট)</span>}
           </h2>
         </div>
         <div className="flex gap-2 page-header-actions">
@@ -199,7 +208,7 @@ export default function BookDetailPage() {
                 <DetailRow label="ভাষা" value={book.language} />
                 <DetailRow label="সংস্করণ" value={book.edition} />
                 <DetailRow label="বইয়ের ধরন (প্রিন্ট)" value={book.print_type} />
-                <DetailRow label="কপি" value={book.copies ? <span style={{ fontFamily: 'var(--font-serif)' }}>{enToBnNumber(book.copies.toString())} কপি</span> : null} />
+                <DetailRow label="কপি" value={<span style={{ fontFamily: 'var(--font-serif)' }}>{enToBnNumber(totalCopiesSum.toString())} কপি (মোট)</span>} />
                 <DetailRow label="প্রকাশের বছর" value={book.publication_year ? <span style={{ fontFamily: 'var(--font-serif)' }}>{enToBnNumber(book.publication_year.toString())}</span> : null} />
                 <DetailRow label="পৃষ্ঠা" value={book.page_count ? <span style={{ fontFamily: 'var(--font-serif)' }}>{enToBnNumber(book.page_count.toString())}</span> : null} />
                 <DetailRow label="ক্যাটাগরি" value={book.category ? `${book.category.icon} ${book.category.name_bn || book.category.name}` : null} />
@@ -209,10 +218,17 @@ export default function BookDetailPage() {
             </div>
 
             <div style={{ marginTop: '32px' }}>
-              <h3 className="font-serif" style={{ fontFamily: 'var(--font-serif)', fontSize: '1.4rem', marginBottom: '16px', display: 'flex', alignItems: 'center', gap: '8px', color: 'var(--primary-dark)' }}>
-                📚 মালিকানা ও বিস্তারিত তথ্য 
-                <span className="badge" style={{ fontSize: '1rem', padding: '2px 8px' }}>{enToBnNumber((copies?.length || 1).toString())} টি কপি</span>
-              </h3>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
+                <h3 className="font-serif" style={{ fontFamily: 'var(--font-serif)', fontSize: '1.4rem', margin: 0, display: 'flex', alignItems: 'center', gap: '8px', color: 'var(--primary-dark)' }}>
+                  📚 মালিকানা ও বিস্তারিত তথ্য 
+                  <span className="badge" style={{ fontSize: '1rem', padding: '2px 8px' }}>{enToBnNumber((copies?.length || 1).toString())} জনের সংগ্রহে</span>
+                </h3>
+                {!isOwnedByCurrentUser && (
+                  <button onClick={handleAddToCollection} className="btn btn-primary" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    <span>➕</span> এই বইটি আমারও আছে
+                  </button>
+                )}
+              </div>
               
               <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
                 {(copies && copies.length > 0 ? copies : [book]).map((c) => {

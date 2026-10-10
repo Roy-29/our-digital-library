@@ -6,7 +6,7 @@ import { eq } from 'drizzle-orm';
 import { revalidatePath } from 'next/cache';
 
 export async function updateBookStatus(bookId: string, status: any, progress?: number, startDate?: string, finishDate?: string) {
-  const data: any = { status };
+  const data: any = { readingStatus: status };
   if (progress !== undefined) data.readingProgress = progress;
   if (startDate) data.readingStartDate = startDate;
   if (finishDate) data.readingFinishDate = finishDate;
@@ -17,6 +17,16 @@ export async function updateBookStatus(bookId: string, status: any, progress?: n
 
 export async function updateBookProgress(bookId: string, progress: number) {
   await db.update(books).set({ readingProgress: progress }).where(eq(books.id, bookId));
+  revalidatePath('/dashboard/reading');
+}
+
+export async function removeFromReadingList(bookId: string) {
+  await db.update(books).set({ 
+    readingFinishDate: null,
+    readingStatus: null,
+    readingStartDate: null,
+    readingProgress: 0
+  }).where(eq(books.id, bookId));
   revalidatePath('/dashboard/reading');
 }
 

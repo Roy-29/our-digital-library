@@ -638,8 +638,8 @@ export default function EditBookPage() {
       <div className="page-header">
         <h2 style={{ fontFamily: 'var(--font-serif)' }} className="font-serif">✏️ সম্পাদনা: {title}</h2>
         <div style={{ display: 'flex', gap: '8px' }}>
-          <button className="btn btn-secondary" onClick={() => router.back()}>← ফিরে যান</button>
           <button type="button" className="btn btn-danger" onClick={() => setShowDelete(true)}>🗑️ মুছুন</button>
+          <button type="button" className="btn btn-secondary" onClick={() => router.back()}>⬅️ ফিরে যান</button>
         </div>
       </div>
       <div className="page-body">

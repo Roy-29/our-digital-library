@@ -579,7 +579,7 @@ export default function ViewMagazinePage({ params }: { params: Promise<{ id: str
         
         <div style={{ marginTop: '24px', display: 'flex', justifyContent: 'flex-end' }}>
           <Link href="/dashboard/magazines" className="btn btn-secondary">
-            ← ফিরে যান
+            ⬅️ ফিরে যান
           </Link>
         </div>
 
