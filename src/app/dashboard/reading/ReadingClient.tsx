@@ -197,6 +197,14 @@ export default function ReadingClient({
                 >
                   🗑️
                 </button>
+                <Link 
+                  href={`/dashboard/books/${selectedFinishedBook.id}/edit`}
+                  className="btn btn-ghost btn-icon"
+                  style={{ padding: '4px' }}
+                  title="বিস্তারিত সম্পাদনা"
+                >
+                  ✏️
+                </Link>
                 <button className="btn btn-ghost btn-icon" onClick={() => setSelectedFinishedBook(null)}>
                   ✕
                 </button>
@@ -215,7 +223,7 @@ export default function ReadingClient({
                         setSelectedFinishedBook(null);
                       } else {
                         await updateBookStatus(selectedFinishedBook.id, val);
-                        setSelectedFinishedBook(prev => ({ ...prev, readingStatus: val }));
+                        setSelectedFinishedBook((prev: any) => prev ? ({ ...prev, readingStatus: val }) : null);
                         toast.success('অবস্থা আপডেট হয়েছে');
                         setRecentlyFinished(prev => prev.map(b => b.id === selectedFinishedBook.id ? { ...b, readingStatus: val } : b));
                       }
@@ -226,15 +234,7 @@ export default function ReadingClient({
                 />
               </div>
 
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', borderTop: '1px solid var(--border-light)', paddingTop: '16px' }}>
-                <Link 
-                  href={`/dashboard/books/${selectedFinishedBook.id}/edit`} 
-                  className="btn btn-secondary"
-                  style={{ width: '100%', justifyContent: 'center' }}
-                >
-                  ✏️ সম্পাদনা
-                </Link>
-              </div>
+              {/* Footer removed since edit is now in header */}
             </div>
           </div>
         </div>
@@ -256,6 +256,14 @@ export default function ReadingClient({
                 >
                   🗑️
                 </button>
+                <Link 
+                  href={`/dashboard/books/${selectedReadingBook.id}/edit`}
+                  className="btn btn-ghost btn-icon"
+                  style={{ padding: '4px' }}
+                  title="বিস্তারিত সম্পাদনা"
+                >
+                  ✏️
+                </Link>
                 <button className="btn btn-ghost btn-icon" onClick={() => setSelectedReadingBook(null)}>
                   ✕
                 </button>
@@ -275,7 +283,7 @@ export default function ReadingClient({
                           setSelectedReadingBook(null);
                         } else {
                           await updateBookStatus(selectedReadingBook.id, val);
-                          setSelectedReadingBook(prev => ({ ...prev, readingStatus: val }));
+                          setSelectedReadingBook((prev: any) => prev ? ({ ...prev, readingStatus: val }) : null);
                           setCurrentlyReading(prev => prev.map(b => b.id === selectedReadingBook.id ? { ...b, readingStatus: val } : b));
                           toast.success('অবস্থা আপডেট হয়েছে');
                         }
@@ -306,7 +314,7 @@ export default function ReadingClient({
                           setSelectedReadingBook(null);
                         } else {
                           updateProgress(selectedReadingBook.id, p);
-                          setSelectedReadingBook(prev => ({ ...prev, readingProgress: p }));
+                          setSelectedReadingBook((prev: any) => prev ? ({ ...prev, readingProgress: p }) : null);
                         }
                       }}
                     >
@@ -316,15 +324,7 @@ export default function ReadingClient({
                 </div>
               </div>
 
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', borderTop: '1px solid var(--border-light)', paddingTop: '16px' }}>
-                <Link 
-                  href={`/dashboard/books/${selectedReadingBook.id}/edit`} 
-                  className="btn btn-secondary"
-                  style={{ width: '100%', justifyContent: 'center' }}
-                >
-                  ✏️ সম্পাদনা
-                </Link>
-              </div>
+              {/* Footer removed since edit is now in header */}
             </div>
           </div>
         </div>

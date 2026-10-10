@@ -1013,7 +1013,7 @@ export default function EditBookPage() {
                       } else if (s === 'পড়া শেষ' || s === 'পড়া শেষ (কাছে নেই)') {
                         setReadingProgress(100);
                       } else if (s === 'পড়ছি' || s === 'পড়ছি (কাছে নেই)' || s === 'ধার করে পড়া' || s === 'লাইব্রেরি থেকে পড়া') {
-                        if (readingProgress === 0) setReadingProgress(10);
+                        if (readingProgress === 0 || readingProgress === 100) setReadingProgress(0);
                       }
                     }}
                     placeholder="নির্বাচন করুন..."
