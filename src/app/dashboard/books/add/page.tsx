@@ -11,6 +11,8 @@ import * as ISBN from 'isbn3';
 import { BanglaDateInput } from '@/components/BanglaDateInput';
 import { CustomSelect } from '@/components/CustomSelect';
 import { CustomCombobox } from '@/components/CustomCombobox';
+import { BarcodeScannerModal } from '@/components/BarcodeScannerModal';
+import { Camera, Search, Loader2, Sparkles, Copy, AlertTriangle, X } from 'lucide-react';
 
 export default function AddBookPage() {
   const router = useRouter();
@@ -190,10 +192,16 @@ export default function AddBookPage() {
     }
   }, [user]);
 
-  const copyDuplicateBookDetails = () => {
-    if (!duplicateBookSuggestion) return;
-    const b = duplicateBookSuggestion;
+  const [isScannerOpen, setIsScannerOpen] = useState(false);
+  const [isFetchingIsbn, setIsFetchingIsbn] = useState(false);
+  const [isbnFetchedPreview, setIsbnFetchedPreview] = useState<any | null>(null);
+  const [isbnDuplicateAlert, setIsbnDuplicateAlert] = useState<any | null>(null);
+
+  const copyDuplicateBookDetails = (targetBook?: any) => {
+    const b = targetBook || duplicateBookSuggestion;
+    if (!b) return;
     
+    if (b.title) setTitle(b.title);
     if (b.titleOriginal) setTitleOriginal(b.titleOriginal);
     if (b.subtitle) setSubtitle(b.subtitle);
     if (b.isbn) setIsbn(b.isbn);
@@ -229,9 +237,104 @@ export default function AddBookPage() {
       setGenreId(g ? (g.name_bn || g.name) : b.genreId);
     }
     
-    setParentBookId(b.id);
+    setParentBookId(b.parentBookId || b.id);
     setDuplicateBookSuggestion(null);
-    toast.success('বইয়ের তথ্য কপি করা হয়েছে!');
+    setIsbnDuplicateAlert(null);
+    toast.success('বইয়ের তথ্য কপিতে সফলভাবে বসানো হয়েছে!');
+  };
+
+  const handleLookupIsbn = async (isbnToLookup?: string) => {
+    const code = isbnToLookup || isbn;
+    const clean = code.replace(/[^0-9Xx]/g, '').trim();
+    if (!clean || (clean.length !== 10 && clean.length !== 13)) {
+      toast.error('অনুগ্রহ করে সঠিক ১০ বা ১৩ ডিজিটের ISBN কোড দিন।');
+      return;
+    }
+
+    setIsFetchingIsbn(true);
+    setIsbnFetchedPreview(null);
+    setIsbnDuplicateAlert(null);
+
+    try {
+      const { dbLookupIsbn } = await import('@/app/actions');
+      const res = await dbLookupIsbn(clean);
+
+      if (!res.success) {
+        toast.error(res.message || 'ISBN খুঁজে পাওয়া যায়নি');
+        return;
+      }
+
+      // Check if already in digital library
+      if (res.existsLocally && res.localBook) {
+        setIsbnDuplicateAlert(res.localBook);
+        toast((t) => (
+          <span>⚠️ এই বইটি ইতিমধ্যে আপনার লাইব্রেরিতে সংরক্ষিত আছে!</span>
+        ), { icon: '⚠️' });
+      }
+
+      // Check if online metadata found
+      if (res.onlineData && res.onlineData.title) {
+        setIsbnFetchedPreview(res.onlineData);
+        toast.success(`অনলাইন থেকে বইটির তথ্য পাওয়া গেছে (${res.onlineData.source})!`);
+      } else {
+        if (!res.existsLocally) {
+          toast('অনলাইনে কোনো তথ্য পাওয়া যায়নি, তবে ISBN সংরক্ষিত হয়েছে।', { icon: 'ℹ️' });
+        }
+      }
+    } catch (err) {
+      console.error('Error fetching ISBN data:', err);
+      toast.error('তথ্য ফেচ করতে সমস্যা হয়েছে');
+    } finally {
+      setIsFetchingIsbn(false);
+    }
+  };
+
+  const applyFetchedMetadata = (data: any) => {
+    if (!data) return;
+    if (data.title) setTitle(data.title);
+    if (data.subtitle) setSubtitle(data.subtitle);
+    if (data.publishedYear) setPubYear(data.publishedYear);
+    if (data.pageCount) setPageCount(data.pageCount);
+    if (data.description) setDescription(data.description);
+    if (data.coverUrl) setCoverUrl(data.coverUrl);
+    if (data.language) setLanguage(data.language);
+
+    // Match Author with existing author records
+    if (data.authors && data.authors.length > 0) {
+      const authorName = data.authors[0];
+      const matched = allPersons.find((p: any) => 
+        (p.name && p.name.trim().toLowerCase() === authorName.trim().toLowerCase()) ||
+        (p.name_bn && p.name_bn.trim().toLowerCase() === authorName.trim().toLowerCase())
+      );
+      if (matched) {
+        setAuthorId(matched.name_bn || matched.name);
+      } else {
+        setAuthorId(authorName);
+      }
+    }
+
+    // Match Publisher with existing publisher records
+    if (data.publisher) {
+      const pubName = data.publisher;
+      const matchedPub = publishers.find((p: any) => 
+        (p.name && p.name.trim().toLowerCase() === pubName.trim().toLowerCase()) ||
+        (p.name_bn && p.name_bn.trim().toLowerCase() === pubName.trim().toLowerCase())
+      );
+      if (matchedPub) {
+        setPublisherId(matchedPub.name_bn || matchedPub.name);
+      } else {
+        setPublisherId(pubName);
+      }
+    }
+
+    toast.success('✨ বইটির তথ্য ফর্মে সফলভাবে বসানো হয়েছে!');
+    setIsbnFetchedPreview(null);
+  };
+
+  const onScanComplete = (scannedCode: string) => {
+    handleIsbnChange(scannedCode, setIsbn);
+    toast.success(`ISBN স্ক্যান হয়েছে: ${scannedCode}`);
+    handleLookupIsbn(scannedCode);
   };
 
   const formatPriceNum = (num: number): string => {
@@ -813,9 +916,193 @@ export default function AddBookPage() {
                   </div>
                 </div>
                 <div className="form-row">
-                  <div className="form-group">
-                    <label className="form-label">ISBN</label>
-                    <input className="form-input" value={isbn} onChange={e => handleIsbnChange(e.target.value, setIsbn)} placeholder="978-..." maxLength={17} />
+                  <div className="form-group" style={{ width: '100%' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
+                      <label className="form-label" style={{ margin: 0, display: 'flex', alignItems: 'center', gap: '6px' }}>
+                        <span>🔢 ISBN বারকোড</span>
+                        <span style={{ fontSize: '0.75rem', fontWeight: 400, color: 'var(--text-muted)' }}>
+                          (১০ বা ১৩ ডিজিট)
+                        </span>
+                      </label>
+                      <button
+                        type="button"
+                        onClick={() => setIsScannerOpen(true)}
+                        className="btn btn-secondary"
+                        style={{
+                          padding: '4px 10px',
+                          fontSize: '0.8rem',
+                          display: 'inline-flex',
+                          alignItems: 'center',
+                          gap: '6px',
+                          background: 'rgba(59, 130, 246, 0.1)',
+                          color: '#3b82f6',
+                          borderColor: 'rgba(59, 130, 246, 0.3)'
+                        }}
+                      >
+                        <Camera size={14} /> ক্যামেরা দিয়ে স্ক্যান
+                      </button>
+                    </div>
+
+                    <div style={{ display: 'flex', gap: '8px' }}>
+                      <input 
+                        className="form-input" 
+                        value={isbn} 
+                        onChange={e => handleIsbnChange(e.target.value, setIsbn)} 
+                        onKeyDown={e => {
+                          if (e.key === 'Enter') {
+                            e.preventDefault();
+                            handleLookupIsbn();
+                          }
+                        }}
+                        placeholder="যেমন: 978-0-14-032872-1" 
+                        maxLength={17} 
+                      />
+                      <button
+                        type="button"
+                        className="btn btn-secondary"
+                        onClick={() => handleLookupIsbn()}
+                        disabled={isFetchingIsbn || !isbn.trim()}
+                        style={{
+                          whiteSpace: 'nowrap',
+                          display: 'inline-flex',
+                          alignItems: 'center',
+                          gap: '6px',
+                          padding: '0 14px'
+                        }}
+                        title="অনলাইন ও লোকাল লাইব্রেরিতে তথ্য খুঁজুন"
+                      >
+                        {isFetchingIsbn ? (
+                          <>
+                            <Loader2 size={16} className="animate-spin" />
+                            <span>খোঁজা হচ্ছে...</span>
+                          </>
+                        ) : (
+                          <>
+                            <Search size={16} />
+                            <span>তথ্য আনুন</span>
+                          </>
+                        )}
+                      </button>
+                    </div>
+
+                    {/* Duplicate ISBN Alert Banner */}
+                    {isbnDuplicateAlert && (
+                      <div style={{
+                        marginTop: '12px',
+                        padding: '12px 14px',
+                        background: 'rgba(234, 179, 8, 0.1)',
+                        border: '1px solid rgba(234, 179, 8, 0.4)',
+                        borderRadius: '10px',
+                        display: 'flex',
+                        flexDirection: 'column',
+                        gap: '8px'
+                      }}>
+                        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: '#eab308', fontWeight: 600, fontSize: '0.9rem' }}>
+                            <AlertTriangle size={18} />
+                            <span>এই বইটি ইতিমধ্যে আপনার লাইব্রেরিতে আছে!</span>
+                          </div>
+                          <button
+                            type="button"
+                            onClick={() => setIsbnDuplicateAlert(null)}
+                            style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-muted)' }}
+                          >
+                            <X size={16} />
+                          </button>
+                        </div>
+                        <p style={{ margin: 0, fontSize: '0.85rem', color: 'var(--text-main)' }}>
+                          <strong>{isbnDuplicateAlert.title}</strong> — মোট কপি: {isbnDuplicateAlert.totalCopies || 1} টি (মালিক: {isbnDuplicateAlert.ownersList?.join(', ') || isbnDuplicateAlert.owner})
+                        </p>
+                        <div style={{ display: 'flex', gap: '8px', marginTop: '4px' }}>
+                          <button
+                            type="button"
+                            className="btn btn-primary"
+                            style={{ fontSize: '0.8rem', padding: '5px 12px', display: 'inline-flex', alignItems: 'center', gap: '6px' }}
+                            onClick={() => copyDuplicateBookDetails(isbnDuplicateAlert)}
+                          >
+                            <Copy size={13} /> বিদ্যমান তথ্য কপি করুন ও নতুন কপি হিসেবে যোগ করুন
+                          </button>
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Fetched Online Book Info Preview Card */}
+                    {isbnFetchedPreview && (
+                      <div style={{
+                        marginTop: '12px',
+                        padding: '14px',
+                        background: 'rgba(59, 130, 246, 0.06)',
+                        border: '1px solid rgba(59, 130, 246, 0.3)',
+                        borderRadius: '12px',
+                        display: 'flex',
+                        gap: '14px',
+                        alignItems: 'flex-start'
+                      }}>
+                        {isbnFetchedPreview.coverUrl && (
+                          <img 
+                            src={isbnFetchedPreview.coverUrl} 
+                            alt="Cover" 
+                            style={{
+                              width: '64px',
+                              height: '92px',
+                              objectFit: 'cover',
+                              borderRadius: '6px',
+                              boxShadow: '0 2px 8px rgba(0,0,0,0.15)',
+                              flexShrink: 0
+                            }}
+                          />
+                        )}
+                        <div style={{ flex: 1, minWidth: 0 }}>
+                          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '4px' }}>
+                            <span style={{
+                              fontSize: '0.72rem',
+                              fontWeight: 600,
+                              textTransform: 'uppercase',
+                              color: '#3b82f6',
+                              background: 'rgba(59, 130, 246, 0.12)',
+                              padding: '2px 8px',
+                              borderRadius: '4px'
+                            }}>
+                              ✨ {isbnFetchedPreview.source} থেকে প্রাপ্ত
+                            </span>
+                            <button
+                              type="button"
+                              onClick={() => setIsbnFetchedPreview(null)}
+                              style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-muted)' }}
+                            >
+                              <X size={15} />
+                            </button>
+                          </div>
+                          <h4 style={{ margin: '0 0 4px', fontSize: '1rem', fontWeight: 600 }}>
+                            {isbnFetchedPreview.title}
+                          </h4>
+                          {isbnFetchedPreview.authors && isbnFetchedPreview.authors.length > 0 && (
+                            <p style={{ margin: '0 0 2px', fontSize: '0.85rem', color: 'var(--text-muted)' }}>
+                              লেখক: <strong>{isbnFetchedPreview.authors.join(', ')}</strong>
+                            </p>
+                          )}
+                          <div style={{ display: 'flex', flexWrap: 'wrap', gap: '12px', fontSize: '0.8rem', color: 'var(--text-muted)', margin: '4px 0 10px' }}>
+                            {isbnFetchedPreview.publisher && <span>প্রকাশক: {isbnFetchedPreview.publisher}</span>}
+                            {isbnFetchedPreview.publishedYear && <span>বছর: {isbnFetchedPreview.publishedYear}</span>}
+                            {isbnFetchedPreview.pageCount && <span>পৃষ্ঠা: {isbnFetchedPreview.pageCount}</span>}
+                          </div>
+                          <button
+                            type="button"
+                            className="btn btn-primary"
+                            onClick={() => applyFetchedMetadata(isbnFetchedPreview)}
+                            style={{
+                              fontSize: '0.82rem',
+                              padding: '6px 14px',
+                              display: 'inline-flex',
+                              alignItems: 'center',
+                              gap: '6px'
+                            }}
+                          >
+                            <Sparkles size={14} /> ফর্মে তথ্য বসান (Apply to Form)
+                          </button>
+                        </div>
+                      </div>
+                    )}
                   </div>
                 </div>
                 <div className="form-row">
@@ -1135,6 +1422,13 @@ export default function AddBookPage() {
           </div>
         </div>
       )}
+
+      {/* Barcode Scanner Modal */}
+      <BarcodeScannerModal
+        isOpen={isScannerOpen}
+        onClose={() => setIsScannerOpen(false)}
+        onScanSuccess={onScanComplete}
+      />
     </>
   );
 }

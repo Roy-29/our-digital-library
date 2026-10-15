@@ -395,3 +395,149 @@ export async function dbImportBooks(booksList: any[], owner: string) {
   return { success: true, count: imported };
 }
 
+export async function dbLookupIsbn(rawIsbn: string) {
+  const cleanIsbn = rawIsbn.replace(/[^0-9Xx]/g, '').trim();
+  if (!cleanIsbn || (cleanIsbn.length !== 10 && cleanIsbn.length !== 13)) {
+    return { 
+      success: false, 
+      message: 'সঠিক ১০ বা ১৩ ডিজিটের ISBN কোড পাওয়া যায়নি।' 
+    };
+  }
+
+  // 1. Local Database Lookup (Duplicate Check)
+  let localBook: any = null;
+  try {
+    const allBooks = await db.select({
+      id: books.id,
+      title: books.title,
+      titleOriginal: books.titleOriginal,
+      subtitle: books.subtitle,
+      isbn: books.isbn,
+      language: books.language,
+      edition: books.edition,
+      publicationYear: books.publicationYear,
+      pageCount: books.pageCount,
+      description: books.description,
+      coverUrl: books.coverUrl,
+      authorId: books.authorId,
+      translatorId: books.translatorId,
+      illustratorId: books.illustratorId,
+      publisherId: books.publisherId,
+      categoryId: books.categoryId,
+      genreId: books.genreId,
+      parentBookId: books.parentBookId,
+      owner: books.owner,
+      roomId: books.roomId,
+      shelfId: books.shelfId,
+      rackId: books.rackId,
+      status: books.status,
+    }).from(books);
+
+    const match = allBooks.find(b => {
+      if (!b.isbn) return false;
+      const bClean = b.isbn.replace(/[^0-9Xx]/g, '');
+      return bClean === cleanIsbn;
+    });
+
+    if (match) {
+      const parentId = match.parentBookId || match.id;
+      const copiesResult = await dbGetBookCopies(parentId);
+      const uniqueOwners = Array.from(new Set(copiesResult.map(c => c.owner).filter(Boolean)));
+      
+      localBook = {
+        ...match,
+        parentBookId: parentId,
+        ownersList: uniqueOwners,
+        totalCopies: copiesResult.length
+      };
+    }
+  } catch (err) {
+    console.error('[dbLookupIsbn local check error]:', err);
+  }
+
+  // 2. Online Database Lookup (Open Library & Google Books)
+  let onlineData: any = null;
+
+  // Try Open Library first
+  try {
+    const olRes = await fetch(`https://openlibrary.org/api/books?bibkeys=ISBN:${cleanIsbn}&format=json&jscmd=data`, {
+      headers: {
+        'User-Agent': 'OurDigitalLibrary/1.0 (library-book-app)'
+      },
+      next: { revalidate: 3600 }
+    });
+    if (olRes.ok) {
+      const olJson = await olRes.json();
+      const olItem = olJson[`ISBN:${cleanIsbn}`];
+      if (olItem) {
+        const pubYearMatch = olItem.publish_date ? String(olItem.publish_date).match(/\b\d{4}\b/) : null;
+        const coverImg = olItem.cover?.large || olItem.cover?.medium || olItem.cover?.small || null;
+        onlineData = {
+          source: 'Open Library',
+          title: olItem.title || '',
+          subtitle: olItem.subtitle || '',
+          authors: Array.isArray(olItem.authors) ? olItem.authors.map((a: any) => a.name) : [],
+          publisher: Array.isArray(olItem.publishers) && olItem.publishers.length > 0 ? olItem.publishers[0].name : '',
+          publishedYear: pubYearMatch ? pubYearMatch[0] : '',
+          pageCount: olItem.number_of_pages ? String(olItem.number_of_pages) : '',
+          description: typeof olItem.description === 'string' 
+            ? olItem.description 
+            : (olItem.description?.value || olItem.excerpts?.[0]?.text || ''),
+          coverUrl: coverImg ? (coverImg.startsWith('http:') ? coverImg.replace('http:', 'https:') : coverImg) : null,
+          categories: Array.isArray(olItem.subjects) ? olItem.subjects.slice(0, 5).map((s: any) => s.name) : [],
+          language: olItem.languages?.[0]?.key?.includes('ben') ? 'বাংলা' : (olItem.languages?.[0]?.key?.includes('eng') ? 'English' : '')
+        };
+      }
+    }
+  } catch (err) {
+    console.error('[dbLookupIsbn OpenLibrary error]:', err);
+  }
+
+  // Fallback / supplement with Google Books API if not found
+  if (!onlineData || !onlineData.title) {
+    try {
+      const gbRes = await fetch(`https://www.googleapis.com/books/v1/volumes?q=isbn:${cleanIsbn}`, {
+        next: { revalidate: 3600 }
+      });
+      if (gbRes.ok) {
+        const gbJson = await gbRes.json();
+        if (gbJson.totalItems > 0 && gbJson.items?.[0]?.volumeInfo) {
+          const v = gbJson.items[0].volumeInfo;
+          const pubYearMatch = v.publishedDate ? String(v.publishedDate).match(/\b\d{4}\b/) : null;
+          let img = v.imageLinks?.thumbnail || v.imageLinks?.smallThumbnail || null;
+          if (img && img.startsWith('http:')) {
+            img = img.replace('http:', 'https:');
+          }
+          let lang = '';
+          if (v.language === 'bn' || v.language === 'ben') lang = 'বাংলা';
+          else if (v.language === 'en') lang = 'English';
+
+          onlineData = {
+            source: 'Google Books',
+            title: v.title || '',
+            subtitle: v.subtitle || '',
+            authors: Array.isArray(v.authors) ? v.authors : [],
+            publisher: v.publisher || '',
+            publishedYear: pubYearMatch ? pubYearMatch[0] : '',
+            pageCount: v.pageCount ? String(v.pageCount) : '',
+            description: v.description || '',
+            coverUrl: img,
+            categories: Array.isArray(v.categories) ? v.categories : [],
+            language: lang
+          };
+        }
+      }
+    } catch (err) {
+      console.error('[dbLookupIsbn GoogleBooks error]:', err);
+    }
+  }
+
+  return {
+    success: true,
+    cleanIsbn,
+    existsLocally: !!localBook,
+    localBook,
+    onlineData
+  };
+}
+
