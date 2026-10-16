@@ -8,6 +8,8 @@ import { createClient } from '@/lib/supabase';
 import toast from 'react-hot-toast';
 import Link from 'next/link';
 import { enToBnNumber } from '@/lib/types';
+import { Camera, Zap, MapPin, ExternalLink, X, Plus, AlertCircle, CheckCircle2 } from 'lucide-react';
+import { BarcodeScannerModal } from '@/components/BarcodeScannerModal';
 
 type ViewMode = 'grid' | 'list' | 'shelf';
 
@@ -53,6 +55,25 @@ export default function BooksClient({
   const [deleteId, setDeleteId] = useState<string | null>(null);
   const [viewingAuthor, setViewingAuthor] = useState<any | null>(null);
   const [viewingPublisher, setViewingPublisher] = useState<any | null>(null);
+  const [isSearchScannerOpen, setIsSearchScannerOpen] = useState(false);
+  const [scannedFoundBook, setScannedFoundBook] = useState<any | null>(null);
+  const [scannedNotFoundIsbn, setScannedNotFoundIsbn] = useState<string | null>(null);
+
+  const handleBarcodeScanToSearch = (scannedCode: string) => {
+    const clean = scannedCode.replace(/[^0-9Xx]/g, '').trim();
+    const found = books.find(b => {
+      if (!b.isbn) return false;
+      return b.isbn.replace(/[^0-9Xx]/g, '').trim() === clean;
+    });
+
+    if (found) {
+      setSearch(found.isbn || found.title);
+      setScannedFoundBook(found);
+      toast.success(`🎯 বইটি পাওয়া গেছে: ${found.title}`);
+    } else {
+      setScannedNotFoundIsbn(clean);
+    }
+  };
 
   const handleDelete = async () => {
     if (!deleteId) return;
@@ -171,6 +192,21 @@ export default function BooksClient({
           <Link href="/dashboard/backup" className="btn btn-secondary" title="Excel / CSV থেকে বই ইম্পোর্ট করুন">
             📥 ইম্পোর্ট
           </Link>
+          <Link 
+            href="/dashboard/books/rapid-scan" 
+            className="btn btn-secondary" 
+            style={{ 
+              display: 'inline-flex', 
+              alignItems: 'center', 
+              gap: '6px', 
+              color: '#d97706', 
+              borderColor: 'rgba(217, 119, 6, 0.4)',
+              background: 'rgba(217, 119, 6, 0.08)'
+            }} 
+            title="একটানা বারকোড স্ক্যান করে দ্রুত বই যোগ করুন"
+          >
+            <Zap size={15} /> বাল্ক স্ক্যান
+          </Link>
           <Link href="/dashboard/books/add" className="btn btn-primary">
             ➕ বই যোগ
           </Link>
@@ -216,13 +252,14 @@ export default function BooksClient({
 
         {/* Minimal Search & Filter Bar */}
         <div className="books-controls-bar">
-          <div className="books-search-box">
+          <div className="books-search-box" style={{ display: 'flex', alignItems: 'center' }}>
             <span className="search-icon">🔍</span>
             <input
               type="text"
               placeholder="বই, লেখক, ISBN, প্রকাশক খুঁজুন..."
               value={search}
               onChange={(e) => setSearch(e.target.value)}
+              style={{ flex: 1 }}
             />
             {search && (
               <button 
@@ -234,6 +271,23 @@ export default function BooksClient({
                 ✕
               </button>
             )}
+            <button
+              type="button"
+              className="btn btn-secondary btn-icon"
+              onClick={() => setIsSearchScannerOpen(true)}
+              style={{
+                marginLeft: '4px',
+                padding: '4px 8px',
+                height: '32px',
+                background: 'rgba(59, 130, 246, 0.1)',
+                color: '#3b82f6',
+                border: '1px solid rgba(59, 130, 246, 0.25)',
+                borderRadius: '6px'
+              }}
+              title="বারকোড স্ক্যান করে লাইব্রেরিতে বই খুঁজুন"
+            >
+              <Camera size={16} />
+            </button>
           </div>
 
           <div className="books-filter-group">
@@ -722,6 +776,140 @@ export default function BooksClient({
           </div>
         </div>
       )}
+      {/* Scanned Found Book Popup */}
+      {scannedFoundBook && (
+        <div className="modal-overlay" onClick={() => setScannedFoundBook(null)} style={{ zIndex: 10000 }}>
+          <div className="modal" onClick={e => e.stopPropagation()} style={{ maxWidth: '480px', width: '92%', borderRadius: '16px', overflow: 'hidden' }}>
+            <div style={{
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              padding: '16px 20px',
+              borderBottom: '1px solid var(--border-color)',
+              background: 'rgba(16, 185, 129, 0.08)'
+            }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: '#059669', fontWeight: 600 }}>
+                <CheckCircle2 size={20} />
+                <span>বইটি লাইব্রেরিতে পাওয়া গেছে!</span>
+              </div>
+              <button type="button" onClick={() => setScannedFoundBook(null)} className="btn btn-secondary btn-icon" style={{ width: '32px', height: '32px', padding: 0 }}>
+                <X size={16} />
+              </button>
+            </div>
+
+            <div style={{ padding: '20px', display: 'flex', gap: '16px', alignItems: 'flex-start' }}>
+              {scannedFoundBook.coverUrl ? (
+                <img 
+                  src={scannedFoundBook.coverUrl} 
+                  alt={scannedFoundBook.title} 
+                  style={{ width: '70px', height: '100px', objectFit: 'cover', borderRadius: '8px', boxShadow: '0 4px 12px rgba(0,0,0,0.15)', flexShrink: 0 }} 
+                />
+              ) : (
+                <div style={{ width: '70px', height: '100px', borderRadius: '8px', background: 'var(--border-color)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--text-muted)', flexShrink: 0 }}>
+                  📚
+                </div>
+              )}
+              <div style={{ flex: 1, minWidth: 0 }}>
+                <h3 style={{ margin: '0 0 6px', fontSize: '1.1rem', fontWeight: 600 }}>{scannedFoundBook.title}</h3>
+                <p style={{ margin: '0 0 4px', fontSize: '0.88rem', color: 'var(--text-muted)' }}>
+                  লেখক: <strong>{scannedFoundBook.authorNameBn || scannedFoundBook.authorName || 'অজ্ঞাত'}</strong>
+                </p>
+                <p style={{ margin: '0 0 8px', fontSize: '0.82rem', color: 'var(--text-muted)' }}>
+                  মালিক: <strong style={{ color: 'var(--primary)' }}>{getOwnerLabel(scannedFoundBook.owner)}</strong>
+                </p>
+
+                {/* Location Info */}
+                <div style={{
+                  padding: '8px 10px',
+                  background: 'var(--card-bg)',
+                  border: '1px solid var(--border-color)',
+                  borderRadius: '8px',
+                  fontSize: '0.82rem',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  gap: '4px'
+                }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                    <MapPin size={14} color="#3b82f6" />
+                    <span>অবস্থান:</span>
+                    <strong>
+                      {[scannedFoundBook.roomName, scannedFoundBook.shelfName, scannedFoundBook.rackName].filter(Boolean).join(' ➔ ') || 'নির্দিষ্ট স্থান নির্ধারণ করা নেই'}
+                    </strong>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div style={{ padding: '12px 20px', borderTop: '1px solid var(--border-color)', display: 'flex', justifyContent: 'flex-end', gap: '10px' }}>
+              <button type="button" className="btn btn-secondary" onClick={() => setScannedFoundBook(null)}>
+                বন্ধ করুন
+              </button>
+              <Link 
+                href={`/dashboard/books/${scannedFoundBook.id}`} 
+                className="btn btn-primary"
+                style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}
+                onClick={() => setScannedFoundBook(null)}
+              >
+                <span>বইয়ের বিবরণ দেখুন</span>
+                <ExternalLink size={14} />
+              </Link>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Scanned Not Found Popup */}
+      {scannedNotFoundIsbn && (
+        <div className="modal-overlay" onClick={() => setScannedNotFoundIsbn(null)} style={{ zIndex: 10000 }}>
+          <div className="modal" onClick={e => e.stopPropagation()} style={{ maxWidth: '440px', width: '92%', borderRadius: '16px', overflow: 'hidden' }}>
+            <div style={{
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              padding: '16px 20px',
+              borderBottom: '1px solid var(--border-color)',
+              background: 'rgba(239, 68, 68, 0.08)'
+            }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: 'var(--danger)', fontWeight: 600 }}>
+                <AlertCircle size={20} />
+                <span>লাইব্রেরিতে পাওয়া যায়নি</span>
+              </div>
+              <button type="button" onClick={() => setScannedNotFoundIsbn(null)} className="btn btn-secondary btn-icon" style={{ width: '32px', height: '32px', padding: 0 }}>
+                <X size={16} />
+              </button>
+            </div>
+
+            <div style={{ padding: '20px', textAlign: 'center' }}>
+              <p style={{ margin: '0 0 12px', fontSize: '0.92rem' }}>
+                স্ক্যান করা ISBN (<code style={{ background: 'var(--card-bg)', padding: '2px 6px', borderRadius: '4px' }}>{scannedNotFoundIsbn}</code>) দিয়ে আপনার লাইব্রেরিতে কোনো বই খুঁজে পাওয়া যায়নি।
+              </p>
+              <p style={{ margin: '0 0 16px', fontSize: '0.85rem', color: 'var(--text-muted)' }}>
+                আপনি কি এই ISBN দিয়ে স্বয়ংক্রিয়ভাবে তথ্য ফেচ করে নতুন বই হিসেবে যোগ করতে চান?
+              </p>
+              <div style={{ display: 'flex', justifyContent: 'center', gap: '10px' }}>
+                <button type="button" className="btn btn-secondary" onClick={() => setScannedNotFoundIsbn(null)}>
+                  না, থাক
+                </button>
+                <Link
+                  href={`/dashboard/books/add?isbn=${scannedNotFoundIsbn}`}
+                  className="btn btn-primary"
+                  style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}
+                  onClick={() => setScannedNotFoundIsbn(null)}
+                >
+                  <Plus size={15} /> হ্যাঁ, নতুন বই যোগ করুন
+                </Link>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Barcode Scanner Modal for Search */}
+      <BarcodeScannerModal
+        isOpen={isSearchScannerOpen}
+        onClose={() => setIsSearchScannerOpen(false)}
+        onScanSuccess={handleBarcodeScanToSearch}
+      />
     </>
   );
 }

@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState, useMemo } from 'react';
+import { useEffect, useState, useMemo, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { createClient } from '@/lib/supabase';
 import { Author, Publisher, Category, Genre, Room, Shelf, Rack, BOOK_STATUSES, READING_STATUSES, OWNERS, BookStatus, ReadingStatus, BookOwner, BookCondition, getOwnerLabel, enToBnNumber, bnToEnNumber } from '@/lib/types';
@@ -186,9 +186,11 @@ export default function AddBookPage() {
     return () => clearTimeout(delayDebounceFn);
   }, [title, user]);
 
+  const hasInitializedOwnerRef = useRef(false);
   useEffect(() => {
-    if (user && user.id) {
+    if (user?.id && !hasInitializedOwnerRef.current) {
       setOwner(user.id as BookOwner);
+      hasInitializedOwnerRef.current = true;
     }
   }, [user]);
 
@@ -481,11 +483,6 @@ export default function AddBookPage() {
     setter(cleanVal);
   };
 
-  useEffect(() => {
-    if (user?.id) {
-      setOwner(user.id as BookOwner);
-    }
-  }, [user]);
 
   useEffect(() => {
     const init = async () => {
@@ -543,6 +540,12 @@ export default function AddBookPage() {
           
           setDuplicateBookSuggestion(camelB);
         }
+      }
+
+      const isbnParam = params.get('isbn');
+      if (isbnParam) {
+        handleIsbnChange(isbnParam, setIsbn);
+        handleLookupIsbn(isbnParam);
       }
     };
     init();
@@ -756,7 +759,7 @@ export default function AddBookPage() {
       publisher_id: finalPublisherId || null,
       category_id: finalCategoryId || null,
       genre_id: finalGenreId || null,
-      owner: (user?.id as BookOwner) || owner,
+      owner: owner,
       status,
       is_purchased: isPurchased,
       purchase_date: purchaseDate || null,

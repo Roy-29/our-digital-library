@@ -541,3 +541,108 @@ export async function dbLookupIsbn(rawIsbn: string) {
   };
 }
 
+export interface RapidBookInput {
+  isbn: string;
+  title: string;
+  titleOriginal?: string;
+  subtitle?: string;
+  authorName?: string;
+  publisherName?: string;
+  publicationYear?: number | null;
+  pageCount?: number | null;
+  description?: string | null;
+  coverUrl?: string | null;
+  owner?: string;
+  roomId?: string | null;
+  shelfId?: string | null;
+  rackId?: string | null;
+}
+
+export async function dbBulkAddRapidBooks(booksList: RapidBookInput[], defaultOwner: string) {
+  if (!booksList || booksList.length === 0) {
+    return { success: false, message: 'কোনো বই পাওয়া যায়নি।' };
+  }
+
+  let count = 0;
+  for (const item of booksList) {
+    if (!item.title || !item.title.trim()) continue;
+
+    // Resolve author
+    let authorId: string | null = null;
+    if (item.authorName && item.authorName.trim()) {
+      const aName = item.authorName.trim();
+      const existing = await client.execute({
+        sql: 'SELECT id FROM authors WHERE name = ? OR name_bn = ? LIMIT 1',
+        args: [aName, aName],
+      });
+      if (existing.rows[0]) {
+        authorId = existing.rows[0].id as string;
+      } else {
+        const newId = crypto.randomUUID();
+        await client.execute({
+          sql: 'INSERT INTO authors (id, name, name_bn, is_author) VALUES (?, ?, ?, 1)',
+          args: [newId, aName, aName],
+        });
+        authorId = newId;
+      }
+    }
+
+    // Resolve publisher
+    let publisherId: string | null = null;
+    if (item.publisherName && item.publisherName.trim()) {
+      const pName = item.publisherName.trim();
+      const existing = await client.execute({
+        sql: 'SELECT id FROM publishers WHERE name = ? OR name_bn = ? LIMIT 1',
+        args: [pName, pName],
+      });
+      if (existing.rows[0]) {
+        publisherId = existing.rows[0].id as string;
+      } else {
+        const newId = crypto.randomUUID();
+        await client.execute({
+          sql: 'INSERT INTO publishers (id, name, name_bn) VALUES (?, ?, ?)',
+          args: [newId, pName, pName],
+        });
+        publisherId = newId;
+      }
+    }
+
+    const bookId = crypto.randomUUID();
+    const finalOwner = item.owner || defaultOwner || 'swapnil';
+
+    await client.execute({
+      sql: `INSERT INTO books (
+        id, title, title_original, subtitle, isbn, author_id, publisher_id,
+        publication_year, page_count, description, cover_url,
+        owner, status, is_purchased, room_id, shelf_id, rack_id, added_by
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'আছে', 1, ?, ?, ?, ?)`,
+      args: [
+        bookId,
+        item.title.trim(),
+        item.titleOriginal?.trim() || null,
+        item.subtitle?.trim() || null,
+        item.isbn ? item.isbn.trim() : null,
+        authorId,
+        publisherId,
+        item.publicationYear || null,
+        item.pageCount || null,
+        item.description?.trim() || null,
+        item.coverUrl?.trim() || null,
+        finalOwner,
+        item.roomId || null,
+        item.shelfId || null,
+        item.rackId || null,
+        finalOwner
+      ],
+    });
+    count++;
+  }
+
+  try {
+    revalidatePath('/dashboard');
+    revalidatePath('/dashboard/books');
+  } catch {}
+
+  return { success: true, count };
+}
+
